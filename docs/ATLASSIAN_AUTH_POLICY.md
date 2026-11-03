@@ -45,3 +45,7 @@ Use [Atlassian Developer support](https://developer.atlassian.com/support). No s
 ## Verification boundary
 
 Only public Atlassian documentation and local source were inspected. No Jira tenant API calls, credential reads, token replacement or test writes were performed for this review. Authentication code is unchanged. Documentation formatting is checked separately; application test results cannot establish policy approval.
+
+## Alternative connectivity research
+
+The [3 November connectivity report](JIRA_CONNECTIVITY_OPTIONS.md) compares official MCP v2, TWG CLI, ACLI, direct OAuth, third-party wrappers and Forge. MCP v2 and TWG OAuth are candidates for evaluation; documented capabilities are not verified tenant compatibility or distribution approval. The existing release gate remains open.

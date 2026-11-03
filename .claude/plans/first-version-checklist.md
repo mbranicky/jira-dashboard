@@ -138,3 +138,8 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Harden descriptor-based file reads, shorten session credential lifetime, remove unused credential-keyed state, normalize cache isolation and sanitize workflow errors.
 - [x] Verify with synthetic credential regression tests: all 89 Node tests and both type checks pass. Actual-token secret scan intentionally not run under the no-secret-read constraint.
 - [ ] Obtain the separate Atlassian distribution clarification; security hardening does not establish policy approval.
+
+## Alternative Jira connectivity research — 2026-11-03
+
+- [x] Compare public documentation for REST, official MCP v2, TWG CLI, ACLI, third-party wrappers and Forge in `docs/JIRA_CONNECTIVITY_OPTIONS.md`. No credentials read or Jira tenant calls made.
+- [ ] Evaluate MCP v2 and TWG OAuth against the complete dashboard contract using synthetic fixtures; verify supported schemas, credential storage and distribution terms before selecting a replacement. This research does not close the authentication distribution gate.
