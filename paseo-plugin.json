@@ -2,5 +2,8 @@
   "id": "jira-dashboard",
   "name": "Jira Dashboard",
   "description": "Your assigned sprint issues in a native Paseo board.",
-  "requirements": { "paseo": ">=0.14.0" }
+  "requirements": {
+    "paseo": ">=0.14.0"
+  },
+  "icon": "assets/icon.png"
 }

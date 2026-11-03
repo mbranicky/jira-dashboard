@@ -36,7 +36,8 @@
     "README.md",
     "docs/",
     "SPECIFICATION.md",
-    "DESIGN.md"
+    "DESIGN.md",
+    "assets/icon.png"
   ],
   "devDependencies": {
     "@cypress/vite-dev-server": "^8.0.0",
