@@ -34,3 +34,35 @@ test('runner handles synthetic process output and redacts failures without execu
   await assert.rejects(runTwg({executable: process.execPath, args: ['-e', 'process.stderr.write("synthetic-secret");process.exit(1)']}), error => error instanceof Error && !error.message.includes('synthetic-secret'));
   await assert.rejects(runTwg({executable: process.execPath, args: ['-e', 'process.stdout.write("x".repeat(3*1024*1024))']}), /execution limits/);
 });
+
+
+test('login is explicit, uses OAuth and discards CLI output', async () => {
+  const calls: TwgRequest[] = [];
+  const client = new TwgConnection('twg', async request => { calls.push(request); return 'synthetic-secret'; });
+  assert.equal(calls.length, 0);
+  assert.equal(await client.startLogin(), undefined);
+  assert.deepEqual(calls[0].args, ['login', '--oauth']);
+  assert.equal(calls[0].timeoutMs, 600_000);
+});
+test('login rejects concurrent attempts and can be cancelled then retried', async () => {
+  let finish!: (output: string) => void;
+  let signal: AbortSignal | undefined;
+  const client = new TwgConnection('twg', request => {
+    signal = request.signal;
+    return new Promise(resolve => { finish = resolve; });
+  });
+  const login = client.startLogin();
+  await assert.rejects(client.startLogin(), /already in progress/);
+  client.cancelLogin(); assert.equal(signal?.aborted, true); finish('synthetic-secret');
+  await assert.rejects(login, /cancelled/);
+  const retry = client.startLogin(); finish('ok'); await retry;
+  client.close(); await assert.rejects(client.startLogin(), /closed/);
+});
+test('login errors are redacted and close aborts active authorization', async () => {
+  const failing = new TwgConnection('twg', async () => { throw new Error('synthetic-secret'); });
+  await assert.rejects(failing.startLogin(), error => error instanceof Error && !error.message.includes('synthetic-secret'));
+  let finish!: (output: string) => void;
+  const client = new TwgConnection('twg', () => new Promise(resolve => {finish = resolve;}));
+  const login = client.startLogin(); client.close(); finish('ok');
+  await assert.rejects(login, /cancelled/);
+});
