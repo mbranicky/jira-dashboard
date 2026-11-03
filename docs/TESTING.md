@@ -52,7 +52,28 @@ Do not weaken assertions to make failures pass. First distinguish fixture/harnes
 
 On 2026-11-03, copied tracked source into a temporary directory without node_modules, credentials or settings and executed the manifest preparation (`npm ci --omit=dev --ignore-scripts`). It installed 11 packages, reported no production vulnerabilities, and imported `@getpaseo/client/node` successfully. The prototype MCP SDK and Cypress were absent. Paseo 0.14.0 loaded the prepared directory under an isolated runtime ID and reported running; the temporary registration was then removed.
 
-This verifies production dependency installation and host loading. It does not yet verify managed Git acquisition at the final release revision, actual rendered clean-install client interactions. Those remain release gates. Real Jira writes are explicitly excluded from automated verification and are not a release requirement. Development dependency audit findings are tracked separately.
+This earlier directory check verified production dependency installation and host loading. The managed Git and first-run UI verification below completes the installation check for the merged revision. Real Jira writes are explicitly excluded from automated verification and are not a release requirement. Development dependency audit findings are tracked separately.
+
+## Clean managed Git installation from merged main
+
+Verified on 2026-11-03 with Paseo 0.15.0, using an isolated runtime ID:
+
+```sh
+paseo plugin install git:https://github.com/mbranicky/jira-dashboard.git \
+  --ref f67eea528327773ece1da72d8c5d6ededcfe7634 \
+  --id jira-dashboard-git-smoke --json
+```
+
+- Paseo cloned and prepared the exact merged main revision, then reported the plugin running from its managed checkout. Tracked source remained clean.
+- Production Paseo client dependency was present; Cypress and the historical MCP SDK were absent. All four listing images were declared.
+- No `.local` directory, Jira credentials or existing mappings were copied into the checkout.
+- Opened the test runtime's actual dashboard surface in Paseo. First-run settings showed empty board URL and secret-file fields, disabled Test connection and Save connection actions, the default 60-second refresh interval, and no mapping rows.
+- No connection action was invoked, Jira credentials supplied, Jira operation tested or agent launched. This is unconfigured installation evidence; authenticated workflows remain covered by mocks.
+- Removed the temporary registration and managed checkout afterward. The original plugin remained running from the project folder. Repository visibility was reconfirmed PRIVATE.
+
+Private Git acquisition initially failed because the daemon's Git credential helper did not use the existing GitHub CLI login. A temporary helper configuration scoped to this repository URL allowed the clone; it was removed after installation. No token was copied into the plugin. Private installations require Git authentication available to the Paseo host process.
+
+Release-readiness PR #2 and merged-main checks passed. [Merged-main Actions run 41654410542](https://github.com/mbranicky/jira-dashboard/actions/runs/41654410542) passed both SDK configurations, including 83 Node tests and 33 browser tests, type checks, secret scanning and package validation. No version bump, tag, publication or registry submission was performed.
 
 ## Paseo 0.15.0 compatibility
 
@@ -91,3 +112,7 @@ All automated workflows use fictional issues and mocked Jira/Paseo services. Do 
 - Node tests independently verify transition-before-start sequencing, no start after a rejected transition, branch/worktree reuse, optional skill behavior, exact slash prompt, and resource/prompt deduplication. Browser RPC mocks do not by themselves prove those server behaviors.
 
 These are browser component workflows plus backend unit/integration tests, not end-to-end tests against Jira. External HTTPS access and unexpected RPCs fail the browser suite.
+
+## Credential regression coverage
+
+The credential audit adds six tests, bringing the Node suite to 89 passing tests. `tests/credentials.test.ts` uses owner-only temporary synthetic files and injected transports for request authentication, rotation/removal, file restrictions and error redaction. `tests/metadata-cache.test.ts` covers equivalent header formats and credential isolation. No real secret file or Jira connection is needed. See [credential security](CREDENTIAL_SECURITY.md) for audit boundaries.

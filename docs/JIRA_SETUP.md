@@ -25,7 +25,7 @@ Use the twelve-scope read-only set for the current dashboard and workspace detai
 
 Create a **new API token with scopes**, selecting **Jira** (not Atlassian MCP or MCP V2), at [Atlassian API tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
 
-Existing token scopes cannot be edited. To change scopes, create a replacement token with the complete applicable list below, replace `JIRA_API_TOKEN` in your configured `jira.env` file, verify the connection, then revoke the superseded token. Keep `JIRA_EMAIL` set to the token owner's email. Do not paste tokens into chat. Keep the file owner-only (`chmod 600`). The plugin reads credentials on each request; use Refresh after replacement.
+Existing token scopes cannot be edited. To change scopes, create a replacement token with the complete applicable list below, replace `JIRA_API_TOKEN` in your configured `jira.env` file, verify the connection, then revoke the superseded token. Keep `JIRA_EMAIL` set to the token owner's email. Do not paste tokens into chat. Keep the file owner-only (`chmod 600`), owned by the Paseo host user, and use a regular file rather than a symlink. The plugin reads credentials on each request; use Refresh after replacement.
 
 ### Complete list for supported capabilities (27 scopes)
 
@@ -187,9 +187,13 @@ Only HTTP 200 responses containing valid JSON are cached in host memory. Workflo
 - Current-user identity: 1 hour.
 - Board configuration: 10 minutes.
 
-Caches are bounded, isolated by URL and credentials, coalesce concurrent requests and reset on plugin reload. Credential changes use a different cache key; secrets are never written to disk by this cache. Errors are not cached. Issue content, sprint lists, transitions and all writes remain fresh. Loaded ticket status names are retained for up to one hour solely to label board status IDs.
+Caches are bounded, isolated by URL and credentials, coalesce concurrent requests and reset on plugin reload. Credential changes use a different cache key; secrets are never written to disk by this cache. Errors are not cached. Issue content, sprint lists, transitions and all writes remain fresh. The unused status-observation cache has been removed.
 
 
 ### Public distribution review
 
-Atlassian's [Basic auth guidance](https://developer.atlassian.com/cloud/jira/software/basic-auth-for-rest-apis/) recommends tokens for scripts/manual API calls and warns that apps collecting API tokens do not meet its cloud-app security requirements. Jira Dashboard reads a user-owned secret file on that user's Paseo host; the plugin author operates no credential-collection service. Whether Atlassian treats this locally operated, publicly distributed plugin as covered by that warning remains unresolved. Do not describe public distribution as Atlassian-approved. Resolve applicability before registry submission; this note does not change the selected local-token authentication design.
+Research completed on 3 November 2026: **public-distribution clearance is not established**. Atlassian documents API tokens for personal scripts but warns against third-party apps collecting them. No explicit exception was found for our user-hosted, open-source plugin. Reading a user-owned secret file is a security distinction, not confirmed policy permission. See the [authentication policy review](ATLASSIAN_AUTH_POLICY.md) for official sources, implementation boundaries and the precise questions for Atlassian. Keep public distribution and registry submission pending written clarification or a supported authentication design; the current implementation is unchanged.
+
+### Credential security
+
+See the [credential-handling audit](CREDENTIAL_SECURITY.md) for enforced file checks, credential lifetime, destination/redirect restrictions, cache isolation and safe errors. Tokens necessarily exist in host memory while authenticating; the plugin does not promise memory-free handling or secure erasure of JavaScript strings.

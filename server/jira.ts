@@ -1,9 +1,7 @@
-import {createHash} from 'node:crypto';
 import {metadataFetch} from './metadata-cache';
 import {richBlocks} from '../shared/comments';
-import { readFile, stat } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
-import { parseEnv } from 'node:util';
+import {loadCredentials,authorization,redactCredentials,type Credentials} from './credentials';
+export {loadCredentials} from './credentials';
 import { z } from 'zod';
 import { boardSchema, issueSchema, issueDetailsSchema, type Board, type Connection } from '../shared/contracts';
 
@@ -20,25 +18,14 @@ export function parseBoardUrl(value:string) {
   if(!Number.isSafeInteger(id)||id<1) throw new Error('Invalid board ID.');
   return {site:url.origin,id};
 }
-export async function loadCredentials(path:string) {
-  if(!isAbsolute(path)) throw new Error('Set an absolute jira.env path on this Paseo host.');
-  let info;
-  try {info=await stat(path);} catch {throw new Error('Cannot read jira.env on this host. Check its path and permissions.');}
-  if(!info.isFile() || info.size>65536) throw new Error('jira.env must be a small regular file.');
-  if(process.platform!=='win32' && (info.mode & 0o077)) throw new Error('Protect jira.env with owner-only permissions (chmod 600).');
-  let values:Record<string,string|undefined>;
-  try {values=parseEnv(await readFile(path,'utf8'));} catch {throw new Error('Could not parse jira.env.');}
-  const email=values.JIRA_EMAIL?.trim(); const token=values.JIRA_API_TOKEN?.trim();
-  if(!email||!token||!/^[^\s:]+@[^\s]+$/.test(email)||/[\r\n]/.test(token)) throw new Error('jira.env needs valid JIRA_EMAIL and JIRA_API_TOKEN values.');
-  return {email,token};
-}
-export function createReader(cloudId:string, auth:{email:string;token:string}, fetcher:typeof fetch=metadataFetch) {
+export function createReader(cloudId:string, auth:Credentials|(()=>Promise<Credentials>), fetcher:typeof fetch=metadataFetch) {
   if(!/^[a-f0-9-]{36}$/i.test(cloudId)) throw new Error('Invalid Jira cloud ID.');
   return async(path:string,query:Record<string,string>={}) => {
     if(!/^\/rest\/api\/3\/(myself|status|search\/jql)$|^\/rest\/agile\/1\.0\/board\/\d+\/(configuration|sprint)$|^\/rest\/software\/1\.0\/board\/\d+\/sprint\/\d+\/issue$/.test(path)&&!/^\/rest\/api\/3\/project\/[A-Z][A-Z0-9_]*\/statuses$/.test(path)) throw new Error('Unsupported read endpoint.');
     const url=new URL(`https://api.atlassian.com/ex/jira/${cloudId}${path}`);url.search=new URLSearchParams(query).toString();
+    const credentials=typeof auth==='function'?await auth():auth;
     let response:Response;
-    try {response=await fetcher(url,{method:'GET',redirect:'error',signal:timeoutSignal(30000),headers:{Accept:'application/json',Authorization:`Basic ${Buffer.from(`${auth.email}:${auth.token}`).toString('base64')}`}});} catch {throw new Error('Cannot reach Jira. Check the host connection and try again.');}
+    try {response=await fetcher(url,{method:'GET',redirect:'error',signal:timeoutSignal(30000),headers:{Accept:'application/json',Authorization:authorization(credentials)}});} catch {throw new Error('Cannot reach Jira. Check the host connection and try again.');}
     if(!response.ok){
       let scopeMismatch=false;
       if(response.status===401){try {const body=await response.json() as {message?:string};scopeMismatch=body.message==='Unauthorized; scope does not match';} catch {/* Never expose raw responses. */}}
@@ -78,10 +65,8 @@ export async function readIssues(get:Read,path:string,accountId:string) {
   }
   throw new Error('Issue pagination limit exceeded.');
 }
-const observedStatuses=new Map<string,{at:number;issues:Board['issues']}>();
-function observationKey(site:string,id:number,auth:{email:string;token:string}){return createHash('sha256').update(JSON.stringify([site,id,auth.email,auth.token])).digest('hex');}
 export async function fetchBoard(config:Connection,sprintId?:number):Promise<Board>{
-  const {site,id}=parseBoardUrl(config.boardUrl);const auth=await loadCredentials(config.envPath);
+  const {site,id}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
   let cloudId:string;
   try {const response=await metadataFetch(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});if(!response.ok)throw new Error();cloudId=z.object({cloudId:z.string()}).parse(await response.json()).cloudId;}catch {throw new Error('Cannot resolve this Jira site. Check the URL and network connection.');}
   const get=createReader(cloudId,auth);
@@ -93,34 +78,34 @@ export async function fetchBoard(config:Connection,sprintId?:number):Promise<Boa
   if(sprintId && !sprints.some(s=>s.id===sprintId))throw new Error('Selected sprint is no longer available on this board. Choose another sprint.');
   const selectedSprintId=sprintId??(active.length===1?active[0].id:null);
   const issues=selectedSprintId?await readIssues(get,`/rest/software/1.0/board/${id}/sprint/${selectedSprintId}/issue`,user.accountId):[];
-  if(observedStatuses.size>=32)observedStatuses.delete(observedStatuses.keys().next().value!);
-  observedStatuses.set(observationKey(site,id,auth),{at:Date.now(),issues});
   return boardSchema.parse({site,boardId:id,name:board.name,checkedAt:new Date().toISOString(),user:{displayName:user.displayName},columns:board.columnConfig.columns.map(c=>({name:c.name,statusIds:c.statuses.map(s=>s.id)})),sprints,selectedSprintId,issues});
 }
 
 function timeoutSignal(ms:number){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);timer.unref();return controller.signal;}
 
-export async function issueSession(config:Connection,key:string){
+export async function issueSession(config:Connection,key:string,fetcher:typeof fetch=metadataFetch){
   const {site}=parseBoardUrl(config.boardUrl);
-  const auth=await loadCredentials(config.envPath);
-  const tenant=await metadataFetch(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});
+  const tenant=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});
   if(!tenant.ok)throw new Error('Cannot resolve Jira site.');
   const {cloudId}=z.object({cloudId:z.string().uuid()}).parse(await tenant.json());
   const base=`https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${encodeURIComponent(key)}`;
-  const headers={Accept:'application/json',Authorization:`Basic ${Buffer.from(`${auth.email}:${auth.token}`).toString('base64')}`};
   async function request(suffix:string,transitionId?:string,fields?:Record<string,unknown>){
-    const response=await metadataFetch(base+suffix,{method:transitionId?'POST':'GET',redirect:'error',signal:timeoutSignal(30000),headers:{...headers,...(transitionId?{'Content-Type':'application/json'}:{})},...(transitionId?{body:JSON.stringify({transition:{id:transitionId},...(fields?{fields}:{})})}:{})});
+    const auth=await loadCredentials(config.envPath);
+    const headers={Accept:'application/json',Authorization:authorization(auth)};
+    let response:Response;
+    try{response=await fetcher(base+suffix,{method:transitionId?'POST':'GET',redirect:'error',signal:timeoutSignal(30000),headers:{...headers,...(transitionId?{'Content-Type':'application/json'}:{})},...(transitionId?{body:JSON.stringify({transition:{id:transitionId},...(fields?{fields}:{})})}:{})});}catch{throw new Error(transitionId?'Status update delivery could not be confirmed. Refresh the issue before retrying.':'Cannot reach Jira. Refresh the issue and try again.');}
     if(!response.ok){
       let reason='';
-      try{const body=await response.json() as {errorMessages?:string[];errors?:Record<string,string>};reason=[...(body.errorMessages??[]),...Object.entries(body.errors??{}).map(([field,message])=>field+': '+message)].join(' ').slice(0,3000);}catch{}
-      throw new Error(reason||`Jira ${transitionId?'status update':'workflow lookup'} failed (HTTP ${response.status}). Check token scopes, workflow requirements and permissions.`);
+      try{const body=await response.json() as {errorMessages?:string[];errors?:Record<string,string>};reason=[...(body.errorMessages??[]),...Object.entries(body.errors??{}).map(([field,message])=>field+': '+message)].join(' ');}catch{}
+      throw new Error(redactCredentials(reason,auth).slice(0,3000)||`Jira ${transitionId?'status update':'workflow lookup'} failed (HTTP ${response.status}). Check token scopes, workflow requirements and permissions.`);
     }
-    return transitionId?null:response.json();
+    if(transitionId)return null;
+    try{return await response.json();}catch{throw new Error('Jira returned an invalid workflow response.');}
   }
   return {
     async details(sprintId:number){
       const {id}=parseBoardUrl(config.boardUrl);
-      const get=createReader(cloudId,auth);
+      const get=createReader(cloudId,()=>loadCredentials(config.envPath),fetcher);
       const response=z.object({issues:z.array(z.unknown())}).parse(await get(`/rest/software/1.0/board/${id}/sprint/${sprintId}/issue`,{jql:`assignee = currentUser() AND key = "${key}"`,fields:"description,assignee,reporter,duedate,created,updated",maxResults:"1"}));
       if(!response.issues.length)throw new Error("Issue details are no longer available in this sprint.");
       const result=z.object({fields:z.object({description:z.unknown().optional(),assignee:z.object({displayName:z.string()}).nullish(),reporter:z.object({displayName:z.string()}).nullish(),duedate:z.string().nullish(),created:z.string().nullish(),updated:z.string().nullish()})}).parse(response.issues[0]);
@@ -164,7 +149,7 @@ export function descriptionBlocks(value:unknown):{text:string;kind:'paragraph'|'
 
 export async function fetchWorkspaceIssue(config:Connection,key:string){
  if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');
- const {site}=parseBoardUrl(config.boardUrl);const auth=await loadCredentials(config.envPath);
+ const {site}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
  let cloudId:string;
  try{const response=await metadataFetch(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});if(!response.ok)throw new Error();cloudId=z.object({cloudId:z.string()}).parse(await response.json()).cloudId;}catch{throw new Error('Cannot resolve this Jira site. Check the connection settings.');}
  return readWorkspaceIssueByKey(createReader(cloudId,auth),site,key);
@@ -191,7 +176,7 @@ export function normalizeProjectStatuses(value:unknown){
 }
 export async function fetchProjectStatuses(config:Connection,projectKey:string,refresh=false){
  if(!/^[A-Z][A-Z0-9_]*$/.test(projectKey))throw new Error('Enter a valid Jira project key.');
- const {site,id}=parseBoardUrl(config.boardUrl);const auth=await loadCredentials(config.envPath);
+ const {site,id}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
  const tenant=await metadataFetch(site+'/_edge/tenant_info',{redirect:'error',signal:timeoutSignal(15000)});
  if(!tenant.ok)throw new Error('Cannot resolve Jira site.');
  const {cloudId}=z.object({cloudId:z.string().uuid()}).parse(await tenant.json());
