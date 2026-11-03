@@ -4,7 +4,7 @@ Jira Dashboard is a trusted local Paseo plugin. Its backend reads the configured
 
 ## Install from a checkout
 
-Use Paseo 0.14.0 or newer, Node 24, npm, and Git on the daemon machine. Compatibility is currently tested against the 0.14.0 plugin SDK. Google Chrome is needed only for browser tests.
+Use Paseo 0.14.0 or newer, Node 24, npm, and Git on the daemon machine. The locked SDK baseline is 0.14.0; compatibility checks also cover the 0.15.0 SDK and installed app. Google Chrome is needed only for browser tests.
 
 ```sh
 git clone https://github.com/mbranicky/jira-dashboard.git
@@ -41,6 +41,24 @@ Choose modal or right-side details in Settings. The desktop dashboard panel can 
 
 Descriptions, attachments and comments collapse independently. Replies are new top-level Jira comments linked to the original; native threaded reply creation is not supported. Markdown comment input is converted to Jira rich text. See [limitations](KNOWN_LIMITATIONS.md) and [connection troubleshooting](JIRA_SETUP.md).
 
+## Git installation preparation
+
+The manifest declares `npm ci --omit=dev --ignore-scripts` for managed Git installation. This installs locked production dependencies without dependency lifecycle scripts or development tools. The historical MCP prototype SDK is development-only. The local-checkout walkthrough above uses the full development installation for type checks.
+
+The package is still private and prepared for Git distribution. Publishing on npm would require a publishable runtime lock and removing redundant Git-only preparation first.
+
 ## Update a local checkout
 
 After pulling reviewed changes, run `npm ci` and `npm run typecheck`, then `paseo plugin reload jira-dashboard`. Do not restart the daemon to reload a plugin. See [Testing](TESTING.md) for developer checks and the [first-version checklist](../.claude/plans/first-version-checklist.md) for remaining release gates.
+
+## Interface previews
+
+These screenshots use fictional data in a browser preview of the plugin components. Paseo host controls may differ.
+
+![Dashboard](../assets/dashboard.png)
+
+![Jira connection and appearance settings](../assets/settings.png)
+
+![Issue details panel](../assets/details.png)
+
+![Mobile issue details](../assets/mobile.png)

@@ -6,13 +6,13 @@ This file is the source of truth for tracking progress.
 -->
 # Jira Dashboard first-version checklist
 
-Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both type checks passed; 107 Git candidate files audited; 62 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
+Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
 ## Before first version
 
-- [ ] **Setup guide** — Token creation, complete scopes, `jira.env`, board configuration, project mappings, and entry-skill examples.
+- [x] **Setup guide** — Token creation, complete scopes, `jira.env`, board configuration, project mappings, and entry-skill examples.
 
-  Already covered: `docs/JIRA_SETUP.md` contains the 27-scope checklist, secret-file permissions, token replacement, endpoint references, troubleshooting, attachment limits, and caching. `OVERVIEW.md` describes mappings and skills. Added `docs/GETTING_STARTED.md` with the complete walkthrough and provider/model/mode/isolation setup; corrected outdated attachment wording. Remaining: reviewed setup screenshots. Existing scope references were not re-verified against Atlassian during this audit.
+  Already covered: `docs/JIRA_SETUP.md` contains the 27-scope checklist, secret-file permissions, token replacement, endpoint references, troubleshooting, attachment limits, and caching. `OVERVIEW.md` describes mappings and skills. Added `docs/GETTING_STARTED.md` with the complete walkthrough and provider/model/mode/isolation setup; corrected outdated attachment wording. Overview rewritten to match Play, workflow drag-and-drop, attachments and provider data flow. Reviewed synthetic setup and interface screenshots are included in the guide and registry media. Reverified all 17 endpoint rows against current public Platform/Software OpenAPI specifications on 2026-11-03: exact 27-scope union. Corrected stale automatic-status checkbox and unsupported-field wording; no tenant requests performed.
 
 - [x] **Connection check** — A “Test connection” action that identifies authentication, permissions, and board-access problems clearly.
 
@@ -20,7 +20,7 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 
 - [x] **Automated UI tests** — Cover settings, modal/panel selection, resize/collapse, navigation persistence, and mobile layouts. Unit tests alone won’t catch the visual regressions we’ve encountered.
 
-  Completed 2026-11-03: 16 Chrome browser tests pass. Cypress component tests mount the real React Native Web dashboard/settings with isolated, schema-validated fixture boundaries. See `docs/TESTING.md`.
+  Completed 2026-11-03: 33 Chrome browser tests pass. Cypress component tests mount the real React Native Web dashboard/settings with isolated, schema-validated fixture boundaries. See `docs/TESTING.md`.
 
   - [x] Add isolated browser harness, scripts, test type checking, and fail-closed RPC fixtures.
   - [x] Verify settings validation, save failures, single success message, provider/model dependencies, and appearance selection.
@@ -29,11 +29,11 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
   - [x] Verify 390 px full-screen details, fixed close control, field access, stacked settings, and overlay presets.
   - [x] Finish the complete suite run including 320 px light-theme and cross-ticket draft retention; capture review screenshots.
 
-  Separate remaining gates: approved pixel-diff baselines, actual Paseo host widget/navigation smoke tests, and physical-device testing. Screenshot capture alone is not visual regression comparison.
+  Separate remaining gates: approved pixel-diff baselines and actual Paseo host widget/navigation smoke tests. Physical-phone review was completed by the user with no issues reported. Screenshot capture alone is not visual regression comparison.
 
-- [ ] **Workflow regression tests** — Verify branch/worktree reuse, archived workspaces, duplicate-click protection, failed transitions, required fields, comments, and attachments.
+- [x] **Workflow regression tests** — Verify branch/worktree reuse, archived workspaces, duplicate-click protection, failed transitions, required fields, comments, and attachments.
 
-  Already covered: Node test runner with mocked Jira/Paseo operations and real temporary Git repositories. Tests cover branch reuse and ambiguity, checked-out source branch, archived links, repeated starts, uncertain prompt delivery, transition failures and sequencing, field encoding, linked replies and restrictions, duplicate comment/upload submission, attachment validation, and loopback image previews. Concurrent starts are already covered; a new agent-creation failure/retry test confirms workspace reuse and a single successful skill prompt. Remaining: rendered end-to-end workflows.
+  Already covered: Node test runner with mocked Jira/Paseo operations and real temporary Git repositories. Tests cover branch reuse and ambiguity, checked-out source branch, archived links, repeated starts, uncertain prompt delivery, transition failures and sequencing, field encoding, linked replies and restrictions, duplicate comment/upload submission, attachment validation, and loopback image previews. Concurrent starts are already covered; a new agent-creation failure/retry test confirms workspace reuse and a single successful skill prompt. Rendered mocked workflows now cover same-column drops, unavailable transitions, required-field rejection/correction, comment posting and linked replies, uncertain delivery, attachment uploads and failed-transfer cleanup, image previews, branch choices and start recovery. All Jira/Paseo service boundaries are mocked; real temporary Git repositories test branch behavior. Live Jira write tests are not a release requirement.
 
 - [x] **Public-repository audit** — Ensure tokens, `.local`, logs, screenshots containing private information, and company-specific defaults cannot enter Git.
 
@@ -45,7 +45,7 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 
 - [ ] **Release documentation** — README, license, changelog, supported Paseo version, known limitations, and a short troubleshooting guide.
 
-  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Remaining: clean-install smoke test against supported Paseo. Version remains 0.1.0; package remains private.
+  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Clean production-only copy loaded successfully on Paseo 0.14.0 with an isolated runtime ID; no Jira credentials or mappings copied. Remaining: exact managed Git revision installation and interactive first-run verification. Version remains 0.1.0; package remains private.
 
 ## Worthwhile product improvements
 
@@ -57,9 +57,9 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 
   Code inspection found existing host/issue-scoped comment draft storage. The browser suite verifies retention through collapse, ticket switching, and navigation. Restart still clears session drafts; no explicit unsaved-draft warning exists.
 
-- [ ] **Clear partial-failure recovery:** if a workspace is created but agent startup fails, offer a retry that reuses the workspace.
+- [x] **Clear partial-failure recovery:** if a workspace is created but agent startup fails, offer a retry that reuses the workspace.
 
-  Existing state recovery and partial-label failure tests provide a base. The explicit failed agent-start test passes. Remaining: verify the recovery UI without creating duplicate workspaces or resending an uncertain skill prompt.
+  Existing state recovery and partial-label failure tests provide a base. The explicit failed agent-start test passes. Completed: a Retry start action in the existing modal rechecks resource choices. Browser tests cover retry, branch selection and uncertain delivery with no retry; backend tests verify resource reuse and single prompt delivery.
 
 - [x] **Manual setup checklist:** `docs/GETTING_STARTED.md` guides first-time users through connection → board → mapping → first workspace.
 
@@ -74,3 +74,59 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 ## Dependency audit
 
 2026-11-03: npm audit reports 12 moderate findings through the React Native development-tool dependency tree, no high/critical findings. Suggested automatic remediation replaces the host-aligned React Native version; review compatibility before changing it. Not a clean security audit or public-release approval.
+
+## Git installation readiness (2026-11-03)
+
+- [x] Correct outdated overview and disclose agent-provider data flow.
+- [x] Move historical MCP prototype SDK out of production dependencies.
+- [x] Declare locked preparation: `npm ci --omit=dev --ignore-scripts`.
+- [x] Execute that preparation in an isolated source copy with no existing node_modules or private settings. Installed 11 packages; production dependency audit reported no vulnerabilities. MCP SDK and Cypress absent; production Paseo client import succeeds.
+- [x] Install the isolated prepared directory as `jira-dashboard-install-smoke` on Paseo 0.14.0; verify running, then remove it. Existing live plugin remains registered to the real checkout.
+- [ ] Verify managed Git acquisition/preparation at the final published revision and interact with the actual clean-install UI. The directory smoke test does not prove these steps.
+
+## Paseo 0.15.0 compatibility (2026-11-03)
+
+- [x] Confirm app, daemon and CLI version 0.15.0.
+- [x] Check unchanged runtime code against exact 0.15.0 SDK/client in an isolated copy: both type checks, 83 Node tests and 16 browser tests pass.
+- [x] Confirm live dashboard, settings and dashboard issue panel render on the 0.15.0 app with read-only Jira data.
+- [x] Add separate 0.15.0 CI job, preserving the locked 0.14.0 baseline. Local equivalent passed; remote CI awaits push.
+- [x] Verify write-workflow and workspace-start behavior with mocked Jira/Paseo boundaries, without Cloud access or real agents.
+- [x] Physical-mobile review by the user: no suspicious behavior or layout issues reported (2026-11-03). Plugin version remains 0.1.0; no release or publication authorized by this compatibility check.
+
+## Listing media and browser coverage
+
+- [x] Capture and visually inspect fictional dashboard, details, settings and mobile screenshots; include manifest media and package checks.
+- [x] Replace test icon placeholders with Lucide icons, and verify all 22 browser tests.
+- [x] Document preview provenance and exact-digest secret-audit review.
+
+## Live workflow and mobile verification (2026-11-03)
+
+- [x] On the live Paseo 0.15.0 app, open an existing workspace from the dashboard and confirm its Jira tab resolves the issue, with no Start/Open workspace controls inside that workspace tab.
+- [x] Scroll a long live description to Jira fields, attachments and comments; confirm the panel header stays available.
+- [x] Open the live comment composer, preview a Markdown draft, then discard it without posting.
+- [x] Read existing comments with author/creation time and load an authenticated PNG attachment in the in-app preview.
+- [x] Collapse dashboard details, navigate to a workspace and back, then expand: selection and collapsed state are retained.
+- [x] Re-run the nine settings/mobile browser tests; inspect 390 px dark-theme fields/settings and 320 px light-theme description captures. No horizontal clipping observed in these captures.
+- [x] Replace live write/startup testing with synthetic mocked workflow tests, per user direction. Do not request a real test issue or connect to Jira Cloud for automated verification.
+- [x] User mobile review: on 2026-11-03, the user reported checking the mobile Jira Dashboard and finding nothing suspicious. Device, OS, orientation and individual checklist steps were not recorded; this is user-reported acceptance, not a claim that every device or keyboard interaction was independently verified.
+
+The live observations used existing private issues but no private screenshots were added to the repository. These checks do not establish native threading, edited-comment ordering, external browser image previews, all workflow validators, or upload success.
+
+## Verification policy
+
+All further automated workflow verification uses synthetic data and mocked Jira/Paseo services. No real Jira data, Cloud connection, posted comments, uploads, status changes or agent runs. Historical read-only observations above remain historical evidence only. The user completed the mobile review with no issues reported.
+
+
+## Final public-release preparation
+
+- [x] Reverify all documented endpoint scopes against official public OpenAPI documents.
+- [x] Register all four reviewed screenshots in manifest media; package validation now rejects missing/empty media.
+- [x] Scan all reachable Git history and current Git candidates with checksum-verified Gitleaks 8.30.1: no findings.
+- [x] Add the pinned scanner and full-history checkout to CI; remote run remains pending.
+- [x] Reassess dependency audit: no production findings; 12 moderate development-only findings documented without an incompatible forced React Native upgrade.
+- [ ] Resolve applicability of Atlassian's API-token collection guidance to this user-operated local plugin before registry submission. Current local-token design is unchanged; no claim of Atlassian approval.
+- [ ] Review final staged changes, repeat audits, commit and run the release PR's checks on the exact head.
+- [ ] Verify clean managed Git installation from the final revision without real Jira credentials.
+- [ ] Finalize release notes and obtain direction to make the repository public and submit it.
+
+- [x] Refresh README for discovery: dashboard screenshot near the top, main capabilities, setup path, details preview and absolute documentation links for registry/npm readers. Remote assets become anonymously accessible after these changes reach main and the repository is public.

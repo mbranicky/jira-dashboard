@@ -1,3 +1,4 @@
+import {Action} from './settings-ui';
 import {Tooltip} from './tooltip';
 import {FocusScope} from './focus-scope';
 import {OpenWorkspaceIssue} from './workspace-issue';
@@ -29,6 +30,13 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
     }catch(e){setError(errorText(e));}
     finally{setBusy(false);}
   }
+  async function prepareWork(){
+    setBusy(true);setError('');
+    try{const options=await prepare({key:issueKey,sprintId});
+      if(options.length>1){setChoices(options);setBusy(false);}
+      else await execute(options[0]?.id);
+    }catch(e){setError(errorText(e));setBusy(false);}
+  }
   return <View style={{gap:8}}>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
       {footer}
@@ -40,11 +48,7 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
             setTip(false);
             if(configure){configure();return;}
             if(result){navigation?.openWorkspace({workspaceId:result.workspaceId});openIssue(result.workspaceId);return;}
-            setBusy(true);setError('');
-            void prepare({key:issueKey,sprintId}).then(options=>{
-              if(options.length>1){setChoices(options);setBusy(false);}
-              else void execute(options[0]?.id);
-            }).catch(e=>{setError(errorText(e));setBusy(false);});
+            void prepareWork();
           }}
           style={({pressed})=>({width:44,height:44,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
           <View style={{width:30,height:30,borderRadius:8,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
@@ -59,7 +63,10 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
         <ScrollView contentContainerStyle={{gap:8}}>{choices.map(choice=><Pressable key={choice.id} accessibilityRole="button" disabled={busy} onPress={()=>void execute(choice.id)} style={{padding:14,minHeight:44,borderRadius:8,backgroundColor:theme.colors.surface2}}>
          <Text style={text}>{choice.branch}</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>{choice.path??'Reuse branch in a new worktree'}</Text>
         </Pressable>)}</ScrollView>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={()=>{setChoices([]);setError('');}} style={{padding:12,alignSelf:'flex-end'}}><Text style={text}>{busy?'Starting…':'Close'}</Text></Pressable>
+        <View style={{flexDirection:'row',justifyContent:'flex-end',gap:8}}>
+          <Action theme={theme} icon="X" label="Close" disabled={busy} onPress={()=>{setChoices([]);setError('');}}/>
+          {error&&!result&&!choices.length?<Action theme={theme} icon="RotateCw" primary label="Retry start" disabled={busy} onPress={()=>void prepareWork()}/>:null}
+        </View>
        </View>
       </View>
     </FocusScope></Modal>:null}

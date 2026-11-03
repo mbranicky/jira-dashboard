@@ -13,14 +13,14 @@
     "test:ui:open": "cypress open --component",
     "typecheck:ui": "tsc --noEmit -p cypress/tsconfig.json",
     "check:package": "node scripts/check-package.mjs",
-    "check": "npm run typecheck && npm run typecheck:ui && npm test && npm run audit:secrets && npm run check:package"
+    "check": "npm run typecheck && npm run typecheck:ui && npm test && npm run audit:secrets && npm run check:package",
+    "audit:history": "node scripts/scan-secrets.mjs"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
-    "@getpaseo/client": "0.14.0",
-    "@modelcontextprotocol/sdk": "1.32.2"
+    "@getpaseo/client": "0.14.0"
   },
   "files": [
     "paseo-plugin.json",
@@ -37,17 +37,23 @@
     "docs/",
     "SPECIFICATION.md",
     "DESIGN.md",
-    "assets/icon.png"
+    "assets/icon.png",
+    "assets/dashboard.png",
+    "assets/details.png",
+    "assets/settings.png",
+    "assets/mobile.png"
   ],
   "devDependencies": {
     "@cypress/vite-dev-server": "^8.0.0",
     "@getpaseo/plugin": "0.14.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "@tanstack/react-query": "^5.90.11",
     "@types/node": "^24.0.0",
     "@types/react": "~19.2.0",
     "@types/react-dom": "^19.1.0",
     "cypress": "^16.2.0",
     "cypress-real-events": "^1.15.1",
+    "lucide-react": "1.67.0",
     "react": "19.1.0",
     "react-dom": "^19.1.0",
     "react-native": "0.81.5",
