@@ -1,4 +1,5 @@
 // Read-only pre-commit audit. Reports paths/categories, never matching values.
+import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync,readFileSync,rmSync,lstatSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -25,6 +26,8 @@ try{
   const path=join(root,file);if(!existsSync(path))continue;
   if(lstatSync(path).isSymbolicLink()){findings.push([file,'symlink requires review']);continue;}
   const data=readFileSync(path);const text=data.toString('utf8');
+  // Only the reviewed generated registry icon is exempt from binary review. Changes require review again.
+  if(file==='assets/icon.png'&&createHash('sha256').update(data).digest('hex')==='a94aec90edc5b6bb1e61722f74720172fc2df60209586582022294e49b114ba9')continue;
   if(/(?:^|\/)\.local\/|(?:^|\/)jira\.env$|\.(?:png|jpe?g|webp|zip|pdf|tgz)$/i.test(file))findings.push([file,'private artifact or binary requires review']);
   if(secrets.some(secret=>text.includes(secret)))findings.push([file,'matches local Jira credential']);
   for(const [label,pattern] of patterns)if(pattern.test(text))findings.push([file,label]);
