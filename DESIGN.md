@@ -202,3 +202,7 @@ Dashboard panel resizing and collapse: drag the left divider to resize, bounded 
 Dashboard navigation retains the selected issue, panel width, and collapsed state in host-isolated client-session storage. Returning from a workspace restores that view. Explicitly closing full-screen/modal details clears the selection; collapsing the docked panel does not. App restart or plugin reload resets this transient state. Details wait for appearance settings and layout measurement before restoring, avoiding a temporary modal flash.
 
 Initial dashboard loading shows neutral empty column surfaces with placeholder headings and a small labeled activity indicator. Desktop uses horizontally arranged columns; compact screens show one full-width column. No status names or zero issue counts are invented before Jira responds. Background refresh retains the last successful board and adds a small activity indicator beside its update time. Fetch failures replace the loading view with the existing error state.
+
+## Connection test feedback
+
+Place a compact Test connection action inside the connection settings card. Keep results directly below it: a short overall heading, then left-aligned step names and messages with pass/fail/skipped icons. Show progress while running and disable duplicate submissions. Explain that unsaved values are tested read-only and write/comment/attachment permissions are not verified. Clear stale results when URL or secret-file path changes.

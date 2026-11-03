@@ -39,9 +39,9 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 
   Completed point-in-time pre-Git audit: see `docs/SECRET_AUDIT.md`. Added defensive ignore rules and repeatable `npm run audit:secrets`; removed company-specific default and sanitized public examples. This does not make future secret commits impossible: repeat the audit and inspect the actual staged files before committing.
 
-- [ ] **CI checks** — Run type checking and tests on every push and pull request; validate the plugin’s distributable contents.
+- [x] **CI checks** — Run type checking and tests on every push and pull request; validate the plugin’s distributable contents.
 
-  Already covered: local `typecheck`, `test`, `audit:secrets` commands and npm package allowlist. Added GitHub Actions for both type checks, Node tests, Chrome component tests, secret scan and package-content checks. Local checks pass; first remote run is pending.
+  Already covered: local `typecheck`, `test`, `audit:secrets` commands and npm package allowlist. Added GitHub Actions for both type checks, Node tests, Chrome component tests, secret scan and package-content checks. Local checks and GitHub Actions run `41613924655` on initial commit `8bd3820` pass, including a clean npm install and all 16 browser tests.
 
 - [ ] **Release documentation** — README, license, changelog, supported Paseo version, known limitations, and a short troubleshooting guide.
 
@@ -67,8 +67,8 @@ Baseline reviewed 2026-11-03: 83 Node tests, 16 Chrome component tests, and both
 
 - [x] Audit current Git candidates and package contents without initializing the project repository.
 - [x] Choose repository name, hosting, public/private visibility, and license with the user: private `mbranicky/jira-dashboard`, MIT.
-- [ ] Initialize Git, review the actual staged file list and diff, repeat secret audit, and make the initial commit when requested.
-- [ ] Add remote/push when requested. No remote exists and nothing has been pushed.
+- [x] Initialize Git, review the actual staged file list and diff, repeat secret audit, and make the initial commit: `8bd3820`.
+- [x] Add remote and push: private `https://github.com/mbranicky/jira-dashboard`, branch `main`. No tag, release or npm publication.
 - [ ] Complete the release gates above before tagging or publishing a first public release.
 
 ## Dependency audit

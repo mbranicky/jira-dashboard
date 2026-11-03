@@ -15,10 +15,12 @@ Reviewed 2026-11-03, before this project has Git history. This is a point-in-tim
 
 ## Verification and limits
 
-Final baseline: 78 automated tests passed, type checking passed, and 86 Git candidate files passed the audit. A synthetic credential canary was detected without disclosing its value, then removed. The final 55-file package dry run had no private artifacts.
+Earlier pre-initialization baseline: 78 automated tests passed, type checking passed, and 86 Git candidate files passed the audit. A synthetic credential canary was detected without disclosing its value, then removed. The final 55-file package dry run had no private artifacts.
 
 Run `npm run audit:secrets` before staging and again before committing. Inspect `git diff --cached` and `git diff --cached --name-only` when a real repository/index exists. Ignore rules do not protect files force-added to Git; the audit includes those tracked files. Do not paste matching credentials into issue reports or CI output.
 
-This heuristic scan is not an entropy scanner and does not scan historical commits, ignored private data, or arbitrary encoded credentials. No project Git history exists to inspect yet. Add a maintained secret scanner in CI before the public release. If any real credential has ever been committed or shared, revoke/rotate it; ignoring or deleting it from a later commit is insufficient.
+This heuristic scan is not an entropy scanner and does not scan historical commits, ignored private data, or arbitrary encoded credentials. The pre-initialization audit had no project history to inspect. Add a maintained secret scanner in CI before the public release. If any real credential has ever been committed or shared, revoke/rotate it; ignoring or deleting it from a later commit is insufficient.
 
-No evidence of a credential in the current source candidates was found. No credential rotation was performed. Public license selection and repository creation remain separate tasks.
+No evidence of a credential in the current source candidates was found. No credential rotation was performed. MIT and the private `mbranicky/jira-dashboard` repository were subsequently selected by the owner.
+
+Initial commit checkpoint: all 107 staged source/documentation/test files passed the repeated scan; no environment files, screenshots or logs were staged. The updated package check passed for 62 files. Both type checks, 83 Node tests and 16 browser tests passed. The credential file and private audit backups remain ignored.
