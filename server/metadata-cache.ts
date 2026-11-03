@@ -14,7 +14,10 @@ export function createMetadataFetch(fetcher:typeof fetch=fetch,now=Date.now){
  return async(input:Parameters<typeof fetch>[0],init?:Parameters<typeof fetch>[1],refresh=false):Promise<Response>=>{
   const url=String(input),ttl=metadataTtl(url);
   if(!ttl||(init?.method??'GET')!=='GET')return fetcher(input,init);
-  const key=createHash('sha256').update(url+'\n'+JSON.stringify(init?.headers??{})).digest('hex');
+  const hash=createHash('sha256').update(url);
+  // Normalize all HeadersInit forms; do not serialize a credential-bearing object.
+  for(const [name,value] of [...new Headers(init?.headers)].sort(([a],[b])=>a.localeCompare(b)))hash.update('\n'+name+'\0').update(value);
+  const key=hash.digest('hex');
   if(refresh)entries.delete(key);
   const entry=entries.get(key);
   if(entry&&entry.until>now())return entry.response.clone();

@@ -43,9 +43,9 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 
   Already covered: local `typecheck`, `test`, `audit:secrets` commands and npm package allowlist. Added GitHub Actions for both type checks, Node tests, Chrome component tests, secret scan and package-content checks. Local checks and GitHub Actions run `41613924655` on initial commit `8bd3820` pass, including a clean npm install and all 16 browser tests.
 
-- [ ] **Release documentation** — README, license, changelog, supported Paseo version, known limitations, and a short troubleshooting guide.
+- [x] **Release documentation** — README, license, changelog, supported Paseo version, known limitations, and a short troubleshooting guide.
 
-  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Clean production-only copy loaded successfully on Paseo 0.14.0 with an isolated runtime ID; no Jira credentials or mappings copied. Remaining: exact managed Git revision installation and interactive first-run verification. Version remains 0.1.0; package remains private.
+  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Clean production-only copy loaded successfully on Paseo 0.14.0 with an isolated runtime ID; no Jira credentials or mappings copied. Managed Git installation and rendered first-run settings verified on Paseo 0.15.0 at merged main `f67eea528327773ece1da72d8c5d6ededcfe7634`; see `docs/TESTING.md`. Version remains 0.1.0; package remains private.
 
 ## Worthwhile product improvements
 
@@ -82,14 +82,14 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Declare locked preparation: `npm ci --omit=dev --ignore-scripts`.
 - [x] Execute that preparation in an isolated source copy with no existing node_modules or private settings. Installed 11 packages; production dependency audit reported no vulnerabilities. MCP SDK and Cypress absent; production Paseo client import succeeds.
 - [x] Install the isolated prepared directory as `jira-dashboard-install-smoke` on Paseo 0.14.0; verify running, then remove it. Existing live plugin remains registered to the real checkout.
-- [ ] Verify managed Git acquisition/preparation at the final published revision and interact with the actual clean-install UI. The directory smoke test does not prove these steps.
+- [x] Verify managed Git acquisition/preparation at merged main `f67eea528327773ece1da72d8c5d6ededcfe7634` on Paseo 0.15.0. Actual first-run settings have empty connection fields, disabled connection actions and no mappings. Test registration and checkout removed; existing plugin unchanged. No Jira connection configured or requested. This revision is not tagged or published.
 
 ## Paseo 0.15.0 compatibility (2026-11-03)
 
 - [x] Confirm app, daemon and CLI version 0.15.0.
 - [x] Check unchanged runtime code against exact 0.15.0 SDK/client in an isolated copy: both type checks, 83 Node tests and 16 browser tests pass.
 - [x] Confirm live dashboard, settings and dashboard issue panel render on the 0.15.0 app with read-only Jira data.
-- [x] Add separate 0.15.0 CI job, preserving the locked 0.14.0 baseline. Local equivalent passed; remote CI awaits push.
+- [x] Add separate 0.15.0 CI job, preserving the locked 0.14.0 baseline. Both configurations passed on merged main: 83 Node tests and 33 browser tests, with type checks and package validation (Actions run `41654410542`).
 - [x] Verify write-workflow and workspace-start behavior with mocked Jira/Paseo boundaries, without Cloud access or real agents.
 - [x] Physical-mobile review by the user: no suspicious behavior or layout issues reported (2026-11-03). Plugin version remains 0.1.0; no release or publication authorized by this compatibility check.
 
@@ -122,11 +122,19 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Reverify all documented endpoint scopes against official public OpenAPI documents.
 - [x] Register all four reviewed screenshots in manifest media; package validation now rejects missing/empty media.
 - [x] Scan all reachable Git history and current Git candidates with checksum-verified Gitleaks 8.30.1: no findings.
-- [x] Add the pinned scanner and full-history checkout to CI; remote run remains pending.
+- [x] Add the pinned scanner and full-history checkout to CI; merged-main Actions run `41654410542` passed.
 - [x] Reassess dependency audit: no production findings; 12 moderate development-only findings documented without an incompatible forced React Native upgrade.
-- [ ] Resolve applicability of Atlassian's API-token collection guidance to this user-operated local plugin before registry submission. Current local-token design is unchanged; no claim of Atlassian approval.
-- [ ] Review final staged changes, repeat audits, commit and run the release PR's checks on the exact head.
-- [ ] Verify clean managed Git installation from the final revision without real Jira credentials.
+- [x] Research Atlassian's API-token policy using official sources; document findings and local-host distinctions in `docs/ATLASSIAN_AUTH_POLICY.md` (2026-11-03). No explicit local-plugin exemption found.
+- [ ] Close the authentication distribution gate: obtain written Atlassian confirmation for this architecture, or adopt a supported authentication design before public distribution/registry submission. Research alone does not establish approval; local-token code remains unchanged.
+- [x] Review changes, repeat audits and merge release-readiness PR #2 after its checks passed. Merged-main checks also passed in Actions run `41654410542`.
+- [x] Verify clean managed Git installation from merged main `f67eea5` without real Jira credentials; first-run UI verified and temporary installation removed (2026-11-03).
 - [ ] Finalize release notes and obtain direction to make the repository public and submit it.
 
 - [x] Refresh README for discovery: dashboard screenshot near the top, main capabilities, setup path, details preview and absolute documentation links for registry/npm readers. Remote assets become anonymously accessible after these changes reach main and the repository is public.
+
+## Credential-handling audit (2026-11-03)
+
+- [x] Audit runtime credential flow without reading actual credentials or contacting Jira Cloud; document findings in `docs/CREDENTIAL_SECURITY.md`.
+- [x] Harden descriptor-based file reads, shorten session credential lifetime, remove unused credential-keyed state, normalize cache isolation and sanitize workflow errors.
+- [x] Verify with synthetic credential regression tests: all 89 Node tests and both type checks pass. Actual-token secret scan intentionally not run under the no-secret-read constraint.
+- [ ] Obtain the separate Atlassian distribution clarification; security hardening does not establish policy approval.

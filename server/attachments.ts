@@ -1,3 +1,4 @@
+import {authorization} from './credentials';
 import {metadataFetch} from './metadata-cache';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
@@ -7,16 +8,17 @@ import {attachmentSchema,CHUNK_SIZE,TRANSFER_LIMIT,type Attachment} from '../sha
 const raw=z.object({id:z.string(),filename:z.string(),size:z.number(),mimeType:z.string().optional(),author:z.object({displayName:z.string()}).optional(),created:z.string()});
 const normalize=(value:unknown)=>{const f=raw.parse(value);return attachmentSchema.parse({...f,mimeType:f.mimeType??'application/octet-stream',author:f.author?.displayName??'Former user'});};
 export type AttachmentSession=Awaited<ReturnType<typeof attachmentsSession>>;
-export async function attachmentsSession(config:Connection){
- const {site}=parseBoardUrl(config.boardUrl);const auth=await loadCredentials(config.envPath);
- const tenant=await metadataFetch(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeout(15000)});
+export async function attachmentsSession(config:Connection,fetcher:typeof fetch=metadataFetch){
+ const {site}=parseBoardUrl(config.boardUrl);
+ const tenant=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeout(15000)});
  if(!tenant.ok)throw new Error('Cannot resolve Jira.');
  const {cloudId}=z.object({cloudId:z.string().uuid()}).parse(await tenant.json());
  const request=async(path:string,options:{body?:Buffer;contentType?:string;range?:string}={})=>{
   if(!/^\/rest\/api\/3\/(issue\/[A-Z][A-Z0-9_]*-[1-9]\d*(\?fields=attachment|\/attachments)|attachment\/(meta|content\/\d+\?redirect=false))$/.test(path))throw new Error('Unsupported attachment endpoint.');
   if(options.body&&!path.endsWith('/attachments'))throw new Error('Unsupported attachment write.');
+  const auth=await loadCredentials(config.envPath);
   let response:Response;
-  try{response=await metadataFetch(`https://api.atlassian.com/ex/jira/${cloudId}${path}`,{method:options.body?'POST':'GET',redirect:'error',signal:timeout(60000),headers:{Authorization:`Basic ${Buffer.from(`${auth.email}:${auth.token}`).toString('base64')}`,Accept:options.range?'*/*':'application/json',...(options.range?{Range:options.range}:{}),...(options.body?{'Content-Type':options.contentType!,'X-Atlassian-Token':'no-check'}:{})},...(options.body?{body:options.body}:{})});}catch{throw new Error(options.body?'Upload delivery could not be confirmed. Refresh attachments and check Jira before uploading again.':'Cannot fetch the attachment. Check the connection or open it in Jira.');}
+  try{response=await fetcher(`https://api.atlassian.com/ex/jira/${cloudId}${path}`,{method:options.body?'POST':'GET',redirect:'error',signal:timeout(60000),headers:{Authorization:authorization(auth),Accept:options.range?'*/*':'application/json',...(options.range?{Range:options.range}:{}),...(options.body?{'Content-Type':options.contentType!,'X-Atlassian-Token':'no-check'}:{})},...(options.body?{body:options.body}:{})});}catch{throw new Error(options.body?'Upload delivery could not be confirmed. Refresh attachments and check Jira before uploading again.':'Cannot fetch the attachment. Check the connection or open it in Jira.');}
   if(!response.ok)throw new Error(options.body&&response.status>=500?'Upload delivery could not be confirmed. Refresh attachments and check Jira before uploading again.':`Jira attachment request failed (HTTP ${response.status}). Check token scopes, permissions and upload limits.`);
   return response;
  };

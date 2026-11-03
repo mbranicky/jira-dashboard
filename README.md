@@ -59,7 +59,9 @@ Your API token stays in a private file on the daemon host and is sent to Atlassi
 
 One Jira Cloud site is supported per host. Replies are new top-level comments linked to the original, rather than native threaded replies. Attachment transfers are limited to 25 MiB and Jira's upload limit; native mobile clients have file-picker limitations. Comment drafts are retained during the session, but not across an app/plugin restart.
 
-See [known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) and [connection troubleshooting](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md#troubleshooting-and-verification). The setup guide also records the unresolved applicability of Atlassian's token-collection guidance to public distribution of this locally operated plugin.
+See [known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) and [connection troubleshooting](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md#troubleshooting-and-verification). The [authentication policy review](https://github.com/mbranicky/jira-dashboard/blob/main/docs/ATLASSIAN_AUTH_POLICY.md) records why public-distribution clearance for the local-token approach is not yet established and what clarification is needed.
+
+See the [credential security audit](https://github.com/mbranicky/jira-dashboard/blob/main/docs/CREDENTIAL_SECURITY.md) for host-side handling and its limits.
 
 ## Documentation
 

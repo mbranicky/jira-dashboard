@@ -24,3 +24,10 @@ test('workflow status names are cached and explicit refresh bypasses the cache',
  await cached(url);await cached(url);assert.equal(calls,1);
  await cached(url,undefined,true);assert.equal(calls,2);
 });
+test('Headers and tuple credentials are isolated, while equivalent header forms share a cache entry',async()=>{
+ let calls=0;const cached=createMetadataFetch((async()=>{calls++;return Response.json({call:calls});}) as typeof fetch);
+ const url='https://example.test/rest/api/3/myself';
+ await cached(url,{headers:new Headers({Authorization:'synthetic-a'})});
+ await cached(url,{headers:[['authorization','synthetic-b']]});assert.equal(calls,2);
+ await cached(url,{headers:{Authorization:'synthetic-a'}});assert.equal(calls,2);
+});
