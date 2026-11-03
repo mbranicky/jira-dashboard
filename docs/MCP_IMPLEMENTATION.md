@@ -10,10 +10,11 @@ Completed initial foundation:
 - Raw OAuth/transport errors are not returned to the client.
 - No credential files are read or written. Credentials currently survive only for the session; this is not persistent login.
 - Synthetic tests cover callback validation, expiry, replay, consent destinations, credential isolation and disposal.
+- Added a loopback-only callback listener using an ephemeral port, no-store responses, host/state validation, cancellation and timeout cleanup. Six focused OAuth/callback tests pass.
 
 Remaining before users can select MCP:
 
-- Loopback callback listener lifecycle, cancellation and transport integration tests with a mock OAuth/MCP server.
+- Transport integration tests with a mock OAuth/MCP server and connection UI orchestration.
 - Protected persistent credential storage and account/site binding.
 - Settings connection UI and host-aware authorization for remote/mobile clients.
 - Tool-schema validation and dashboard adapter; workflow, comments and binary attachment adapters.
