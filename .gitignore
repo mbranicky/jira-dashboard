@@ -1,0 +1,24 @@
+node_modules/
+.local/
+
+# Credentials and local environment files (templates may be committed).
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!*.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Generated output and private debugging artifacts.
+*.log
+*.tgz
+.DS_Store
+coverage/
+test-results/
+playwright-report/
+cypress/screenshots/
+cypress/videos/

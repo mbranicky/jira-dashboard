@@ -1,0 +1,16 @@
+# Known limitations
+
+- One Jira Cloud site per Paseo host. Jira Server/Data Center and multiple sites are not supported.
+- All clients on that host use the configured token owner's permissions. Jira project and issue permissions still apply in addition to token scopes.
+- Connection diagnostics verify dashboard/search reads, not every comment, attachment or transition permission. A successful check is not a write-permission guarantee.
+- Replies are top-level comments with a link to the original. Native threaded reply creation and reactions are not supported.
+- Some workflow fields cannot be completed through the plugin; the transition dialog directs the user to Jira. Failed moves keep the original column.
+- Panel selection/size and comment drafts are session state. Plugin/app restart clears them. Sprint/search/mobile-column selection is not yet restored after dashboard navigation.
+- Provider and isolation choices are explicit. Paseo 0.14 does not expose every saved project default through its plugin API.
+- Attachment support has transfer/type/client limits documented in [Jira setup](JIRA_SETUP.md). Local browser preview is for local desktop connections; remote/mobile use in-app preview.
+- Automated browser tests use host adapters and synthetic Jira data. They do not replace actual Paseo, physical-phone, clean-install or real workflow validation. See [Testing](TESTING.md).
+- This is a private development checkpoint, not a published release. Public-release gates remain in the [checklist](../.claude/plans/first-version-checklist.md).
+
+## Dependency audit
+
+The 2026-11-03 npm audit reports 12 moderate findings in the React Native development toolchain, with no high/critical findings. The proposed automatic fix changes React Native from the host-aligned version; compatibility review is required before updating it. This remains a public-release gate.

@@ -1,0 +1,3 @@
+// Paseo supplies these host primitives at runtime; this adapter preserves their contracts.
+export function Icon({name,size,color}:any){return <span aria-hidden="true" style={{display:'inline-block',width:size,height:size,color,fontSize:size*.7,lineHeight:1}}>{name==='X'?'×':'◇'}</span>;}
+export function SettingsSelect({label,value,options,onValueChange,disabled}:any){return <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,gap:12,color:'inherit'}}>{label}<select aria-label={label} value={value} disabled={disabled} onChange={event=>onValueChange(event.target.value)}>{options.map((o:any)=><option key={o.value} value={o.value}>{o.label}</option>)}</select></label>;}
