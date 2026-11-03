@@ -4,7 +4,7 @@ const local=(path:string)=>fileURLToPath(new URL(path,import.meta.url));
 export default defineConfig({
  video:false,screenshotsFolder:'test-results/ui',viewportWidth:1440,viewportHeight:900,
  component:{
-  specPattern:'cypress/component/**/*.cy.tsx',supportFile:'cypress/support/component.ts',
+  specPattern:['cypress/component/**/*.cy.tsx','cypress/registry/**/*.cy.tsx'],supportFile:'cypress/support/component.ts',
   devServer:{framework:'react',bundler:'vite',viteConfig:{
    resolve:{alias:[
     {find:'@getpaseo/plugin/client/ui',replacement:local('./cypress/support/paseo-ui.tsx')},

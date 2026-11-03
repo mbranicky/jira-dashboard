@@ -19,7 +19,7 @@ This is the official connection guide for Jira Dashboard. It covers credentials,
 
 A board URL looks like `https://your-company.atlassian.net/jira/software/c/projects/PROJECT/boards/123`. The plugin supports one Jira Cloud site. The board determines columns and sprints; only issues assigned to the token owner appear on the dashboard. Workspace issue lookup can read other issues visible to that account. Authorized Paseo clients connected to the host share that account's Jira view.
 
-Use the twelve-scope read-only set for the current dashboard and workspace details. Add the eight status-update scopes if enabling automatic Jira transitions. The full 27-scope list covers implemented comments and linked replies, and attachment viewing/uploading.
+Use the twelve-scope read-only set for the current dashboard and workspace details. Add the eight status-update scopes for drag-and-drop Jira transitions. The full 27-scope list covers implemented comments and linked replies, and attachment viewing/uploading.
 
 ## Complete token scope checklist
 
@@ -29,7 +29,7 @@ Existing token scopes cannot be edited. To change scopes, create a replacement t
 
 ### Complete list for supported capabilities (27 scopes)
 
-For full functionality, select all scopes in this single deduplicated list. It covers the current dashboard, workspace details and automatic status updates, plus comment reading/posting and attachment viewing/uploading, including upload-limit discovery.
+For full functionality, select all scopes in this single deduplicated list. It covers the current dashboard, workspace details and board status transitions, plus comment reading/posting and attachment viewing/uploading, including upload-limit discovery.
 
 ```text
 read:application-role:jira
@@ -80,11 +80,11 @@ read:sprint:jira-software
 read:user:jira
 ```
 
-These cover the assigned-sprint board, dashboard details modal and independent workspace issue panel. For these read-only features, no write scopes are needed when **Automatically update Jira status** is disabled in every mapping. Comment posting and attachment uploads require their own write scopes below.
+These cover the assigned-sprint board, dashboard details modal and independent workspace issue panel. These reads do not need write scopes. Play creates or reuses a workspace and agent without changing Jira status. Comment posting and attachment uploads require their own write scopes below.
 
-### Also required for automatic Jira status updates (8 additional scopes)
+### Also required for board Jira status transitions (8 additional scopes)
 
-Add **all eight** below to the twelve above for the current Start work implementation (20 scopes total):
+Add **all eight** below to the twelve above for board drag-and-drop transitions (20 scopes total):
 
 ```text
 read:issue:jira
@@ -97,7 +97,7 @@ write:issue:jira
 write:issue.property:jira
 ```
 
-The extra read scopes cover the existing issue-status lookup and available transitions. The two write scopes cover the transition endpoint. Selecting them does not enable automatic updates by itself; the mapping's checkbox controls that behavior. No delete scope is needed. Jira account permissions and workflow rules still apply.
+The extra read scopes cover the existing issue-status lookup and available transitions. The two write scopes cover the transition endpoint. Moving a card to a different column requests a Jira transition. The mapping's **Start work on move to column** option controls whether a successful move also starts work in Paseo; Play itself never changes Jira. No delete scope is needed. Jira account permissions and workflow rules still apply.
 
 ### Comments and attachments (7 additional scopes)
 
@@ -123,7 +123,7 @@ Jira project permissions still apply: Browse projects, Add comments, and Create 
 
 ### Endpoint coverage and sources
 
-Verified against Atlassian's reference and full OpenAPI scope declarations on 31 October 2026. Scope lists are endpoint-level requirements even when only selected fields are requested. The `admin` in the board configuration scope is part of a read scope. The plugin does not read audit logs or votes; those scopes appear in Atlassian's requirements for the search/issue endpoints.
+Verified against Atlassian's reference and full OpenAPI scope declarations on 3 November 2026. Scope lists are endpoint-level requirements even when only selected fields are requested. The `admin` in the board configuration scope is part of a read scope. The plugin does not read audit logs or votes; those scopes appear in Atlassian's requirements for the search/issue endpoints.
 
 | Endpoint | Required granular scopes |
 | --- | --- |
@@ -145,7 +145,7 @@ Verified against Atlassian's reference and full OpenAPI scope declarations on 31
 | GET /rest/api/3/attachment/meta | read:instance-configuration:jira |
 | POST /rest/api/3/issue/{issueIdOrKey}/attachments | read:user:jira, write:attachment:jira, read:attachment:jira, read:avatar:jira |
 
-Sources: [current user](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-myself/#api-rest-api-3-myself-get), [board and sprint reads](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/), [enhanced search](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get), [issue and transition operations](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/), [comments](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/), [attachments](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-attachments/), [full platform OpenAPI specification](https://dac-static.atlassian.com/cloud/jira/platform/swagger-v3.v3.json).
+Sources: [current user](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-myself/#api-rest-api-3-myself-get), [board and sprint reads](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/), [enhanced search](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get), [issue and transition operations](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/), [comments](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/), [attachments](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-attachments/), [full platform OpenAPI specification](https://dac-static.atlassian.com/cloud/jira/platform/swagger-v3.v3.json), [software OpenAPI specification](https://dac-static.atlassian.com/cloud/jira/software/swagger.v3.json).
 
 The plugin discovers the cloud ID from the configured site's public `/_edge/tenant_info` endpoint without sending credentials. Authenticated calls go only to `https://api.atlassian.com/ex/jira/{cloudId}`. Redirects are rejected. The env file is parsed as data and never executed or loaded into the process environment.
 
@@ -155,9 +155,9 @@ The plugin discovers the cloud ID from the configured site's public `/_edge/tena
 - **Credentials rejected:** check the email, token expiry and whether Jira was selected as the token product.
 - **Access denied or no visible issue:** token scopes do not override Jira project permissions, issue security or comment visibility.
 - **File cannot be read:** check the absolute path on the daemon host and owner-only permissions.
-- **Status transition unavailable:** check the issue workflow and the account's Transition issues permission. Transitions requiring extra fields are not supported by the current Start work flow.
+- **Status transition unavailable:** check the issue workflow and the account's Transition issues permission. The move dialog supports editable fields supplied by Jira. Unsupported fields are identified as requiring completion in Jira. Failed moves leave the issue in its original column.
 
-After replacing a token, use Refresh. Validate reads before enabling automatic status updates. Scope requirements here are verified against the official endpoint contracts; granting scopes alone does not establish that a particular account can perform every operation.
+After replacing a token, use Refresh. Validate reads before enabling board status transitions. Scope requirements here are verified against the official endpoint contracts; granting scopes alone does not establish that a particular account can perform every operation.
 
 For developers, the repository's read-only connection harness can be run with Node 22 or newer:
 
@@ -188,3 +188,8 @@ Only HTTP 200 responses containing valid JSON are cached in host memory. Workflo
 - Board configuration: 10 minutes.
 
 Caches are bounded, isolated by URL and credentials, coalesce concurrent requests and reset on plugin reload. Credential changes use a different cache key; secrets are never written to disk by this cache. Errors are not cached. Issue content, sprint lists, transitions and all writes remain fresh. Loaded ticket status names are retained for up to one hour solely to label board status IDs.
+
+
+### Public distribution review
+
+Atlassian's [Basic auth guidance](https://developer.atlassian.com/cloud/jira/software/basic-auth-for-rest-apis/) recommends tokens for scripts/manual API calls and warns that apps collecting API tokens do not meet its cloud-app security requirements. Jira Dashboard reads a user-owned secret file on that user's Paseo host; the plugin author operates no credential-collection service. Whether Atlassian treats this locally operated, publicly distributed plugin as covered by that warning remains unresolved. Do not describe public distribution as Atlassian-approved. Resolve applicability before registry submission; this note does not change the selected local-token authentication design.
