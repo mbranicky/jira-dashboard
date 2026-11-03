@@ -138,3 +138,8 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Harden descriptor-based file reads, shorten session credential lifetime, remove unused credential-keyed state, normalize cache isolation and sanitize workflow errors.
 - [x] Verify with synthetic credential regression tests: all 89 Node tests and both type checks pass. Actual-token secret scan intentionally not run under the no-secret-read constraint.
 - [ ] Obtain the separate Atlassian distribution clarification; security hardening does not establish policy approval.
+
+## TWG CLI alternative — experimental branch
+
+- [x] Start an isolated host-side TWG adapter with bounded process execution, safe errors, cancellation and synthetic tests. See `docs/TWG_IMPLEMENTATION.md`.
+- [ ] Verify supported CLI contracts, OAuth setup/storage, site/profile binding and full dashboard parity before enabling the alternative in Settings. This foundation does not close the authentication distribution gate.
