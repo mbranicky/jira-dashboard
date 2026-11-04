@@ -11,4 +11,7 @@ Initial private development checkpoint (package version 0.1.0; not a published r
 - Experimental TWG OAuth connection with opt-in workflow transitions, comments/linked replies and attachment uploads; read-only by default.
 - Read-only connection diagnostics, setup documentation, secret audit and automated domain/browser tests.
 
+- Expanded Teamwork Graph connection diagnostics and unified status table; saving keeps Settings open.
+- Workflow status lookup tolerates stale board status IDs; refreshed setup documentation and fictional screenshots.
+
 Remaining release gates are tracked in the [first-version checklist](.claude/plans/first-version-checklist.md).

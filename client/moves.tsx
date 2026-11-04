@@ -31,12 +31,12 @@ export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=fals
    latest.current.options=choices;setOptions(choices);
    setMessage(choices.length?'':'Jira offers no transition to this column from the current status. The issue remains in its original position.');
    if(choices.length===1){setSelected(choices[0]);setValues({});}
-  }catch(e){setMessage(String(e));}finally{setBusy(false);}
+  }catch(e){setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));}finally{setBusy(false);}
  }
  async function execute(option:Option){
   if(busy)return;setBusy(true);setMessage('');
   try{const result=await move({key:latest.current.key,sprintId,transitionId:option.id,statusId:option.statusId,fields:values});setOptions([]);latest.current.options=[];setSelected(undefined);setMessage(result.warning??'Issue moved.');}
-  catch(e){setMessage(String(e));
+  catch(e){setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));
    try{const fresh=(await read({key:latest.current.key,sprintId})).find(o=>o.id===option.id&&o.statusId===option.statusId);if(fresh)setSelected(fresh);else setSelected(undefined);}catch{}
 }
   finally{setBusy(false);onChanged();}

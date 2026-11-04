@@ -108,8 +108,7 @@ and public-release authentication clearance remain separate unresolved gates.
 
 The `codex/twg-feature-parity` branch extends the merged read-only baseline with
 workflow moves, Markdown comments/linked replies and attachment uploads. Existing
-connections retain `twgWrites: false`; users explicitly enable **Allow Jira changes
-through TWG** in Settings. This flag is enforced server-side before constructing
+connections retain `twgWrites: false`; users explicitly enable **Allow Jira changes** in Settings. This flag is enforced server-side before constructing
 write adapters. REST remains independent and is never used as fallback.
 
 Command contracts were inspected offline in installed TWG **1.4.2** using
@@ -122,8 +121,9 @@ No live Jira requests were used for this work.
 - Discovery uses `jira workitem transition --id KEY` without a transition ID.
   Its `data.transitions` entries include `id`, `name`, `toName` and screen `fields`
   with `fieldId`, `fieldName`, `required`, schema, operations and allowed values.
-  Destination IDs are not included. `jira workitem statuses query --id ID` for the
-  board's actual IDs resolves names; duplicate names fail closed. The existing
+  Destination IDs are not included. `jira workitem statuses query` lists existing statuses, which are then filtered
+  to the board's actual IDs to resolve names; duplicate names fail closed. Listing
+  avoids failing every move when the board retains a deleted status ID. The existing
   move dialog and field converters are reused.
 - Submission uses `jira workitem transition --id KEY --transition-id ID
   --fields-json JSON`. The CLI revalidates transitions and screen fields before

@@ -1,9 +1,9 @@
-# TWG CLI OAuth setup (experimental)
+# Teamwork Graph CLI OAuth setup
 
 TWG is an optional connection for Jira Dashboard. Existing installations keep REST
-until **TWG CLI · experimental** is enabled. This preview supports dashboard
+until **Teamwork Graph CLI** is enabled. This connection supports dashboard
 and issue reads, comments, attachment viewing/downloads and local Start work.
-Jira changes are disabled by default. Enable **Allow Jira changes through TWG**
+Jira changes are disabled by default. Enable **Allow Jira changes**
 in Settings to use workflow moves, comment posting/replies and attachment uploads.
 
 ## Set up on the Paseo host
@@ -22,13 +22,15 @@ in Settings to use workflow moves, comment posting/replies and attachment upload
    Complete browser consent with the intended work account. The terminal belongs
    on the host even when you use Paseo from a phone or another computer.
 3. Open **Jira Dashboard → Settings**, enter the full board URL and enable
-   **TWG CLI · experimental**.
+   **Teamwork Graph CLI**.
 4. Set **TWG executable on host** to `twg`, or preferably its absolute path if the
    daemon's PATH differs from your terminal. Set **TWG profile** to the exact name
    used at login, such as `jira-dashboard`.
-5. Select **Test TWG access**, then **Save connection**. The test verifies the
-   configured board's column configuration; it does not certify every feature's
-   permissions. Refresh the dashboard to read its sprints and assigned issues.
+5. Select **Test connection** to verify authentication, board access, sprints,
+   assigned sprint issues and independent search. Fix any failed step, then
+   **Save connection**. Settings stay open; use **Back to board** to return.
+6. Enable **Allow Jira changes** and save if you want workflow moves, comments,
+   linked replies and uploads. Write permissions are not exercised by the test.
 
 No `jira.env` file or API token is required for TWG mode. A previously saved REST
 file path remains available when you switch back to REST, but TWG never uses it
@@ -36,7 +38,7 @@ as a fallback. One Jira Cloud site is supported per host.
 
 ## What is available
 
-| Feature | TWG preview |
+| Feature | Teamwork Graph |
 | --- | --- |
 | Board columns, assigned issues, active/future sprints | Available |
 | Saved sprint choice | Available per board; Auto selects only a single active sprint |
@@ -76,7 +78,7 @@ access that user's CLI credentials. Authorized clients connected to that host
 share its configured Jira access. CLI output is bounded and errors use fixed,
 sanitized guidance; credentials are not passed to agents.
 
-This experimental private integration does not establish public-distribution or
+This private integration does not establish public-distribution or
 CLI embedding permission. See [implementation and review notes](TWG_IMPLEMENTATION.md)
 and the [authentication policy review](ATLASSIAN_AUTH_POLICY.md).
 

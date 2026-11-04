@@ -4,6 +4,7 @@ const local=(path:string)=>fileURLToPath(new URL(path,import.meta.url));
 export default defineConfig({
  video:false,screenshotsFolder:'test-results/ui',viewportWidth:1440,viewportHeight:900,
  component:{
+  setupNodeEvents(on){on('before:browser:launch',(browser,options)=>{if(browser.family==='chromium')options.args.push('--window-size=1600,1400');return options;});},
   specPattern:['cypress/component/**/*.cy.tsx','cypress/registry/**/*.cy.tsx'],supportFile:'cypress/support/component.ts',
   devServer:{framework:'react',bundler:'vite',viteConfig:{
    resolve:{alias:[

@@ -241,7 +241,7 @@ and attachments retain their read-only presentation in TWG mode.
 ### TWG opt-in Jira changes
 
 TWG retains read-only behavior by default. Connection settings expose an explicit
-Allow Jira changes through TWG switch, enforced on the server. When enabled, use
+Allow Jira changes switch, enforced on the server. When enabled, use
 the existing move dialog, comment/linked-reply editor and attachment uploader in
 both dashboard details and workspace Jira panel. Card layout stays unchanged.
 Start work after a move occurs only after a confirmed Jira transition; Play remains

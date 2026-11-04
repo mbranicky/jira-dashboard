@@ -103,7 +103,8 @@ export class TwgConnection {
   }
   readStatuses(target:{site:string;profile:string},ids:string[]){
     if(!ids.length||ids.some(id=>!/^\d+$/.test(id)))throw new Error('Invalid status IDs.');
-    return this.scoped(['jira','workitem','statuses','query',...ids.flatMap(id=>['--id',id])],target);
+    // Board configuration can retain deleted status IDs. One stale ID must not fail every move.
+    return this.scoped(['jira','workitem','statuses','query'],target);
   }
   transition(target:{site:string;profile:string},key:string,id:string,fields:Record<string,unknown>){
     this.validateKey(key);if(!/^\d+$/.test(id))throw new Error('Invalid transition ID.');

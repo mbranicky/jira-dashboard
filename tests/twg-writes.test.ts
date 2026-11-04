@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,stat,access} from 'node:fs/promises';
 import {twgWrites} from '../server/twg-writes';
+import {TwgFailure} from '../server/twg-errors';
 import {TwgConnection} from '../server/twg-client';
 import {connectionSchema} from '../shared/contracts';
 import {attachmentUploads,type AttachmentSession} from '../server/attachments';
@@ -19,7 +20,7 @@ function harness(){
   if(a[0]==='--help')return '  --profile <name>';
   assert.ok(a.includes('work'));assert.ok(a.includes('example.atlassian.net'));
   if(command==='jira.workitem.get')return envelope([item]);
-  if(command==='jira.workitem.statuses.query')return envelope([{id:'2',name:'Development',statusCategory:{key:'indeterminate'}},...(state.ambiguous?[{id:'3',name:'Development'}]:[])]);
+  if(command==='jira.workitem.statuses.query'){assert.ok(!a.includes('--id'),'status list must not request stale board IDs individually');return envelope([{id:'2',name:'Development',statusCategory:{key:'indeterminate'}},...(state.ambiguous?[{id:'3',name:'Development'}]:[])]);}
   if(command==='jira.workitem.transition'){
    if(a.includes('--transition-id')){if(state.failWrite)throw Error('synthetic private diagnostic');return envelope({success:true,issueIdOrKey:'TEST-1',transition:{id:'21'}});}
    return envelope({transitions:[{id:'21',name:'Begin',toName:'Development',fields:[{fieldId:'points',fieldName:'Story points',required:true,schema:{type:'number'},operations:['set']}]}]});
@@ -41,7 +42,7 @@ test('TWG writes require explicit opt-in and never construct a process in read-o
 });
 test('workflow resolves actual status IDs and fields; confirms transition before local Start work',async()=>{
  const h=harness();try{
- const workflow=await h.service.workflow(config,'TEST-1',['1','2']);
+ const workflow=await h.service.workflow(config,'TEST-1',['1','2','99999']);
  const board={issues:[{key:'TEST-1',projectKey:'TEST',statusId:'1'}],columns:[{name:'Open',statusIds:['1']},{name:'Develop',statusIds:['2']}]} as any;
  const result=await availableMoves(config,'TEST-1',8,[{jiraProjectKey:'TEST',startWorkColumn:{name:'Develop',statusIds:['2']}} as any],async()=>board,async()=>workflow);
  assert.equal(result.options[0].statusId,'2');assert.equal(result.options[0].fields[0].kind,'number');
@@ -89,4 +90,15 @@ test('malformed upload receipts are sanitized and are not retried',async()=>{
  try{const {uploadId}=await manager.begin(session,{key:'TEST-1',filename:'test.txt',size:3,mimeType:'text/plain'});manager.chunk(uploadId,0,'YWJj');
  for(let attempt=0;attempt<2;attempt++)await assert.rejects(manager.finish(session,uploadId),/^Error: Upload response could not be confirmed\./);assert.equal(writes,1);
  }finally{manager.close();}
+});
+
+for(const stage of ['transitions','statuses'])test(`missing ${stage} reports the failing lookup without attempting a move`,async()=>{
+ let mutations=0;
+ const service=twgWrites(path=>new TwgConnection(path,async({args:a})=>{
+  if(a[0]==='--help')return '  --profile <name>';
+  if(a.includes('--transition-id'))mutations++;
+  if(a[2]==='transition'&&stage==='statuses')return JSON.stringify({apiVersion:'v2',command:'jira.workitem.transition',data:{transitions:[]}});
+  throw new TwgFailure('not-found');
+ }));
+ try{const workflow=await service.workflow(config,'TEST-1',['2','99999']);await assert.rejects(workflow.availableTransitions(),stage==='transitions'?/could not load transitions/:/workflow status lookup is unavailable/);assert.equal(mutations,0);}finally{service.close();}
 });
