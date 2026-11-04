@@ -80,6 +80,9 @@ export class TwgConnection {
       'summary,status,issuetype,priority,project,parent,fixVersions,labels,description,assignee,reporter,duedate,created,updated',
       '--site',new URL(value.site).hostname,'--profile',value.profile]);
   }
+  searchAssignedIssues(target:{site:string;profile:string}){
+    return this.scoped(['jira','workitem','query','--jql','assignee = currentUser()','--fields','key','--limit','1'],target);
+  }
   readComments(target:{site:string;profile:string},key:string,cursor?:string){
     this.validateKey(key);const value=twgTarget.parse(target);
     return this.json(['jira','workitem','comment','query','--issue-id',key,'--first','50','--order-by=-created',

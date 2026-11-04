@@ -34,8 +34,8 @@ test('settings refuse background OAuth before constructing a CLI connection',()=
  assert.throws(()=>service.start({action:'login',executable:'twg',site:'https://example.atlassian.net',profile:'default'}),/requires a terminal/);
  assert.equal(created,false);
 });
-test('board access check succeeds only after validating the requested board configuration',async()=>{
+test('board-only output cannot pass the expanded connection check',async()=>{
  const service=twgSettings(path=>new TwgConnection(path,async request=>request.args[0]==='--help'?'  --profile <name>':JSON.stringify({apiVersion:'v2',command:'jira.board.scope.query',data:{id:7,name:'Synthetic',columnConfig:{columns:[{name:'OPEN',statuses:[{id:'1'}]}]}}})));
  const job=service.start({action:'check',executable:'twg',site:'https://example.atlassian.net',profile:'work',boardId:7});await flush();
- assert.equal(service.poll(job.id).state,'succeeded');service.close();
+ assert.equal(service.poll(job.id).state,'failed');assert.equal(service.poll(job.id).result?.steps.at(-1)?.label,'Authentication');service.close();
 });
