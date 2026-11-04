@@ -2,11 +2,11 @@ import {fieldMetadata,transitionValues} from '../shared/transition-fields';
 import type {Connection,Mapping} from '../shared/contracts';
 import {startsWorkOnMove} from '../shared/moves';
 import {fetchBoard,issueSession} from './jira';
-export async function availableMoves(config:Connection,key:string,sprintId:number,mappings:Mapping[]=[]){
- const board=await fetchBoard(config,sprintId);
+export async function availableMoves(config:Connection,key:string,sprintId:number,mappings:Mapping[]=[],readBoard=fetchBoard,session:(config:Connection,key:string)=>Promise<Pick<Awaited<ReturnType<typeof issueSession>>,'availableTransitions'|'transition'>>=issueSession){
+ const board=await readBoard(config,sprintId);
  const issue=board.issues.find(i=>i.key===key);
  if(!issue)throw new Error('This issue is no longer assigned to you in this sprint. Refresh the board.');
- const jira=await issueSession(config,key);
+ const jira=await session(config,key);
  const transitions=await jira.availableTransitions();
  const mapping=mappings.find(m=>m.jiraProjectKey===issue.projectKey);
  const options=transitions.flatMap(t=>{

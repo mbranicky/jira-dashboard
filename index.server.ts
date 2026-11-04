@@ -1,3 +1,5 @@
+import {twgWrites,assertTwgWrites} from './server/twg-writes';
+import {TRANSFER_LIMIT} from './shared/attachments';
 import {twgContent} from './server/twg-content';
 import {createTwgDashboard} from './server/twg-dashboard';
 import {twgStart,twgPoll,twgCancel} from './shared/twg';
@@ -20,6 +22,7 @@ import { fetchBoard } from './server/jira';
 export default function contribute(server:PluginServerContext){
   const twg=twgSettings();
   const content=twgContent();
+  const writes=twgWrites();
   const twgDashboard=createTwgDashboard();
   server.handle(twgStart,input=>twg.start(input));
   server.handle(twgPoll,({id})=>twg.poll(id));
@@ -42,10 +45,16 @@ export default function contribute(server:PluginServerContext){
     if(current.values.transport==='twg'){const columns=await twgDashboard.columns(current.values,refresh);return boardColumnOptions(columns.map(c=>({name:c.name,statuses:c.statusIds.map(id=>({id}))})));}
     return fetchProjectStatuses(current.values,projectKey,refresh);
   });
+  async function moves(config:Parameters<typeof availableMoves>[0],key:string,sprintId:number,items:Parameters<typeof availableMoves>[3]){
+    if(config.transport!=='twg')return availableMoves(config,key,sprintId,items);
+    assertTwgWrites(config);
+    const columns=await twgDashboard.columns(config);
+    return availableMoves(config,key,sprintId,items,twgDashboard.fetchBoard,(c,k)=>writes.workflow(c,k,columns.flatMap(column=>column.statusIds)));
+  }
   server.handle(readMoves,async({key,sprintId})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure Jira first.');
     const saved=await projectMappings.read();if(saved.status!=='ready')throw new Error('Mappings unavailable.');
-    return (await availableMoves(current.values,key,sprintId,saved.values.items)).options;
+    return (await moves(current.values,key,sprintId,saved.values.items)).options;
   });
   const moving=new Set<string>();
   server.handle(moveIssue,async(input,{paseo})=>{
@@ -54,7 +63,7 @@ export default function contribute(server:PluginServerContext){
     try{
       const current=await settings.read();if(current.status!=='ready')throw new Error('Configure Jira first.');
       const saved=await projectMappings.read();if(saved.status!=='ready')throw new Error('Mappings unavailable.');
-      const available=await availableMoves(current.values,input.key,input.sprintId,saved.values.items);
+      const available=await moves(current.values,input.key,input.sprintId,saved.values.items);
       const target=available.options.find(o=>o.id===input.transitionId&&o.statusId===input.statusId);
       const mapping=target?.development?(await context(input.key,input.sprintId)).mapping:undefined;
       return await performMove(input,available.options,available.jira.transition,()=>startIssue(paseo,current.values,{...mapping!,autoUpdateJira:false},input.key,undefined,undefined,available.issue.type));
@@ -92,6 +101,7 @@ export default function contribute(server:PluginServerContext){
   });
   server.handle(postComment,async({key,markdown,requestId,parentId})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');
+    if(current.values.transport==='twg'){assertTwgWrites(current.values);return postOnce(JSON.stringify([current.values.boardUrl,current.values.twgExecutable,current.values.twgProfile,key]),requestId,JSON.stringify({markdown,parentId}),()=>writes.post(current.values,key,markdown,parentId));}
     const {site,request}=await commentsSession(current.values);
     return postOnce(`${site}/${key}`,requestId,JSON.stringify({markdown,parentId}),()=>createComment(request,site,key,markdown,parentId));
   });
@@ -102,7 +112,17 @@ export default function contribute(server:PluginServerContext){
     const links=await boardWorkspaceLinks(paseo,current.values,board.issues.map(issue=>issue.key));
     return {...board,issues:board.issues.map(issue=>({...issue,linkedWorkspace:links[issue.key]}))};
   });
-  async function attachmentContext(key?:string){const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');if(current.values.transport==='twg'&&key)return content.session(current.values,key);return attachmentsSession(current.values);}
+  async function attachmentContext(key?:string){
+    const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');
+    const config=current.values;
+    if(config.transport!=='twg')return attachmentsSession(config);
+    const session=content.session(config,key??'');
+    if(key)return session;
+    assertTwgWrites(config);
+    return {...session,identity:JSON.stringify([session.site,'twg',config.twgExecutable,config.twgProfile]),
+      uploadSettings:async()=>({enabled:true,uploadLimit:TRANSFER_LIMIT,limitSource:'plugin' as const}),
+      upload:(issueKey:string,filename:string,bytes:Buffer)=>writes.upload(config,issueKey,filename,bytes)};
+  }
   server.handle(listAttachments,async({key})=>attachmentList(await attachmentContext(key),key));
   server.handle(attachmentSettings,async()=>readAttachmentSettings(await attachmentContext()));
   server.handle(readAttachment,async({key,id,offset})=>attachmentBytes(await attachmentContext(key),key,id,offset));
@@ -112,5 +132,5 @@ export default function contribute(server:PluginServerContext){
   server.handle(cancelUpload,async({uploadId})=>uploads.cancel(uploadId));
   server.handle(prepareBrowserPreview,async()=>previews.prepare());
   server.handle(loadBrowserPreview,async({key,id,token})=>previews.load(await attachmentContext(key),key,id,token));
-  return ()=>{content.close();twgDashboard.close();twg.close();uploads.close();previews.close();};
+  return ()=>{writes.close();content.close();twgDashboard.close();twg.close();uploads.close();previews.close();};
 }

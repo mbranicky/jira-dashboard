@@ -155,9 +155,18 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 
 Deferred beyond this PR:
 
-- [ ] TWG status transitions/required-field handling and drag-and-drop.
-- [ ] TWG comment posting and linked replies.
-- [ ] TWG attachment uploads.
+- [x] Implement opt-in TWG transitions, screen fields and drag-and-drop using the shared workflow UI; ambiguous destination names fail closed.
+- [x] Implement opt-in TWG Markdown comments and linked replies with visibility preservation and duplicate-submission protection.
+- [x] Implement opt-in TWG uploads with private temporary files, cleanup, connection identity checks and explicit plugin-only limit guidance.
 - [ ] Resolve CLI distribution/embedding terms and the separate public-release authentication-policy gate. Private merge is not public-distribution approval.
 
 Further automated verification uses mocks, without real Jira writes or agent/skill execution. Any entry skill selected by a user controls its own subsequent actions.
+
+### TWG write-mode verification (feature-parity branch)
+
+- [x] Verify installed 1.4.2 help and bundled output contracts offline.
+- [x] Existing configurations remain read-only until explicitly enabled.
+- [x] Mocked verification: 135 backend tests and 52 browser tests (complete suites), both typechecks, secret audit and package validation pass.
+- [ ] Resolve CLI limitations for duplicate destination names, identifier-only comment restrictions and attachment-settings discovery before claiming unrestricted REST parity.
+- [x] Review write integration, including blank visibility restrictions and malformed upload receipts.
+- [ ] Merge write integration after GitHub checks pass; no live Jira writes are required for automated verification.

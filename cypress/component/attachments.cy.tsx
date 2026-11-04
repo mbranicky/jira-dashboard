@@ -4,13 +4,14 @@ import {Harness,stubRpc,site} from '../support/harness';
 const button=(label:string)=>cy.get(`[role="button"][aria-label="${label}"]`);
 const uploadId='12345678-1234-4123-8123-123456789012';
 const file={id:'1',filename:'example.txt',size:5,mimeType:'text/plain',author:'Example user',created:'2026-11-03T10:00:00Z'};
-function open(){mount(<Harness/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();}
+for(const transport of ['rest','twg'] as const){
+function open(){mount(<Harness transport={transport} twgWrites/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();}
 function select(){
  // The real picker uses a detached input; attach it for Cypress without opening an OS dialog.
  cy.window().then(win=>cy.stub(win.HTMLInputElement.prototype,'click').callsFake(function(this:HTMLInputElement){if(this.type!=='file')throw Error('Unexpected input click');win.document.body.appendChild(this);}));
  button('Add attachment').click();cy.get('input[type=file]').selectFile({contents:Cypress.Buffer.from('hello'),fileName:'example.txt',mimeType:'text/plain'},{force:true});
 }
-describe('Mocked attachment workflows',()=>{
+describe(`Mocked ${transport} attachment workflows`,()=>{
  beforeEach(()=>{cy.viewport(1200,800);stubRpc();});
  it('upload a selected file → send bytes and refresh attachment list',()=>{
   let uploaded=false;
@@ -34,3 +35,5 @@ describe('Mocked attachment workflows',()=>{
   open();button('Preview image').click();cy.wait('@read');cy.get('[aria-label="example.png"]').should('be.visible');button('Close preview').click();cy.get('[aria-label="example.png"]').should('not.exist');
  });
 });
+
+}

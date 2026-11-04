@@ -8,7 +8,7 @@ import type {Connection} from '../shared/contracts';
 import {attachmentSchema,CHUNK_SIZE,TRANSFER_LIMIT,type Attachment} from '../shared/attachments';
 const raw=z.object({id:z.string(),filename:z.string(),size:z.number(),mimeType:z.string().optional(),author:z.object({displayName:z.string()}).optional(),created:z.string()});
 const normalize=(value:unknown)=>{const f=raw.parse(value);return attachmentSchema.parse({...f,mimeType:f.mimeType??'application/octet-stream',author:f.author?.displayName??'Former user'});};
-export type AttachmentSession=Awaited<ReturnType<typeof attachmentsSession>>;
+export type AttachmentSession={site:string;identity?:string;request:(path:string,options?:{body?:Buffer;contentType?:string;range?:string})=>Promise<Response>;upload?:(key:string,filename:string,bytes:Buffer)=>Promise<unknown[]>;uploadSettings?:()=>Promise<{enabled:boolean;uploadLimit:number;limitSource?:'plugin'}>};
 export async function attachmentsSession(config:Connection,fetcher:typeof fetch=metadataFetch){
  assertRestConnection(config);
  const {site}=parseBoardUrl(config.boardUrl);
@@ -24,13 +24,13 @@ export async function attachmentsSession(config:Connection,fetcher:typeof fetch=
   if(!response.ok)throw new Error(options.body&&response.status>=500?'Upload delivery could not be confirmed. Refresh attachments and check Jira before uploading again.':`Jira attachment request failed (HTTP ${response.status}). Check token scopes, permissions and upload limits.`);
   return response;
  };
- return {site,request};
+ return {site,request,identity:JSON.stringify([site,'rest',config.envPath])};
 }
 export async function attachmentList(session:AttachmentSession,key:string){
  const data=z.object({fields:z.object({attachment:z.array(z.unknown()).default([])})}).parse(await(await session.request(`/rest/api/3/issue/${key}?fields=attachment`)).json());
  return {site:session.site,files:data.fields.attachment.map(normalize)};
 }
-export async function settings(session:AttachmentSession){return z.object({enabled:z.boolean(),uploadLimit:z.number().nonnegative()}).parse(await(await session.request('/rest/api/3/attachment/meta')).json());}
+export async function settings(session:AttachmentSession){if(session.uploadSettings)return session.uploadSettings();return z.object({enabled:z.boolean(),uploadLimit:z.number().nonnegative()}).parse(await(await session.request('/rest/api/3/attachment/meta')).json());}
 export async function attachmentBytes(session:AttachmentSession,key:string,id:string,offset:number){
  const file=(await attachmentList(session,key)).files.find(f=>f.id===id);
  if(!file)throw new Error('Attachment no longer belongs to this issue or is unavailable.');
@@ -47,7 +47,7 @@ export async function attachmentBytes(session:AttachmentSession,key:string,id:st
  if(length!==Math.max(0,end-offset+1))throw new Error('Attachment content was incomplete.');
  return {base64:Buffer.concat(chunks).toString('base64'),total:file.size,mimeType:file.mimeType};
 }
-type Upload={key:string;filename:string;size:number;mimeType:string;chunks:Buffer[];received:number;expires:number;site:string;result?:Promise<Attachment[]>};
+type Upload={key:string;filename:string;size:number;mimeType:string;chunks:Buffer[];received:number;expires:number;site:string;identity?:string;result?:Promise<Attachment[]>};
 export function attachmentUploads(){
  const uploads=new Map<string,Upload>();
  const clean=()=>{for(const [id,u] of uploads)if(u.expires<Date.now())uploads.delete(id);};
@@ -62,7 +62,7 @@ export function attachmentUploads(){
    if(/[\r\n\x00/\\]/.test(input.filename))throw new Error('Invalid attachment filename.');
    if(uploads.size>=20||[...uploads.values()].reduce((sum,u)=>sum+(u.result?0:u.size),0)+input.size>50*1024*1024)throw new Error('Another upload is using the transfer buffer. Try again shortly.');
    await attachmentList(session,input.key);
-   const id=randomUUID();uploads.set(id,{...input,chunks:[],received:0,expires:Date.now()+15*60000,site:session.site});return {uploadId:id};
+   const id=randomUUID();uploads.set(id,{...input,chunks:[],received:0,expires:Date.now()+15*60000,site:session.site,identity:session.identity});return {uploadId:id};
   },
   chunk(id:string,offset:number,base64:string){
    const u=get(id);if(u.result)throw new Error('Upload was already submitted.');
@@ -72,11 +72,12 @@ export function attachmentUploads(){
    u.chunks.push(bytes);u.received+=bytes.length;u.expires=Date.now()+15*60000;return {received:u.received};
   },
   finish(session:AttachmentSession,id:string){
-   const u=get(id);if(u.site!==session.site)throw new Error('Jira site changed. Select the file again.');
+   const u=get(id);if(u.site!==session.site||u.identity!==session.identity)throw new Error('Jira site changed. Select the file again.');
    if(u.result)return u.result;
    if(u.received!==u.size)throw new Error('File transfer is incomplete.');
    u.result=(async()=>{
     const meta=await settings(session);if(!meta.enabled||u.size>meta.uploadLimit)throw new Error('Jira upload settings changed.');
+    if(session.upload){try{const uploaded=await session.upload(u.key,u.filename,Buffer.concat(u.chunks));try{return z.array(z.unknown()).min(1).parse(uploaded).map(normalize);}catch{throw new Error('Upload response could not be confirmed. Refresh attachments and check Jira before uploading again.');}}catch(e){throw new Error(e instanceof Error?e.message:'Upload delivery could not be confirmed. Check Jira before uploading again.');}finally{u.chunks=[];}}
     const boundary=`paseo-${randomUUID()}`;const filename=u.filename.replace(/"/g,'%22');
     const mime=/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+$/.test(u.mimeType)?u.mimeType:'application/octet-stream';
     const data=Buffer.concat([Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${mime}\r\n\r\n`),...u.chunks,Buffer.from(`\r\n--${boundary}--\r\n`)]);

@@ -23,13 +23,13 @@ export function stubRpc(options:{error?:boolean;many?:boolean}={}){
 }
 const colors={surface0:'#242932',surface1:'#2d333e',surface2:'#373f4c',border:'#454d5b',foreground:'#f4f5f7',foregroundMuted:'#b7beca',accent:'#8ab4ff',accentForeground:'#14233a',statusDanger:'#f28080',statusSuccess:'#72c893',statusWarning:'#e2b46b'};
 let hostCounter=0;
-export function Harness({transport='rest',mode='modal',failSave=false,light=false,preview=false,mappingItems=[],navigation={}}:{transport?:'rest'|'twg';mode?:'modal'|'panel';failSave?:boolean;light?:boolean;preview?:boolean;mappingItems?:unknown[];navigation?:any}){
+export function Harness({transport='rest',twgWrites=false,mode='modal',failSave=false,light=false,preview=false,mappingItems=[],navigation={}}:{transport?:'rest'|'twg';twgWrites?:boolean;mode?:'modal'|'panel';failSave?:boolean;light?:boolean;preview?:boolean;mappingItems?:unknown[];navigation?:any}){
  const [hostId]=useState(()=>`test-host-${++hostCounter}`);
  const [cache]=useState(()=>new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0,refetchOnWindowFocus:false}}}));
  const [away,setAway]=useState(false);const {width}=useWindowDimensions();
  const palette=light?{...colors,surface0:'#ffffff',surface1:'#f5f5f7',surface2:'#e9ebef',border:'#d5d8df',foreground:'#20242a',foregroundMuted:'#606875',accent:'#275ba8',accentForeground:'#ffffff',statusDanger:'#a52d2d'}:colors;
  const props:any={host:{id:hostId},theme:{colors:palette},layout:{compact:width<760},navigation};
- return <TestHost failSave={failSave} initial={{connection:{transport,boardUrl:`${site}/boards/1`,envPath:'/example/jira.env',refreshSeconds:300},dashboard:{detailsView:mode},mappings:{items:mappingItems}}}>
+ return <TestHost failSave={failSave} initial={{connection:{transport,twgWrites,boardUrl:`${site}/boards/1`,envPath:'/example/jira.env',refreshSeconds:300},dashboard:{detailsView:mode},mappings:{items:mappingItems}}}>
   <QueryClientProvider client={cache}><FocusScope><View style={{height:'100%',backgroundColor:palette.surface0}}>
    {!preview?<button data-testid="navigate" onClick={()=>setAway(!away)}>{away?'Return to dashboard':'Visit workspace'}</button>:null}
    {away?<View><span>Simulated workspace</span></View>:<Dashboard {...props}/>}
