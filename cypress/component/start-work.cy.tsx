@@ -5,15 +5,15 @@ const button=(label:string)=>cy.get(`[role="button"][aria-label="${label}"]`);
 const mapping={name:'Example mapping',jiraProjectKey:'TEST',paseoProjectId:'project-1',entrySkill:'init-issue',provider:'claude',model:'',isolation:'worktree'};
 describe('Start work',()=>{
  beforeEach(()=>{cy.viewport(1200,800);stubRpc();});
- for(const entrySkill of ['', 'init-issue']){
-  it(`Play with ${entrySkill?'an entry skill':'no entry skill'} → start directly without a transition dialog`,()=>{
+ for(const transport of ['rest','twg'] as const)for(const entrySkill of ['', 'init-issue']){
+  it(`Play via ${transport} with ${entrySkill?'an entry skill':'no entry skill'} → start directly without a transition dialog`,()=>{
    cy.intercept('POST','/__rpc/work.branches',{body:[]}).as('branches');
    cy.intercept('POST','/__rpc/work.start',request=>{
     expect(request.body).to.deep.equal({key:'TEST-1',sprintId:1});
     request.reply({body:{workspaceId:'workspace-1',agentId:'agent-1'}});
    }).as('start');
    const openAgent=cy.stub().as('openAgent');
-   mount(<Harness mappingItems={[{...mapping,entrySkill}]} navigation={{openAgent}}/>);
+   mount(<Harness transport={transport} mappingItems={[{...mapping,entrySkill}]} navigation={{openAgent}}/>);
    button('Start work TEST-1').click();cy.wait(['@branches','@start']);
    cy.get('@openAgent').should('have.been.calledOnceWith',{agentId:'agent-1'});
    cy.get('@start.all').should('have.length',1);cy.get('[role="dialog"]').should('not.exist');

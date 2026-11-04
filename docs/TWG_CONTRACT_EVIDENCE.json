@@ -1,0 +1,85 @@
+{
+  "inspectedVersion": "1.4.2",
+  "date": "2026-11-04",
+  "source": "https://teamwork-graph.atlassian.com/cli/twg-darwin-arm64-v1.4.2",
+  "sha256": "5bf0af700075365955ad4f8d92973a82008f6c2b3f7e607e39a647057b340784",
+  "method": "Bundled help only, network and credential access denied by OS sandbox. No tenant calls.",
+  "commands": [
+    {
+      "command": "twg access",
+      "options": [
+        "--product",
+        "--site-filter",
+        "--by-site",
+        "--by-org",
+        "--by-unit",
+        "--test-like",
+        "--probe",
+        "--bitbucket",
+        "--rovo",
+        "--org-details",
+        "--site-details",
+        "--units",
+        "--refresh",
+        "--no-empty-products"
+      ],
+      "hasOutputContract": false
+    },
+    {
+      "command": "twg jira board get",
+      "options": [
+        "--variables-json",
+        "--id"
+      ],
+      "hasOutputContract": false
+    },
+    {
+      "command": "twg jira board view-settings query",
+      "options": [
+        "--variables-json",
+        "--input-json",
+        "--view-id"
+      ],
+      "hasOutputContract": false
+    },
+    {
+      "command": "twg jira board sprints query",
+      "options": [
+        "--variables-json",
+        "--board-id",
+        "--project-ari",
+        "--state",
+        "--start-at",
+        "--max-results",
+        "--id",
+        "--project",
+        "--issue",
+        "--current"
+      ],
+      "hasOutputContract": false
+    },
+    {
+      "command": "twg jira sprint workitems query",
+      "options": [
+        "--variables-json",
+        "--sprint-id",
+        "--start-at",
+        "--max-results",
+        "--jql",
+        "--fields",
+        "--expand",
+        "--id"
+      ],
+      "hasOutputContract": false
+    },
+    {
+      "command": "twg user get",
+      "options": [
+        "--account-id"
+      ],
+      "hasOutputContract": true
+    }
+  ],
+  "genericApiAvailable": false,
+  "profileOptionAvailable": true
+}

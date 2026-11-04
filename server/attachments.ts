@@ -1,3 +1,4 @@
+import {assertRestConnection} from '../shared/connection-mode';
 import {authorization} from './credentials';
 import {metadataFetch} from './metadata-cache';
 import {randomUUID} from 'node:crypto';
@@ -9,6 +10,7 @@ const raw=z.object({id:z.string(),filename:z.string(),size:z.number(),mimeType:z
 const normalize=(value:unknown)=>{const f=raw.parse(value);return attachmentSchema.parse({...f,mimeType:f.mimeType??'application/octet-stream',author:f.author?.displayName??'Former user'});};
 export type AttachmentSession=Awaited<ReturnType<typeof attachmentsSession>>;
 export async function attachmentsSession(config:Connection,fetcher:typeof fetch=metadataFetch){
+ assertRestConnection(config);
  const {site}=parseBoardUrl(config.boardUrl);
  const tenant=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeout(15000)});
  if(!tenant.ok)throw new Error('Cannot resolve Jira.');

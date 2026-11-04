@@ -22,8 +22,8 @@ export function issueTypeLabel(type:string):{name:string;color:'emerald'|'red'}|
     default:return undefined;
   }
 }
-export async function validateWork(config:Connection,items:Mapping[],key:string,sprintId:number){
-  const board=await fetchBoard(config,sprintId);
+export async function validateWork(config:Connection,items:Mapping[],key:string,sprintId:number,readBoard=fetchBoard){
+  const board=await readBoard(config,sprintId);
   const issue=board.issues.find(i=>i.key===key);
   if(!issue)throw new Error('This issue is no longer assigned to you in the selected sprint. Refresh the board.');
   const mapping=items.find(m=>m.jiraProjectKey===issue.projectKey);

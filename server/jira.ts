@@ -1,3 +1,4 @@
+import {assertRestConnection} from '../shared/connection-mode';
 import {metadataFetch} from './metadata-cache';
 import {richBlocks} from '../shared/comments';
 import {loadCredentials,authorization,redactCredentials,type Credentials} from './credentials';
@@ -8,7 +9,7 @@ import { boardSchema, issueSchema, issueDetailsSchema, type Board, type Connecti
 const userSchema = z.object({ accountId: z.string(), displayName: z.string() });
 const configSchema = z.object({ id: z.number(), name: z.string(), columnConfig: z.object({ columns: z.array(z.object({name:z.string(),statuses:z.array(z.object({id:z.string()}))})) }) });
 const sprintSchema = z.object({id:z.number().int().positive(),name:z.string(),state:z.string()});
-const rawIssue = z.object({key:z.string(),fields:z.object({parent:z.object({key:z.string(),fields:z.object({summary:z.string()})}).nullish(),fixVersions:z.array(z.object({name:z.string()})).nullish(),labels:z.array(z.string()).nullish(),summary:z.string(),status:z.object({id:z.string(),name:z.string(),statusCategory:z.object({key:z.string()}).optional()}),assignee:z.object({accountId:z.string()}).nullable(),issuetype:z.object({name:z.string()}),priority:z.object({name:z.string()}).nullish(),project:z.object({key:z.string()})})});
+export const rawIssue = z.object({key:z.string(),fields:z.object({parent:z.object({key:z.string(),fields:z.object({summary:z.string()})}).nullish(),fixVersions:z.array(z.object({name:z.string()})).nullish(),labels:z.array(z.string()).nullish(),summary:z.string(),status:z.object({id:z.string(),name:z.string(),statusCategory:z.object({key:z.string()}).optional()}),assignee:z.object({accountId:z.string()}).nullable(),issuetype:z.object({name:z.string()}),priority:z.object({name:z.string()}).nullish(),project:z.object({key:z.string()})})});
 export function parseBoardUrl(value:string) {
   let url:URL;
   try { url=new URL(value); } catch { throw new Error('Enter a full Jira Cloud board URL in settings.'); }
@@ -66,6 +67,7 @@ export async function readIssues(get:Read,path:string,accountId:string) {
   throw new Error('Issue pagination limit exceeded.');
 }
 export async function fetchBoard(config:Connection,sprintId?:number):Promise<Board>{
+  assertRestConnection(config);
   const {site,id}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
   let cloudId:string;
   try {const response=await metadataFetch(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});if(!response.ok)throw new Error();cloudId=z.object({cloudId:z.string()}).parse(await response.json()).cloudId;}catch {throw new Error('Cannot resolve this Jira site. Check the URL and network connection.');}
@@ -84,6 +86,7 @@ export async function fetchBoard(config:Connection,sprintId?:number):Promise<Boa
 function timeoutSignal(ms:number){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);timer.unref();return controller.signal;}
 
 export async function issueSession(config:Connection,key:string,fetcher:typeof fetch=metadataFetch){
+  assertRestConnection(config);
   const {site}=parseBoardUrl(config.boardUrl);
   const tenant=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});
   if(!tenant.ok)throw new Error('Cannot resolve Jira site.');
@@ -148,6 +151,7 @@ export function descriptionBlocks(value:unknown):{text:string;kind:'paragraph'|'
 
 
 export async function fetchWorkspaceIssue(config:Connection,key:string){
+  assertRestConnection(config);
  if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');
  const {site}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
  let cloudId:string;
@@ -175,6 +179,7 @@ export function normalizeProjectStatuses(value:unknown){
  return [...result.values()].sort((a,b)=>a.name.localeCompare(b.name));
 }
 export async function fetchProjectStatuses(config:Connection,projectKey:string,refresh=false){
+ assertRestConnection(config);
  if(!/^[A-Z][A-Z0-9_]*$/.test(projectKey))throw new Error('Enter a valid Jira project key.');
  const {site,id}=parseBoardUrl(config.boardUrl);const auth=()=>loadCredentials(config.envPath);
  const tenant=await metadataFetch(site+'/_edge/tenant_info',{redirect:'error',signal:timeoutSignal(15000)});

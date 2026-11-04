@@ -18,16 +18,16 @@ const message=(error:unknown)=>error instanceof Error?error.message.replace(/^Re
 export function CommentContent({blocks,theme}:{blocks:RichBlock[];theme:Theme}){
  return <JiraContent blocks={blocks} theme={theme} empty="Empty comment."/>;
 }
-export function IssueComments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:Theme}){
- return <Comments key={`${hostId}/${issueKey}`} issueKey={issueKey} hostId={hostId} theme={theme}/>;
+export function IssueComments({issueKey,hostId,theme,readOnly=false,connectionRevision=''}:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){
+ return <Comments key={`${hostId}/${issueKey}/${connectionRevision}/${readOnly}`} readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issueKey} hostId={hostId} theme={theme}/>;
 }
-function Comments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:Theme}){
+function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:string;hostId:string;theme:Theme;readOnly:boolean;connectionRevision:string}){
  const [expanded,setExpanded]=useState(true);
  const c=theme.colors;const read=useRpc(listComments);const post=useRpc(postComment);const cache=useQueryClient();
  const draftKey=`${hostId}/${issueKey}`;
- const [draft,setDraft]=useState<Draft|undefined>(()=>drafts.get(draftKey));const [preview,setPreview]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ const [draft,setDraft]=useState<Draft|undefined>(()=>readOnly?undefined:drafts.get(draftKey));const [preview,setPreview]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
  const posting=useRef(false);const input=useRef<TextInput>(null);const selection=useRef({start:0,end:0});
- const queryKey=['jira-comments',hostId,issueKey];
+ const queryKey=['jira-comments',hostId,connectionRevision,issueKey];
  const query=useInfiniteQuery({queryKey,initialPageParam:0,queryFn:({pageParam})=>read({key:issueKey,startAt:pageParam}),getNextPageParam:last=>last.nextStart??undefined,retry:false});
  const comments=query.data?.pages.flatMap(p=>p.comments)??[];const rows=commentThreads(comments);const site=query.data?.pages[0]?.site;
  function update(value:Draft|undefined){setDraft(value);if(value)drafts.set(draftKey,value);else drafts.delete(draftKey);}
@@ -47,7 +47,7 @@ function Comments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:T
   finally{posting.current=false;setBusy(false);}
  }
  const iconButton=(label:string,icon:string,onPress:()=>void,disabled=false)=><Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({pressed})=>({width:40,height:40,alignItems:'center',justifyContent:'center',borderRadius:6,backgroundColor:pressed?c.surface2:'transparent',opacity:disabled?.4:1,transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={16} color={c.foregroundMuted}/></Pressable>;
- const editor=draft?<View style={{gap:10,minWidth:0}}>
+ const editor=!readOnly&&draft?<View style={{gap:10,minWidth:0}}>
   {draft.parent?<View style={{flexDirection:'row',gap:6,alignItems:'center'}}><Icon name="Reply" size={14} color={c.accent}/><Text style={{color:c.foregroundMuted,fontSize:12,flex:1}}>Linked reply to {draft.parent.author}</Text></View>:null}
   {draft.parent?<Text style={{color:c.foregroundMuted,fontSize:12,lineHeight:18}}>Posts a new top-level comment with a link to the original.{draft.parent.restricted?' Keeps the original visibility restriction.':''}</Text>:null}
   <View style={{borderWidth:1,borderColor:error?c.statusDanger:c.border,borderRadius:10,overflow:'hidden'}}>
@@ -66,7 +66,7 @@ function Comments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:T
   <View style={{display:expanded?'flex':'none',gap:8,minWidth:0}}>
   {notice?<Text accessibilityLiveRegion="polite" style={{color:c.accent,fontSize:13}}>{notice}</Text>:null}
   {query.isSuccess&&!rows.length?<Text style={{color:c.foregroundMuted,fontSize:13}}>No comments yet.</Text>:null}
-  {!draft?<Action theme={theme} flushLeft icon="Plus" label="Add comment" onPress={()=>begin()} disabled={!query.isSuccess}/>:null}
+  {!readOnly&&!draft?<Action theme={theme} flushLeft icon="Plus" label="Add comment" onPress={()=>begin()} disabled={!query.isSuccess}/>:null}
   {draft&&!draft.parent?editor:null}
   {query.isPending?<Text style={{color:c.foregroundMuted}}>Loading comments…</Text>:null}
   {query.error?<Text accessibilityRole="alert" style={{color:c.statusDanger,fontSize:13,lineHeight:19}}>{message(query.error)}</Text>:null}
@@ -74,7 +74,7 @@ function Comments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:T
    <View style={{flexDirection:'row',gap:9,alignItems:'flex-start'}}><View style={{width:30,height:30,borderRadius:15,backgroundColor:c.surface2,alignItems:'center',justifyContent:'center'}}><Text style={{color:c.accent,fontSize:11,fontWeight:'700'}}>{comment.author.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</Text></View><View style={{flex:1,gap:3}}><Text style={{color:c.foreground,fontSize:13,fontWeight:'600'}}>{comment.author}</Text><Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Created {new Date(comment.created).toLocaleString()}{comment.restricted?' · Restricted':''}</Text>{comment.updated&&Date.parse(comment.updated)>Date.parse(comment.created)?<Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Edited {new Date(comment.updated).toLocaleString()}</Text>:null}</View></View>
    {comment.parentId&&!comments.some(c=>c.id===comment.parentId)?<Text style={{color:c.foregroundMuted,fontSize:11}}>Reply · original comment not loaded or unavailable</Text>:null}
    <CommentContent blocks={comment.blocks} theme={theme}/>
-   <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:2}}><Action theme={theme} flushLeft paddingRight={0} icon="Reply" label="Reply" onPress={()=>begin(comment)} disabled={!!draft}/>{site?iconButton('Open comment in Jira','ExternalLink',()=>void openExternal(`${site}/browse/${issueKey}?focusedCommentId=${comment.id}`)):null}</View>
+   <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:2}}>{!readOnly?<Action theme={theme} flushLeft paddingRight={0} icon="Reply" label="Reply" onPress={()=>begin(comment)} disabled={!!draft}/>:null}{site?iconButton('Open comment in Jira','ExternalLink',()=>void openExternal(`${site}/browse/${issueKey}?focusedCommentId=${comment.id}`)):null}</View>
    {draft?.parent?.id===comment.id?editor:null}
   </View>)}
   {draft?.parent&&!comments.some(c=>c.id===draft.parent!.id)?editor:null}

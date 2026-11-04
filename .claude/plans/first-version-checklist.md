@@ -138,3 +138,26 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Harden descriptor-based file reads, shorten session credential lifetime, remove unused credential-keyed state, normalize cache isolation and sanitize workflow errors.
 - [x] Verify with synthetic credential regression tests: all 89 Node tests and both type checks pass. Actual-token secret scan intentionally not run under the no-secret-read constraint.
 - [ ] Obtain the separate Atlassian distribution clarification; security hardening does not establish policy approval.
+
+## TWG CLI alternative — read-only preview (2026-11-04)
+
+- [x] Verify TWG 1.4.2 command contracts and authorized read-only desktop OAuth/board observations; see `docs/TWG_IMPLEMENTATION.md`.
+- [x] Keep OAuth in the CLI; guide terminal login on the host, explicitly bind site/profile, reject background login, and never fall back to REST credentials.
+- [x] Read board columns, active/future sprints and assigned issues with bounded pagination and success-only metadata caching.
+- [x] Persist sprint selection by board. Multiple active sprints require an explicit or saved selection.
+- [x] Show descriptions, fields, comments and attachments in dashboard details and workspace panels; safely preview/download attachments.
+- [x] Show sanitized recovery errors and quiet missing-ticket state only for explicit issue-lookup 404 responses.
+- [x] Restore local Start work and optional `/skill ISSUE-KEY` dispatch without Jira transitions; preserve branch/worktree reuse and separate dialogs.
+- [x] Verify REST and TWG with mocks; standard and Paseo 0.15 CI plus source/history secret scans passed at `f2fd2fc`.
+- [x] Consolidate setup/current-scope documentation and correct outdated unsupported-operation wording.
+- [x] Review branch against main for REST compatibility, connection isolation and Jira write guards; extend guard coverage to workflow sessions and status discovery.
+- [ ] Merge the read-only preview PR after its final checks pass.
+
+Deferred beyond this PR:
+
+- [ ] TWG status transitions/required-field handling and drag-and-drop.
+- [ ] TWG comment posting and linked replies.
+- [ ] TWG attachment uploads.
+- [ ] Resolve CLI distribution/embedding terms and the separate public-release authentication-policy gate. Private merge is not public-distribution approval.
+
+Further automated verification uses mocks, without real Jira writes or agent/skill execution. Any entry skill selected by a user controls its own subsequent actions.

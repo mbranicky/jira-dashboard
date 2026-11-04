@@ -2,12 +2,15 @@ import {richBlockSchema} from './comments';
 import { defineRpc, defineSettings } from '@getpaseo/plugin';
 import { z } from 'zod';
 
-export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','panel']).default('modal')});
+export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','panel']).default('modal'),sprintByBoard:z.record(z.string(),z.number().int().positive().nullable()).default({})});
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
+  transport: z.enum(['rest','twg']).optional(),
   boardUrl: z.string().default(''),
   envPath: z.string().default(''),
+  twgExecutable: z.string().default('twg'),
+  twgProfile: z.string().default('default'),
   refreshSeconds: z.number().int().min(30).default(60),
 });
 export const connection = defineSettings({ id: 'connection', scope: 'host', version: 1, schema: connectionSchema });

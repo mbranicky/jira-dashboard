@@ -6,8 +6,8 @@ import {useState} from 'react';
 import type {Issue} from '../shared/contracts';
 import {StartWork} from './start-work';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
-export function IssueCard({hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
+export function IssueCard({readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
  const [expanded,setExpanded]=useState(false);
  const colors=theme.colors;
  const kind=issue.type.toLowerCase();

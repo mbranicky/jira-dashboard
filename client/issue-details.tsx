@@ -15,11 +15,11 @@ import {Modal as NativeModal,SafeAreaView,KeyboardAvoidingView,Platform,Pressabl
 import type {ReactNode} from 'react';
 import {readIssueDetails,type Issue} from '../shared/contracts';
 import {Action} from './settings-ui';
-export function IssueDetails({issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
+export function IssueDetails({readOnly=false,connectionRevision='',issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{readOnly?:boolean;connectionRevision?:string;presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const [jiraTip,setJiraTip]=useState(false);
  const read=useRpc(readIssueDetails);
- const query=useQuery({queryKey:['jira-issue-details',issue.key,sprintId],queryFn:()=>read({key:issue.key,sprintId}),retry:false});
+ const query=useQuery({queryKey:['jira-issue-details',hostId,connectionRevision,issue.key,sprintId],queryFn:()=>read({key:issue.key,sprintId}),retry:false});
  const c=theme.colors;
  const {width}=useWindowDimensions();const wide=presentation==='modal'&&width>=760;
  return <DetailsShell panelCollapsed={panelCollapsed} onTogglePanel={onTogglePanel} onResizePanel={onResizePanel} presentation={presentation} panelWidth={panelWidth} issueKey={issue.key} theme={theme} onClose={onClose}>
@@ -35,7 +35,7 @@ export function IssueDetails({issue,sprintId,theme,onClose,onOpenJira,hostId,nav
   <View style={{gap:12,flex:wide?1:undefined,width:wide?undefined:'100%',minWidth:0}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:12}}>
    {query.isPending?<Text style={{color:c.foregroundMuted}}>Loading issue details…</Text>:query.error?<View><Text accessibilityRole="alert" style={{color:c.statusDanger}}>{query.error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,'')}</Text><Action theme={theme} icon="RefreshCw" label="Retry" onPress={()=>void query.refetch()}/></View>:<JiraContent blocks={query.data?.richDescription??[]} theme={theme}/>}
 
-   </View><IssueAttachments issueKey={issue.key} hostId={hostId} theme={theme}/><IssueComments issueKey={issue.key} hostId={hostId} theme={theme}/>
+   </View><IssueAttachments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/>
   </View>
   <View style={{padding:wide?20:0,paddingTop:20,borderRadius:wide?12:0,backgroundColor:wide?c.surface1:'transparent',borderTopWidth:wide?0:1,borderTopColor:c.border,width:wide?300:'100%',gap:20,flexShrink:0}}>
    <Text style={{color:c.foreground,fontSize:16,fontWeight:'600'}}>Jira fields</Text>

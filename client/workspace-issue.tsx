@@ -5,16 +5,18 @@ import {useState} from 'react';
 import {IssueAttachments} from './attachments';
 import {IssueComments} from './comments';
 import {createContext,useEffect} from 'react';
-import {usePaseo,useRpc,useWorkspace,type PluginWorkspacePanelProps} from '@getpaseo/plugin/client';
+import {usePaseo,useRpc,useSettings,useWorkspace,type PluginWorkspacePanelProps} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
 import {useQuery} from '@tanstack/react-query';
 import {Pressable,ScrollView,Text,View} from 'react-native';
-import {workspaceIssueLink,readWorkspaceIssue} from '../shared/contracts';
+import {connection,workspaceIssueLink,readWorkspaceIssue} from '../shared/contracts';
 import {detectIssue,issueKeys} from '../shared/issue-detection';
 import {openExternal} from './web';
 
 export const OpenWorkspaceIssue=createContext<(workspaceId:string)=>void>(()=>{});
 export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProps){
+ const settings=useSettings(connection);const readOnly=settings.status==='ready'&&settings.values.transport==='twg';
+ const revision=settings.status==='ready'?settings.revision:'';
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const c=theme.colors;const paseo=usePaseo();
  const workspace=useWorkspace(workspaceId,w=>({name:w.name,title:w.title}));
@@ -41,7 +43,7 @@ export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProp
  const saved=useQuery({queryKey:['jira-workspace-link',workspaceId,candidates],queryFn:()=>links({workspaceId,candidates}),enabled:!!workspace&&agents.isSuccess,retry:false});
  const detected=detectIssue(saved.data??[],names,agents.data??[]);
  const key=detected.status==='found'?detected.key:undefined;
- const issue=useQuery({queryKey:['jira-workspace-issue',key],queryFn:()=>read({key:key!}),enabled:saved.isSuccess&&!!key,retry:false,staleTime:60000});
+ const issue=useQuery({queryKey:['jira-workspace-issue',host.id,revision,key],queryFn:()=>read({key:key!}),enabled:settings.status==='ready'&&saved.isSuccess&&!!key,retry:false,staleTime:60000});
  const error=agents.error??saved.error??issue.error;
  const loading=!workspace||agents.isPending||saved.isPending||(!!key&&issue.isPending);
  const data=issue.data;
@@ -55,7 +57,7 @@ export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProp
     <View style={{gap:8}}><Text style={{color:c.accent,fontSize:12,fontWeight:'600'}}>{data.issue.status}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>{data.issue.type} · {data.issue.priority??'No priority'}</Text></View>
     <View style={{gap:10}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:10}}><JiraContent blocks={data.details.richDescription??[]} theme={theme}/></View></View>
     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:16,gap:16}}><Text style={{color:c.foreground,fontWeight:'600',fontSize:14}}>Jira fields</Text><IssueFields issue={data.issue} details={data.details} theme={theme}/></View>
-    <IssueAttachments issueKey={data.issue.key} hostId={host.id} theme={theme}/><IssueComments issueKey={data.issue.key} hostId={host.id} theme={theme}/>
+    <IssueAttachments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/>
    </>}
   </ScrollView>
  </View>;

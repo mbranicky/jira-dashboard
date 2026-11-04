@@ -31,7 +31,7 @@ On narrow screens, details fill the screen with a fixed header and scrollable co
 
 ## Get started
 
-Requires **Paseo 0.14.0 or newer**, Jira Cloud, and a scoped Jira API token. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
+Requires **Paseo 0.14.0 or newer**, Jira Cloud, and either a scoped Jira API token or the experimental TWG CLI OAuth connection. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
 
 Until publication, install from an accessible checkout:
 
@@ -47,6 +47,7 @@ The repository is currently private, so cloning requires access. No registry ins
 
 1. Open **Jira Dashboard → Settings**.
 2. Enter your Jira board URL and the absolute path to a private `jira.env` file on the Paseo host. Follow the [token and scope guide](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md).
+   Alternatively, enable **TWG CLI · read-only preview** and follow the [TWG setup guide](docs/TWG_SETUP.md). No API token file is needed for TWG.
 3. Test and save the connection.
 4. Map each Jira project key to an existing Paseo project, choose the agent settings, and optionally name an entry skill.
 5. Open an issue to inspect its details, or use Play to start work.
@@ -56,6 +57,8 @@ See the [complete first-time walkthrough](https://github.com/mbranicky/jira-dash
 ## Credentials and limits
 
 Your API token stays in a private file on the daemon host and is sent to Atlassian for authentication. The plugin does not send the token to agents or require a hosted authentication service. Clients connected to that Paseo host share the token owner's Jira access. An entry skill runs through your selected agent provider and may access additional data according to your configuration.
+
+TWG owns its OAuth credentials; the plugin does not read its credential files or extract tokens. TWG supports dashboard/details reads and local Start work. Status transitions, posting/replying and attachment uploads remain unavailable through TWG.
 
 One Jira Cloud site is supported per host. Replies are new top-level comments linked to the original, rather than native threaded replies. Attachment transfers are limited to 25 MiB and Jira's upload limit; native mobile clients have file-picker limitations. Comment drafts are retained during the session, but not across an app/plugin restart.
 

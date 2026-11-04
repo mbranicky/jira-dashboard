@@ -1,3 +1,7 @@
+import {twgContent} from './server/twg-content';
+import {createTwgDashboard} from './server/twg-dashboard';
+import {twgStart,twgPoll,twgCancel} from './shared/twg';
+import {twgSettings} from './server/twg-settings';
 import {testConnection} from './shared/connection-check';
 import {checkConnection} from './server/connection-check';
 import {projectStatuses,readMoves,moveIssue} from './shared/moves';
@@ -9,11 +13,17 @@ import {attachmentsSession,attachmentList,attachmentBytes,settings as readAttach
 import {listComments,postComment} from './shared/comments';
 import {commentsSession,readCommentPage,createComment,commentPoster} from './server/comments';
 import {prepareIssueBranches,boardWorkspaceLinks,validateWork,startIssue,hasExistingWork,savedWorkspaceIssues} from './server/work';
-import {fetchProjectStatuses,issueSession,fetchWorkspaceIssue} from './server/jira';
+import {boardColumnOptions,fetchProjectStatuses,issueSession,fetchWorkspaceIssue} from './server/jira';
 import type { PluginServerContext } from '@getpaseo/plugin/server';
 import { prepareBranches,workspaceIssueLink,readWorkspaceIssue,dashboardPreferences,connection, readBoard, readIssueDetails, mappings, startWork } from './shared/contracts';
 import { fetchBoard } from './server/jira';
 export default function contribute(server:PluginServerContext){
+  const twg=twgSettings();
+  const content=twgContent();
+  const twgDashboard=createTwgDashboard();
+  server.handle(twgStart,input=>twg.start(input));
+  server.handle(twgPoll,({id})=>twg.poll(id));
+  server.handle(twgCancel,({id})=>twg.cancel(id));
   server.handle(testConnection,input=>checkConnection(input));
   const postOnce=commentPoster();
   const uploads=attachmentUploads();
@@ -24,11 +34,12 @@ export default function contribute(server:PluginServerContext){
   async function context(key:string,sprintId:number){
     const current=await settings.read(); const saved=await projectMappings.read();
     if(current.status!=='ready'||saved.status!=='ready')throw new Error('Configure the connection and project mappings first.');
-    const {mapping,issue}=await validateWork(current.values,saved.values.items,key,sprintId);
+    const {mapping,issue}=await validateWork(current.values,saved.values.items,key,sprintId,current.values.transport==='twg'?twgDashboard.fetchBoard:fetchBoard);
     return {config:current.values,mapping,issue};
   }
   server.handle(projectStatuses,async({projectKey,refresh})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure Jira first.');
+    if(current.values.transport==='twg'){const columns=await twgDashboard.columns(current.values,refresh);return boardColumnOptions(columns.map(c=>({name:c.name,statuses:c.statusIds.map(id=>({id}))})));}
     return fetchProjectStatuses(current.values,projectKey,refresh);
   });
   server.handle(readMoves,async({key,sprintId})=>{
@@ -61,8 +72,9 @@ export default function contribute(server:PluginServerContext){
   server.handle(readIssueDetails,async({key,sprintId})=>{
     const current=await settings.read();
     if(current.status!=='ready')throw new Error('Connection settings are unavailable.');
-    const board=await fetchBoard(current.values,sprintId);
+    const board=await (current.values.transport==='twg'?twgDashboard.fetchBoard(current.values,sprintId):fetchBoard(current.values,sprintId));
     if(!board.issues.some(issue=>issue.key===key))throw new Error('This issue is no longer assigned to you in the selected sprint.');
+    if(current.values.transport==='twg'){const result=await twgDashboard.issue(current.values,key);if(!result)throw new Error('Issue details are unavailable.');return result.details;}
     return (await issueSession(current.values,key)).details(sprintId);
   });
   server.handle(workspaceIssueLink,async({workspaceId,candidates},{paseo})=>{
@@ -71,10 +83,11 @@ export default function contribute(server:PluginServerContext){
   });
   server.handle(readWorkspaceIssue,async({key})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');
-    return fetchWorkspaceIssue(current.values,key);
+    return current.values.transport==='twg'?twgDashboard.issue(current.values,key):fetchWorkspaceIssue(current.values,key);
   });
   server.handle(listComments,async({key,startAt})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');
+    if(current.values.transport==='twg')return content.comments(current.values,key,startAt);
     const {site,request}=await commentsSession(current.values);return readCommentPage(request,site,key,startAt);
   });
   server.handle(postComment,async({key,markdown,requestId,parentId})=>{
@@ -85,19 +98,19 @@ export default function contribute(server:PluginServerContext){
   server.handle(readBoard,async({sprintId},{paseo})=>{
     const current=await settings.read();
     if(current.status!=='ready')throw new Error('Connection settings are unavailable. Open Jira Dashboard settings.');
-    const board=await fetchBoard(current.values,sprintId);
+    const board=await (current.values.transport==='twg'?twgDashboard.fetchBoard(current.values,sprintId):fetchBoard(current.values,sprintId));
     const links=await boardWorkspaceLinks(paseo,current.values,board.issues.map(issue=>issue.key));
     return {...board,issues:board.issues.map(issue=>({...issue,linkedWorkspace:links[issue.key]}))};
   });
-  async function attachmentContext(){const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');return attachmentsSession(current.values);}
-  server.handle(listAttachments,async({key})=>attachmentList(await attachmentContext(),key));
+  async function attachmentContext(key?:string){const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');if(current.values.transport==='twg'&&key)return content.session(current.values,key);return attachmentsSession(current.values);}
+  server.handle(listAttachments,async({key})=>attachmentList(await attachmentContext(key),key));
   server.handle(attachmentSettings,async()=>readAttachmentSettings(await attachmentContext()));
-  server.handle(readAttachment,async({key,id,offset})=>attachmentBytes(await attachmentContext(),key,id,offset));
+  server.handle(readAttachment,async({key,id,offset})=>attachmentBytes(await attachmentContext(key),key,id,offset));
   server.handle(beginUpload,async input=>uploads.begin(await attachmentContext(),input));
   server.handle(uploadChunk,async({uploadId,offset,base64})=>uploads.chunk(uploadId,offset,base64));
   server.handle(finishUpload,async({uploadId})=>uploads.finish(await attachmentContext(),uploadId));
   server.handle(cancelUpload,async({uploadId})=>uploads.cancel(uploadId));
   server.handle(prepareBrowserPreview,async()=>previews.prepare());
-  server.handle(loadBrowserPreview,async({key,id,token})=>previews.load(await attachmentContext(),key,id,token));
-  return ()=>{uploads.close();previews.close();};
+  server.handle(loadBrowserPreview,async({key,id,token})=>previews.load(await attachmentContext(key),key,id,token));
+  return ()=>{content.close();twgDashboard.close();twg.close();uploads.close();previews.close();};
 }

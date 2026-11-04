@@ -76,7 +76,7 @@ A blank entry skill opens an idle agent. Existing work is reused without automat
 ## Empty and error states
 
 - Missing connection opens setup.
-- No or several active sprints prompts sprint selection.
+- No or several active sprints prompts sprint selection in Auto mode. Explicit choices and Auto persist per host/site/board across dashboard reopening. Failed preference saves show a visible retry message; unavailable saved sprints offer Choose another sprint.
 - No assigned issues or search matches has an explicit empty message.
 - Failed refresh retains the last successful snapshot and marks it potentially stale.
 - Missing mapping offers the compact Configure mapping icon.
@@ -206,3 +206,34 @@ Initial dashboard loading shows neutral empty column surfaces with placeholder h
 ## Connection test feedback
 
 Place a compact Test connection action inside the connection settings card. Keep results directly below it: a short overall heading, then left-aligned step names and messages with pass/fail/skipped icons. Show progress while running and disable duplicate submissions. Explain that unsaved values are tested read-only and write/comment/attachment permissions are not verified. Clear stale results when URL or secret-file path changes.
+
+### TWG connection preview (2026-11-04)
+
+The connection card contains a labeled TWG read-only preview switch with a short
+explanation. REST fields are hidden when selected, while their saved values are
+preserved for switching back. TWG executable/profile inputs use existing settings
+styling. A quiet dashboard notice explains the preview boundary; unsupported
+Start work and dragging actions are not offered. Ticket titles open Jira rather
+than opening an incomplete details panel. Desktop and compact layouts share
+these behaviors.
+
+TWG details reuse the same responsive description/fields layout as REST, including
+collapsible description and full-screen mobile presentation. Unsupported comments
+and attachments are replaced by one quiet availability note. Creating work is not
+offered; existing workspace navigation remains available.
+
+TWG comments and attachments now reuse the normal collapsible sections and compact
+attachment cards. Read-only mode removes Add comment, Reply, Add attachment and
+upload controls without changing the reading/preview layout. Creation and edited
+timestamps remain visible; external links and refresh controls remain available.
+
+### TWG recovery and local actions
+
+Keep connection recovery within existing error/retry surfaces with concise,
+sanitized guidance. An explicit missing issue uses the quiet workspace empty
+state; authentication and permission failures remain visibly distinct errors.
+
+Restore the existing Play/Open workspace controls for TWG on dashboard cards and
+dashboard details. Preserve card layout and use the existing separate Start work
+dialog for choices and failures. Workspace Jira panels do not gain Play. Comments
+and attachments retain their read-only presentation in TWG mode.
