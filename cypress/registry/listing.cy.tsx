@@ -15,10 +15,10 @@ describe('Registry previews',()=>{
   cy.get('[data-cy-root]').screenshot('registry-details');
  });
  it('settings → public setup screenshot with synthetic values',()=>{
-  cy.viewport(1100,600);mount(<Harness preview mappingItems={registryMappings}/>);button('Settings').click();
+  cy.viewport(1100,1000);mount(<Harness preview transport="twg" twgWrites mappingItems={registryMappings}/>);button('Settings').click();
   cy.contains('Jira connection').should('be.visible');
   cy.get('[aria-label="Jira board URL"]').should('have.value','https://example.atlassian.net/boards/1');
-  cy.get('[data-cy-root]').screenshot('registry-settings');
+  cy.get('[data-cy-root]').screenshot('registry-settings',{scale:true});
  });
  it('mobile details → full-screen readable issue',()=>{
   cy.viewport(390,600);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);

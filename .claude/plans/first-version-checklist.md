@@ -151,7 +151,7 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Verify REST and TWG with mocks; standard and Paseo 0.15 CI plus source/history secret scans passed at `f2fd2fc`.
 - [x] Consolidate setup/current-scope documentation and correct outdated unsupported-operation wording.
 - [x] Review branch against main for REST compatibility, connection isolation and Jira write guards; extend guard coverage to workflow sessions and status discovery.
-- [ ] Merge the read-only preview PR after its final checks pass.
+- [x] Merge read-only PR #4 after checks passed.
 
 Deferred beyond this PR:
 
@@ -169,4 +169,14 @@ Further automated verification uses mocks, without real Jira writes or agent/ski
 - [x] Mocked verification: 135 backend tests and 52 browser tests (complete suites), both typechecks, secret audit and package validation pass.
 - [ ] Resolve CLI limitations for duplicate destination names, identifier-only comment restrictions and attachment-settings discovery before claiming unrestricted REST parity.
 - [x] Review write integration, including blank visibility restrictions and malformed upload receipts.
-- [ ] Merge write integration after GitHub checks pass; no live Jira writes are required for automated verification.
+- [x] Merge write integration in PR #5 after GitHub checks passed; no live Jira writes are required for automated verification.
+
+### Desktop follow-up (2026-11-04)
+
+- [x] User verified Teamwork Graph attachment upload and linked comment replies in Jira UI.
+- [x] User verified workflow moves after the stale-board-status lookup fix, including required story points and the In Development prerequisite before In Progress.
+- [x] PR #6 merged with expanded read diagnostics and Settings UI alignment.
+- [x] Remove experimental UI headings; preserve documented CLI and public-distribution limitations.
+- [x] Refresh user documentation and fictional listing screenshots for both connection options.
+
+These are user-performed live observations. Automated tests continue to use mocks; no live write tests are required or run by the agent.

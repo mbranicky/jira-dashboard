@@ -31,7 +31,7 @@ On narrow screens, details fill the screen with a fixed header and scrollable co
 
 ## Get started
 
-Requires **Paseo 0.14.0 or newer**, Jira Cloud, and either a scoped Jira API token or the experimental TWG CLI OAuth connection. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
+Requires **Paseo 0.14.0 or newer**, Jira Cloud, and either a scoped Jira API token or Teamwork Graph CLI OAuth. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
 
 Until publication, install from an accessible checkout:
 
@@ -46,9 +46,10 @@ paseo plugin install "$PWD"
 The repository is currently private, so cloning requires access. No registry installation command is advertised before the release exists.
 
 1. Open **Jira Dashboard → Settings**.
-2. Enter your Jira board URL and the absolute path to a private `jira.env` file on the Paseo host. Follow the [token and scope guide](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md).
-   Alternatively, enable **TWG CLI · experimental** and follow the [TWG setup guide](docs/TWG_SETUP.md). No API token file is needed for TWG.
-3. Test and save the connection.
+2. Enter your Jira board URL and choose a connection:
+   - **Teamwork Graph CLI:** sign in with OAuth on the Paseo host using a named profile. Follow the [Teamwork Graph setup guide](docs/TWG_SETUP.md); no API token file is needed. Enable **Allow Jira changes** for moves, comments and uploads.
+   - **REST API:** provide the absolute path to a private `jira.env` file. Follow the [token and scope guide](docs/JIRA_SETUP.md).
+3. Select **Test connection** to check authentication, board, sprints and issue access, then **Save connection**. Settings stay open; use **Back to board** when ready.
 4. Map each Jira project key to an existing Paseo project, choose the agent settings, and optionally name an entry skill.
 5. Open an issue to inspect its details, or use Play to start work.
 
@@ -71,6 +72,7 @@ See the [credential security audit](https://github.com/mbranicky/jira-dashboard/
 | Guide | What it covers |
 | --- | --- |
 | [Getting started](https://github.com/mbranicky/jira-dashboard/blob/main/docs/GETTING_STARTED.md) | Installation, Jira connection, project mappings and first workspace |
+| [Teamwork Graph OAuth](docs/TWG_SETUP.md) | CLI installation, OAuth profiles, read diagnostics, opt-in writes and limitations |
 | [Jira setup and scopes](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md) | Complete token scopes, permissions, credentials and troubleshooting |
 | [Known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) | Supported clients and current boundaries |
 | [Testing](https://github.com/mbranicky/jira-dashboard/blob/main/docs/TESTING.md) | Unit, integration and browser workflow tests using synthetic data |

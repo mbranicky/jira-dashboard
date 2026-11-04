@@ -82,7 +82,7 @@ describe('TWG explicit Jira write opt-in',()=>{
   cy.get('[aria-label="Add comment"]').should('not.exist');
   cy.get('[aria-label="Close issue details"]').click();
   cy.contains('[role="button"]','Settings').click();
-  cy.get('[aria-label="Allow Jira changes through TWG"]').click();
+  cy.get('[aria-label="Allow Jira changes"]').click();
   cy.contains('[role="button"]','Save connection').click();
   cy.contains('Settings saved.').should('be.visible');button('Back to board').scrollIntoView().click();
   cy.get('[aria-label^="Open details for TEST-1:"]').click();

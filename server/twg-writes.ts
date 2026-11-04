@@ -36,8 +36,8 @@ export function twgWrites(make=(path:string)=>new TwgConnection(path)){
  async function workflow(config:Connection,key:string,statusIds:string[]){
   return {
    availableTransitions:()=>run(config,async(cli,target)=>{
-    const discovered=transitions.parse(data(await cli.readTransitions(target,key),'jira.workitem.transition')).transitions;
-    const known=statuses.parse(data(await cli.readStatuses(target,[...new Set(statusIds)]),'jira.workitem.statuses.query'));
+    const discovered=transitions.parse(data(await cli.readTransitions(target,key).catch(error=>{if(error instanceof TwgFailure&&error.kind==='not-found')throw new Error('Jira could not load transitions for this issue. Check issue access and workflow permissions in Jira.');throw error;}),'jira.workitem.transition')).transitions;
+    const known=statuses.parse(data(await cli.readStatuses(target,[...new Set(statusIds)]).catch(error=>{if(error instanceof TwgFailure&&error.kind==='not-found')throw new Error('Jira workflow status lookup is unavailable through Teamwork Graph. The issue has not been moved.');throw error;}),'jira.workitem.statuses.query'));
     return discovered.flatMap(t=>{
      const matches=known.filter(s=>statusIds.includes(s.id)&&s.name===t.toName);
      if(matches.length>1)throw new Error('Jira has multiple board statuses with the same name. Move this issue in Jira to avoid choosing the wrong destination.');
