@@ -1,9 +1,10 @@
-# TWG CLI OAuth setup (experimental read-only preview)
+# TWG CLI OAuth setup (experimental)
 
 TWG is an optional connection for Jira Dashboard. Existing installations keep REST
-until **TWG CLI · read-only preview** is enabled. This preview supports dashboard
+until **TWG CLI · experimental** is enabled. This preview supports dashboard
 and issue reads, comments, attachment viewing/downloads and local Start work.
-It does **not** update statuses, post comments/replies or upload attachments.
+Jira changes are disabled by default. Enable **Allow Jira changes through TWG**
+in Settings to use workflow moves, comment posting/replies and attachment uploads.
 
 ## Set up on the Paseo host
 
@@ -21,7 +22,7 @@ It does **not** update statuses, post comments/replies or upload attachments.
    Complete browser consent with the intended work account. The terminal belongs
    on the host even when you use Paseo from a phone or another computer.
 3. Open **Jira Dashboard → Settings**, enter the full board URL and enable
-   **TWG CLI · read-only preview**.
+   **TWG CLI · experimental**.
 4. Set **TWG executable on host** to `twg`, or preferably its absolute path if the
    daemon's PATH differs from your terminal. Set **TWG profile** to the exact name
    used at login, such as `jira-dashboard`.
@@ -43,9 +44,9 @@ as a fallback. One Jira Cloud site is supported per host.
 | Comments | Read, with author and creation/edit timestamps |
 | Attachments | List, preview and download; 25 MiB transfer limit |
 | Play / Open workspace | Available under the existing eligibility and mapping rules |
-| Status transitions and drag-and-drop | Unavailable |
-| Add comment / linked reply | Unavailable |
-| Upload attachment | Unavailable |
+| Status transitions and drag-and-drop | Available with Jira changes enabled; ambiguous status names require Jira |
+| Add comment / linked reply | Available with Jira changes enabled; visibility must be preservable |
+| Upload attachment | Available with Jira changes enabled; Jira enforces its server limit at upload |
 
 Play creates or reuses a local workspace and agent. When configured, it sends
 `/entry-skill ISSUE-KEY`. The plugin does not transition Jira through Play.
@@ -78,3 +79,16 @@ sanitized guidance; credentials are not passed to agents.
 This experimental private integration does not establish public-distribution or
 CLI embedding permission. See [implementation and review notes](TWG_IMPLEMENTATION.md)
 and the [authentication policy review](ATLASSIAN_AUTH_POLICY.md).
+
+## Write-mode limitations
+
+TWG does not expose the server's attachment settings in the inspected command
+surface. The UI explicitly shows the 25 MiB plugin cap; Jira may reject files under
+a smaller server limit or when attachments are disabled. Transition discovery
+returns destination names without IDs: duplicate names on the board are refused
+rather than guessed. Internal comments and replies with only visibility identifiers
+(no transferable role/group name) must be handled in Jira.
+
+Uncertain write results are never retried automatically. Refresh and check Jira
+before submitting again. Disabling Jira changes hides write controls and blocks
+new submissions on the server; it cannot undo a request already sent to Jira.

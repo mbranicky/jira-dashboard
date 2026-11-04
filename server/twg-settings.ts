@@ -15,7 +15,7 @@ export function twgSettings(make=(path:string)=>new TwgConnection(path)) {
    const current={connection,value:{id:randomUUID(),state:'running',message:'Checking TWG CLI access…'} as State};
    job=current;
    void (input.boardId?connection.boardColumns({site:input.site,profile:input.profile},input.boardId):connection.checkAccess({site:input.site,profile:input.profile})).then(()=>{
-    if(current.value.state==='running')current.value={...current.value,state:input.boardId?'succeeded':'unverified',message:input.boardId?'TWG board access verified. Save the connection with the read-only preview enabled to load the dashboard.':'TWG returned JSON, but this CLI response format is not verified yet. Jira site access and board permissions remain unverified.'};
+    if(current.value.state==='running')current.value={...current.value,state:input.boardId?'succeeded':'unverified',message:input.boardId?'TWG board access verified. Save the connection with TWG enabled to load the dashboard.':'TWG returned JSON, but this CLI response format is not verified yet. Jira site access and board permissions remain unverified.'};
    }).catch(error=>{
     if(current.value.state==='running')current.value={...current.value,state:'failed',message:error instanceof TwgCompatibilityError||error instanceof TwgFailure?error.message:'TWG could not complete this action. Check installation, browser consent and CLI compatibility on the host, then retry.'};
    }).finally(()=>connection.close());

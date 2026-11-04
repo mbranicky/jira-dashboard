@@ -237,3 +237,15 @@ Restore the existing Play/Open workspace controls for TWG on dashboard cards and
 dashboard details. Preserve card layout and use the existing separate Start work
 dialog for choices and failures. Workspace Jira panels do not gain Play. Comments
 and attachments retain their read-only presentation in TWG mode.
+
+### TWG opt-in Jira changes
+
+TWG retains read-only behavior by default. Connection settings expose an explicit
+Allow Jira changes through TWG switch, enforced on the server. When enabled, use
+the existing move dialog, comment/linked-reply editor and attachment uploader in
+both dashboard details and workspace Jira panel. Card layout stays unchanged.
+Start work after a move occurs only after a confirmed Jira transition; Play remains
+local. The upload UI distinguishes the plugin cap from unknown server limits.
+Ambiguous destination status names and unpreservable reply visibility are refused.
+See `docs/TWG_IMPLEMENTATION.md` for verified command contracts and remaining
+CLI differences; this does not constitute unrestricted REST parity.

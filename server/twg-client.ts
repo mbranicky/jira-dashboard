@@ -95,6 +95,28 @@ export class TwgConnection {
     return this.json(['jira','workitem','attachment','download','--attachment-id',id,'--output-path',path,
       '--site',new URL(value.site).hostname,'--profile',value.profile]);
   }
+  readTransitions(target:{site:string;profile:string},key:string){
+    this.validateKey(key);return this.scoped(['jira','workitem','transition','--id',key],target);
+  }
+  readStatuses(target:{site:string;profile:string},ids:string[]){
+    if(!ids.length||ids.some(id=>!/^\d+$/.test(id)))throw new Error('Invalid status IDs.');
+    return this.scoped(['jira','workitem','statuses','query',...ids.flatMap(id=>['--id',id])],target);
+  }
+  transition(target:{site:string;profile:string},key:string,id:string,fields:Record<string,unknown>){
+    this.validateKey(key);if(!/^\d+$/.test(id))throw new Error('Invalid transition ID.');
+    return this.scoped(['jira','workitem','transition','--id',key,'--transition-id',id,'--fields-json',JSON.stringify(fields)],target);
+  }
+  createComment(target:{site:string;profile:string},key:string,markdown:string,visibility?:{type:'group'|'role';value:string}){
+    this.validateKey(key);
+    return this.scoped(['jira','workitem','comment','create','--issue-id',key,'--body',markdown,'--body-format','markdown',...(visibility?[visibility.type==='role'?'--visibility-role':'--visibility-group',visibility.value]:[])],target);
+  }
+  uploadAttachment(target:{site:string;profile:string},key:string,path:string){
+    this.validateKey(key);if(!isAbsolute(path))throw new Error('Invalid upload path.');
+    return this.scoped(['jira','workitem','attachment','upload','--issue-id',key,'--file',path],target);
+  }
+  private scoped(args:string[],target:{site:string;profile:string}){
+    const value=twgTarget.parse(target);return this.json([...args,'--site',new URL(value.site).hostname,'--profile',value.profile]);
+  }
   private validateKey(key:string){if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');}
   close() {
     this.closed = true;

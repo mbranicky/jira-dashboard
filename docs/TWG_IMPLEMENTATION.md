@@ -1,7 +1,8 @@
 # TWG CLI integration
 
-Current scope, reviewed 4 November 2026: **experimental read-only Jira access
-plus local Start work**. REST remains the default when `transport` is absent.
+Merged baseline, reviewed 4 November 2026: **experimental read-only Jira access
+plus local Start work**. The feature-parity branch adds opt-in writes as described
+in the final section below; the baseline sections document the original PR. REST remains the default when `transport` is absent.
 See [user setup and limitations](TWG_SETUP.md). The MCP implementation remains on
 its independent branch and is not included in this change.
 
@@ -102,3 +103,61 @@ and browser suites in CI; source/history secret scanning is separate.
 Deferred from this read-only PR: workflow transitions/required fields, comment
 posting/linked replies and attachment uploads. CLI distribution/embedding terms
 and public-release authentication clearance remain separate unresolved gates.
+
+## Opt-in write integration — feature-parity branch
+
+The `codex/twg-feature-parity` branch extends the merged read-only baseline with
+workflow moves, Markdown comments/linked replies and attachment uploads. Existing
+connections retain `twgWrites: false`; users explicitly enable **Allow Jira changes
+through TWG** in Settings. This flag is enforced server-side before constructing
+write adapters. REST remains independent and is never used as fallback.
+
+Command contracts were inspected offline in installed TWG **1.4.2** using
+`help describe --detail full`. Output shapes were cross-checked against the
+bundled implementation in the same executable, without executing a mutation or
+reading authentication files. Public command availability is also listed in the
+[official catalogue](https://developer.atlassian.com/platform/teamwork-graph/twg-cli/commands/commands-catalog/).
+No live Jira requests were used for this work.
+
+- Discovery uses `jira workitem transition --id KEY` without a transition ID.
+  Its `data.transitions` entries include `id`, `name`, `toName` and screen `fields`
+  with `fieldId`, `fieldName`, `required`, schema, operations and allowed values.
+  Destination IDs are not included. `jira workitem statuses query --id ID` for the
+  board's actual IDs resolves names; duplicate names fail closed. The existing
+  move dialog and field converters are reused.
+- Submission uses `jira workitem transition --id KEY --transition-id ID
+  --fields-json JSON`. The CLI revalidates transitions and screen fields before
+  writing. Success requires the matching issue/transition identity and explicit
+  `data.success: true`. Only then may the configured destination start local work.
+- Comments use `jira workitem comment create --issue-id KEY --body MARKDOWN
+  --body-format markdown`. Linked replies include a link to the original comment.
+  The original is fetched afresh; internal comments and restrictions without a
+  transferable group/role name are refused. CLI group/role flags preserve supported
+  restrictions. The existing request-receipt cache prevents duplicate submission.
+- Uploads use `jira workitem attachment upload --issue-id KEY --file PATH`.
+  The shared upload manager bounds chunks and coalesces submissions. TWG receives
+  a private owner-only temporary file preserving the chosen filename; the directory
+  is removed after success or failure. Uploads are bound to connection identity
+  so switching profile/transport before Finish cannot send the buffered file through
+  another account. CLI data must contain a nonempty attachment result array.
+
+No write is retried automatically. Unknown/malformed/timeout responses report
+uncertain delivery and tell the user to refresh/check Jira before retrying. Raw
+CLI errors are not displayed. Known authentication/permission failures retain
+sanitized guidance. Play remains local and never updates Jira on its own.
+
+### Remaining differences from REST
+
+TWG 1.4.2 does not expose attachment-settings discovery in the inspected command
+surface. UI labels the 25 MiB limit as the plugin limit; Jira enforces its actual
+settings and permissions at upload time. Transition destinations with duplicate
+names cannot be mapped safely because the CLI removes destination IDs. Identifier-only
+comment visibility restrictions cannot be passed through its name-based flags.
+Those cases require Jira rather than guessed values or widened visibility.
+Detailed arbitrary CLI validator diagnostics are not forwarded to clients;
+unknown failures use sanitized recovery guidance.
+
+Verification: full mocked checks and browser suites cover REST and TWG modes,
+write opt-in, transition fields/order, rejected/uncertain results, visibility
+preservation/refusal, upload cleanup and connection changes. No test invokes a
+real CLI mutation, creates a real workspace, or starts a real agent/skill.

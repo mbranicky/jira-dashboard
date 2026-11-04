@@ -64,3 +64,19 @@ describe('TWG read-only dashboard connection',()=>{
   button('Save connection').should('have.attr','aria-disabled','true');
  });
 });
+
+describe('TWG explicit Jira write opt-in',()=>{
+ beforeEach(()=>{cy.viewport(1200,800);stubRpc();});
+ it('existing TWG connection stays read-only until write permission is saved',()=>{
+  mount(<Harness transport="twg"/>);
+  cy.get('[aria-label^="Open details for TEST-1:"]').click();
+  cy.get('[aria-label="Add comment"]').should('not.exist');
+  cy.get('[aria-label="Close issue details"]').click();
+  cy.contains('[role="button"]','Settings').click();
+  cy.get('[aria-label="Allow Jira changes through TWG"]').click();
+  cy.contains('[role="button"]','Save connection').click();
+  cy.get('[aria-label^="Open details for TEST-1:"]').click();
+  cy.get('[aria-label="Add comment"]').should('be.visible');
+  cy.get('[aria-label="Add attachment"]').should('be.visible');
+ });
+});

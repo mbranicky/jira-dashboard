@@ -15,7 +15,7 @@ import {openExternal} from './web';
 
 export const OpenWorkspaceIssue=createContext<(workspaceId:string)=>void>(()=>{});
 export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProps){
- const settings=useSettings(connection);const readOnly=settings.status==='ready'&&settings.values.transport==='twg';
+ const settings=useSettings(connection);const readOnly=settings.status==='ready'&&settings.values.transport==='twg'&&!settings.values.twgWrites;
  const revision=settings.status==='ready'?settings.revision:'';
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const c=theme.colors;const paseo=usePaseo();

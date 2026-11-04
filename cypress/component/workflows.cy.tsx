@@ -3,9 +3,10 @@ import {mount} from 'cypress/react';
 import {Harness,stubRpc,board,site} from '../support/harness';
 const button=(label:string)=>cy.get(`[role="button"][aria-label="${label}"]`);
 const title=()=>cy.get('[aria-label^="Open details for TEST-1:"]');
-function open(){mount(<Harness/>);title().click();}
+for(const transport of ['rest','twg'] as const){
+function open(){mount(<Harness transport={transport} twgWrites/>);title().click();}
 const comment={id:'10',parentId:null,author:'Example author',created:'2026-11-01T10:00:00Z',updated:'2026-11-03T10:00:00Z',blocks:[{kind:'paragraph',runs:[{text:'Original comment'}]}],restricted:false};
-describe('Mocked comment workflows',()=>{
+describe(`Mocked ${transport} comment workflows`,()=>{
  beforeEach(()=>{cy.viewport(1200,800);stubRpc();});
  it('post Markdown → refresh and render the new comment',()=>{
   let posted=false;
@@ -34,23 +35,25 @@ function drop(column:number){
  title().closest('[draggable]').trigger('dragstart',{dataTransfer});
  cy.get(`[data-testid="board-column-${column}"]`).trigger('drop',{dataTransfer});
 }
-describe('Mocked transitions',()=>{
+describe(`Mocked ${transport} transitions`,()=>{
  beforeEach(()=>{cy.viewport(1200,800);stubRpc();});
  it('same-column drop → no workflow requests or dialog',()=>{
   let reads=0;cy.intercept('POST','/__rpc/issue.moves',req=>{reads++;req.reply([]);});
-  mount(<Harness/>);drop(0);button('Select sprint').should('be.visible').then(()=>expect(reads).to.equal(0));cy.contains('Move issue').should('not.exist');
+  mount(<Harness transport={transport} twgWrites/>);drop(0);button('Select sprint').should('be.visible').then(()=>expect(reads).to.equal(0));cy.contains('Move issue').should('not.exist');
  });
  it('unavailable transition → explain denial and preserve original column',()=>{
   cy.intercept('POST','/__rpc/issue.moves',{body:[]}).as('moves');
-  mount(<Harness/>);drop(1);cy.wait('@moves');cy.contains('Jira offers no transition').should('be.visible');cy.get('[data-testid="board-column-0"]').find('[aria-label^="Open details for TEST-1:"]').should('exist');
+  mount(<Harness transport={transport} twgWrites/>);drop(1);cy.wait('@moves');cy.contains('Jira offers no transition').should('be.visible');cy.get('[data-testid="board-column-0"]').find('[aria-label^="Open details for TEST-1:"]').should('exist');
  });
  it('validator rejects move → keep fields in dialog, correct and retry',()=>{
   let moved=false,attempts=0;
   cy.intercept('POST','/__rpc/issue.moves',{body:[option]}).as('moves');
   cy.intercept('POST','/__rpc/board.read',req=>req.reply({...board,issues:board.issues.map(i=>i.key==='TEST-1'&&moved?{...i,statusId:'2',status:'In progress',statusCategory:'indeterminate'}:i)}));
   cy.intercept('POST','/__rpc/issue.move',req=>{attempts++;expect(req.body.transitionId).to.equal('21');expect(req.body.statusId).to.equal('2');expect(req.body.fields.points).to.equal(attempts===1?'0':'3');if(attempts===1)req.reply({statusCode:400,body:{error:'Story points must be positive'}});else{moved=true;req.reply({workspaceId:'workspace-1'});}}).as('move');
-  mount(<Harness/>);drop(1);cy.wait('@moves');cy.get('[aria-label="Story points"]').type('0');cy.contains('[role="button"]','Move issue').click();cy.wait('@move');cy.contains('Story points must be positive').should('be.visible');
+  mount(<Harness transport={transport} twgWrites/>);drop(1);cy.wait('@moves');cy.get('[aria-label="Story points"]').type('0');cy.contains('[role="button"]','Move issue').click();cy.wait('@move');cy.contains('Story points must be positive').should('be.visible');
   cy.get('[aria-label="Story points"]').should('have.value','0').clear().type('3');cy.contains('[role="button"]','Move issue').click();cy.wait('@move');
   cy.get('[data-testid="board-column-1"]').find('[aria-label^="Open details for TEST-1:"]').should('be.visible');cy.get('[aria-label="Story points"]').should('not.exist');cy.get('@move.all').should('have.length',2);
  });
 });
+
+}

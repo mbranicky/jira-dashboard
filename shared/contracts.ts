@@ -7,6 +7,7 @@ export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',ve
 
 export const connectionSchema = z.object({
   transport: z.enum(['rest','twg']).optional(),
+  twgWrites: z.boolean().default(false),
   boardUrl: z.string().default(''),
   envPath: z.string().default(''),
   twgExecutable: z.string().default('twg'),
