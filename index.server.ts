@@ -1,3 +1,5 @@
+import {twgStart,twgPoll,twgCancel} from './shared/twg';
+import {twgSettings} from './server/twg-settings';
 import {testConnection} from './shared/connection-check';
 import {checkConnection} from './server/connection-check';
 import {projectStatuses,readMoves,moveIssue} from './shared/moves';
@@ -14,6 +16,10 @@ import type { PluginServerContext } from '@getpaseo/plugin/server';
 import { prepareBranches,workspaceIssueLink,readWorkspaceIssue,dashboardPreferences,connection, readBoard, readIssueDetails, mappings, startWork } from './shared/contracts';
 import { fetchBoard } from './server/jira';
 export default function contribute(server:PluginServerContext){
+  const twg=twgSettings();
+  server.handle(twgStart,input=>twg.start(input));
+  server.handle(twgPoll,({id})=>twg.poll(id));
+  server.handle(twgCancel,({id})=>twg.cancel(id));
   server.handle(testConnection,input=>checkConnection(input));
   const postOnce=commentPoster();
   const uploads=attachmentUploads();
@@ -99,5 +105,5 @@ export default function contribute(server:PluginServerContext){
   server.handle(cancelUpload,async({uploadId})=>uploads.cancel(uploadId));
   server.handle(prepareBrowserPreview,async()=>previews.prepare());
   server.handle(loadBrowserPreview,async({key,id,token})=>previews.load(await attachmentContext(),key,id,token));
-  return ()=>{uploads.close();previews.close();};
+  return ()=>{twg.close();uploads.close();previews.close();};
 }

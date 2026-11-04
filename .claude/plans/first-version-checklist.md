@@ -143,3 +143,5 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 
 - [x] Start an isolated host-side TWG adapter with bounded process execution, safe errors, cancellation and synthetic tests. See `docs/TWG_IMPLEMENTATION.md`.
 - [ ] Verify supported CLI contracts, OAuth setup/storage, site/profile binding and full dashboard parity before enabling the alternative in Settings. This foundation does not close the authentication distribution gate.
+
+- [x] Add experimental TWG Settings login/access actions with host job polling, cancellation and safe errors; verified with 10 focused Node tests and 3 mocked desktop/mobile browser tests (2026-11-04). Real CLI compatibility and dashboard data adapters remain pending.

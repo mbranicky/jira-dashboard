@@ -1,3 +1,4 @@
+import {TwgSettings} from './twg-settings';
 import {ConnectionCheck} from './connection-check';
 import {BoardLoading} from './board-loading';
 import {useDashboardSession} from './dashboard-session';
@@ -46,6 +47,7 @@ function Editor({theme,layout,initial,onSave,saving,error}:Surface & {initial:Co
     <Text style={{color:theme.colors.foregroundMuted}}>Use JIRA_EMAIL and JIRA_API_TOKEN in this file. Only the path is saved here. Protect the file with owner-only permissions (chmod 600).</Text>
     <ConnectionCheck key={`${draft.boardUrl}|${draft.envPath}`} theme={theme} boardUrl={draft.boardUrl} envPath={draft.envPath}/>
     </View>
+    <TwgSettings theme={theme}/>
     <View style={{flexDirection:layout.compact?'column':'row',gap:16,alignItems:layout.compact?'stretch':'center',paddingVertical:8}}>
     <View style={{flex:1,gap:6}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Refresh interval</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:13}}>How often the board checks Jira for updates.</Text></View>
     <View style={{width:layout.compact?'100%':260,gap:8}}>
