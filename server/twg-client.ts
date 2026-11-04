@@ -1,7 +1,9 @@
+import {TwgFailure,failureFromOutput} from './twg-errors';
 import {parseTwgOutput} from './twg-output';
 import {twgTarget} from '../shared/twg';
 import {execFile} from 'node:child_process';
 import {isAbsolute} from 'node:path';
+import {decodeTwgColumns} from './twg-columns';
 
 export class TwgCompatibilityError extends Error {constructor(){super('This TWG CLI does not advertise profile support. Update TWG on the host before testing access.');}}
 
@@ -17,8 +19,7 @@ export const runTwg: TwgRunner = ({executable, args, signal, timeoutMs = 30_000}
     if (error) {
       // Never surface stdout/stderr: CLI diagnostics can contain sensitive data.
       const code = (error as NodeJS.ErrnoException).code;
-      reject(new Error(code === 'ENOENT' ? 'TWG CLI was not found.' :
-        signal?.aborted ? 'TWG request cancelled.' : 'TWG command failed or exceeded its execution limits.'));
+      reject(signal?.aborted?new TwgFailure('cancelled'):code==='ENOENT'?new TwgFailure('missing-cli'):(error.killed||code==='ERR_CHILD_PROCESS_STDIO_MAXBUFFER')?new TwgFailure('timeout'):failureFromOutput(stdout)??new TwgFailure('unknown'));
     } else resolve(stdout);
   });
   child.stdin?.end();
@@ -38,7 +39,8 @@ export class TwgConnection {
       const output = await this.run({executable: this.executable, args: [...args, '-o', 'json', '--output-summary', 'none'], signal: controller.signal});
       if (controller.signal.aborted) throw new Error('cancelled');
       return parseTwgOutput(output);
-    } catch {
+    } catch(error) {
+      if(error instanceof TwgFailure)throw error;
       // Do not pass runner errors or malformed output through an RPC.
       throw new Error(controller.signal.aborted ? 'TWG request cancelled.' :
         'TWG request failed. Check CLI installation, authorization and command compatibility on the Paseo host.');
@@ -53,8 +55,8 @@ export class TwgConnection {
     try {
       const help=await this.run({executable:this.executable,args:['--help'],signal:controller.signal});
       if(controller.signal.aborted)throw new Error('cancelled');
-      if(!/^\s+[^\n]*--profile(?:[ =]|$)/m.test(help))throw new Error('unsupported');
-    } catch {throw new TwgCompatibilityError();}
+      if(!/^\s+[^\n]*--profile(?:[ =]|$)/m.test(help))throw new TwgCompatibilityError();
+    } catch(error) {if(error instanceof TwgFailure||error instanceof TwgCompatibilityError)throw error;throw new TwgFailure(controller.signal.aborted?'cancelled':'unknown');}
     finally {this.pending.delete(controller);}
   }
   /** Explicit cloud check only. Never called automatically or during construction. */
@@ -62,9 +64,51 @@ export class TwgConnection {
     const value=twgTarget.parse(target);
     return this.requireProfileSupport().then(()=>this.json(['access','--site',new URL(value.site).origin,'--profile',value.profile]));
   }
+  /** Explicit read-only board configuration request; no view ARI or credential access. */
+  async boardColumns(target:{site:string;profile:string}, boardId:number) {
+    const value=twgTarget.parse(target);
+    if(!Number.isSafeInteger(boardId)||boardId<=0)throw new Error('Choose a valid board ID.');
+    await this.requireProfileSupport();
+    const result=await this.json(['jira','board','scope','query','--id',String(boardId),
+      '--site',new URL(value.site).hostname,'--profile',value.profile]);
+    return decodeTwgColumns(result,boardId);
+  }
+  readIssue(target:{site:string;profile:string},key:string){
+    const value=twgTarget.parse(target);
+    if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');
+    return this.json(['jira','workitem','get',key,'--strict','--fields',
+      'summary,status,issuetype,priority,project,parent,fixVersions,labels,description,assignee,reporter,duedate,created,updated',
+      '--site',new URL(value.site).hostname,'--profile',value.profile]);
+  }
+  readComments(target:{site:string;profile:string},key:string,cursor?:string){
+    this.validateKey(key);const value=twgTarget.parse(target);
+    return this.json(['jira','workitem','comment','query','--issue-id',key,'--first','50','--order-by=-created',
+      ...(cursor?['--after',cursor]:[]),'--site',new URL(value.site).hostname,'--profile',value.profile]);
+  }
+  readAttachments(target:{site:string;profile:string},key:string){
+    this.validateKey(key);const value=twgTarget.parse(target);
+    return this.json(['jira','workitem','attachment','query','--issue-id',key,'--site',new URL(value.site).hostname,'--profile',value.profile]);
+  }
+  downloadAttachment(target:{site:string;profile:string},id:string,path:string){
+    if(!/^\d+$/.test(id)||!isAbsolute(path))throw new Error('Invalid attachment download.');
+    const value=twgTarget.parse(target);
+    return this.json(['jira','workitem','attachment','download','--attachment-id',id,'--output-path',path,
+      '--site',new URL(value.site).hostname,'--profile',value.profile]);
+  }
+  private validateKey(key:string){if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');}
   close() {
     this.closed = true;
     for (const controller of this.pending) controller.abort();
     this.pending.clear();
+  }
+  readDashboard(kind:'identity'|'sprints'|'issues',target:{site:string;profile:string},id?:number,start=0){
+    const value=twgTarget.parse(target);
+    if(kind!=='identity'&&(!Number.isSafeInteger(id)||(id??0)<=0))throw new Error('Invalid TWG resource ID.');
+    if(!Number.isSafeInteger(start)||start<0)throw new Error('Invalid TWG page offset.');
+    const args=kind==='identity'?['user','get','me']:kind==='sprints'?
+      ['jira','board','sprints','query','--board-id',String(id),'--state','active,future','--start-at',String(start),'--max-results','50']:
+      ['jira','sprint','workitems','query','--sprint-id',String(id),'--jql','assignee = currentUser()',
+       '--fields','summary,status,assignee,issuetype,priority,project,parent,fixVersions,labels','--start-at',String(start),'--max-results','50'];
+    return this.json([...args,'--site',new URL(value.site).hostname,'--profile',value.profile]);
   }
 }

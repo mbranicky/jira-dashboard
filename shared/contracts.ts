@@ -6,6 +6,7 @@ export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','p
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
+  transport: z.enum(['rest','twg']).optional(),
   boardUrl: z.string().default(''),
   envPath: z.string().default(''),
   twgExecutable: z.string().default('twg'),

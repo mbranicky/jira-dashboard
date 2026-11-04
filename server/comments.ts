@@ -1,3 +1,4 @@
+import {assertRestConnection} from '../shared/connection-mode';
 import {authorization} from './credentials';
 import {metadataFetch} from './metadata-cache';
 import {z} from 'zod';
@@ -11,6 +12,7 @@ export function normalizeComment(value:unknown):JiraComment{
 }
 export type CommentsTransport=(path:string,body?:unknown)=>Promise<unknown>;
 export async function commentsSession(config:Connection,fetcher:typeof fetch=metadataFetch){
+ assertRestConnection(config);
  const {site}=parseBoardUrl(config.boardUrl);
  let cloudId:string;
  try{const response=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});if(!response.ok)throw new Error();cloudId=z.object({cloudId:z.string().uuid()}).parse(await response.json()).cloudId;}catch{throw new Error('Cannot resolve Jira. Check the connection settings.');}

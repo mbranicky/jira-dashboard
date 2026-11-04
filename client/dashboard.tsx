@@ -15,7 +15,7 @@ import { Icon } from '@getpaseo/plugin/client/ui';
 import { useRpc, useSettings, type PluginScreenProps, type PluginSurfaceProps } from '@getpaseo/plugin/client';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { connection, dashboardPreferences, mappings, readBoard, type Connection } from '../shared/contracts';
 import { openExternal } from './web';
 
@@ -39,14 +39,17 @@ function Editor({theme,layout,initial,onSave,saving,error}:Surface & {initial:Co
   const intervalError=intervalTouched&&!validInterval?'Enter a whole number of at least 30 seconds.':null;
   const input={color:theme.colors.foreground,backgroundColor:theme.colors.surface1,borderColor:theme.colors.border,borderWidth:1,borderRadius:8,padding:12};
   return <View style={{padding:layout.compact?16:24,gap:16,maxWidth:960,width:'100%',alignSelf:'center'}}>
-    <SectionTitle theme={theme} icon="Link" title="Jira connection" description="Connect your board with a private API token on this host."/>
+    <SectionTitle theme={theme} icon="Link" title="Jira connection" description="Choose how this host connects to your Jira board."/>
     <View style={{padding:layout.compact?16:24,gap:14,borderRadius:16,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border}}>
     <Text style={{color:theme.colors.foreground}}>Jira board URL</Text>
     <TextInput accessibilityLabel="Jira board URL" autoCapitalize="none" autoCorrect={false} value={draft.boardUrl} onChangeText={boardUrl=>{setSaved(false);setDraft({...draft,boardUrl});}} placeholder="https://your-site.atlassian.net/jira/software/c/projects/KEY/boards/51" placeholderTextColor={theme.colors.foregroundMuted} style={input}/>
+    <View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>TWG CLI · read-only preview</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Use your TWG OAuth profile instead of an API token for the dashboard.</Text></View><Switch accessibilityLabel="Use TWG CLI for dashboard" value={draft.transport==='twg'} onValueChange={enabled=>{setSaved(false);setDraft({...draft,transport:enabled?'twg':'rest'});}}/></View>
+    {draft.transport!=='twg'?<>
     <Text style={{color:theme.colors.foreground}}>Secret file path on this host</Text>
     <TextInput accessibilityLabel="Secret file path" autoCapitalize="none" autoCorrect={false} value={draft.envPath} onChangeText={envPath=>{setSaved(false);setDraft({...draft,envPath});}} placeholder="/absolute/path/to/jira.env" placeholderTextColor={theme.colors.foregroundMuted} style={input}/>
     <Text style={{color:theme.colors.foregroundMuted}}>Use JIRA_EMAIL and JIRA_API_TOKEN in this file. Only the path is saved here. Protect the file with owner-only permissions (chmod 600).</Text>
     <ConnectionCheck key={`${draft.boardUrl}|${draft.envPath}`} theme={theme} boardUrl={draft.boardUrl} envPath={draft.envPath}/>
+    </>:null}
     </View>
     <TwgSettings theme={theme} boardUrl={draft.boardUrl} executable={draft.twgExecutable??'twg'} profile={draft.twgProfile??'default'} onChange={(executable,profile)=>{setSaved(false);setDraft({...draft,twgExecutable:executable,twgProfile:profile});}}/>
     <View style={{flexDirection:layout.compact?'column':'row',gap:16,alignItems:layout.compact?'stretch':'center',paddingVertical:8}}>
@@ -66,7 +69,7 @@ function Editor({theme,layout,initial,onSave,saving,error}:Surface & {initial:Co
     </View></View>
     {error?<Text accessibilityRole="alert" style={{color:theme.colors.foreground}}>{error}</Text>:null}
     {saved?<Text style={{color:theme.colors.foreground}}>Settings saved. Open Jira Dashboard to test the connection.</Text>:null}
-    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||!draft.envPath.trim()} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
+    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
   </View>;
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
@@ -87,7 +90,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     }catch{setSprintSaveError('Could not save sprint selection. Please retry.');}
   }
   const revision=settings.status==='ready'?settings.revision:'';
-  const configured=settings.status==='ready'&&!!settings.values.boardUrl&&!!settings.values.envPath;
+  const twgPreview=settings.status==='ready'&&settings.values.transport==='twg';
+  const configured=settings.status==='ready'&&!!settings.values.boardUrl&&(twgPreview?!!settings.values.twgExecutable&&!!settings.values.twgProfile:!!settings.values.envPath);
   const board=useQuery({queryKey:['jira-board',host.id,sprintKey,revision,sprint],queryFn:()=>rpc(sprint?{sprintId:sprint}:{}),enabled:configured&&!editing&&preferences.status==='ready',retry:false,refetchInterval:settings.status==='ready'?settings.values.refreshSeconds*1000:false,refetchIntervalInBackground:false});
   const data=board.data;
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
@@ -138,11 +142,12 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     {sprintSaveError?<Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>{sprintSaveError}</Text>:null}
     {preferences.status==='error'||preferences.status==='invalid'?<Action theme={theme} icon="RefreshCw" label="Retry dashboard preferences" onPress={()=>void preferences.reload()}/>:null}
     {board.error&&sprint!==undefined?<Action theme={theme} icon="CalendarDays" label="Choose another sprint" onPress={()=>void setSprint(undefined)}/>:null}
+    {twgPreview?<Text style={muted}>TWG read-only preview · Issue details, comments and attachments are available. Start work is available; Jira changes remain disabled.</Text>:null}
     {linkError?<Text accessibilityRole="alert" style={text}>{linkError}</Text>:null}
     {data&&!data.selectedSprintId?<Text style={text}>{data.sprints.filter(s=>s.state==='active').length>1?'Several sprints are active. Select one above.':'No active sprint. Select another sprint above.'}</Text>:null}
     {data?.selectedSprintId && !data.issues.length?<Text style={muted}>No issues in this sprint are assigned to you.</Text>:null}
     {layout.compact&&!initialLoading?<ScrollView horizontal style={{flexGrow:0,maxHeight:48}} contentContainerStyle={{gap:8}}>{columns.map((c,index)=><Button key={index} theme={theme} label={`${selectedColumn===index?'✓ ':''}${c.name} · ${filtered.filter(i=>c.statusIds.includes(i.statusId)).length}`} onPress={()=>setColumn(index)}/>)}</ScrollView>:null}
-    {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
+    {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves disabled={twgPreview} site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
     <ScrollView horizontal={!layout.compact} style={{flex:1,minHeight:0}} contentContainerStyle={{gap:16,...(layout.compact?{}:{alignItems:'stretch' as const})}}>
       {columns.map((c,index)=>{
         if(layout.compact&&index!==selectedColumn)return null;
@@ -151,7 +156,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.045)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'700',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard readOnly={twgPreview} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;
@@ -159,6 +164,6 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     </ScrollView>
     </BoardMoves>}
   </View>
-  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
+  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails readOnly={twgPreview} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
   </View>;
 }

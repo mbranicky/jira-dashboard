@@ -8,13 +8,13 @@ import {prepareBrowserPreview,loadBrowserPreview,listAttachments,attachmentSetti
 import {Action} from './settings-ui';
 import {canTryBrowserPreview,localPreviewAvailable,canTransferFiles,chooseAttachment,fileChunk,saveAttachment,openExternal,type LocalAttachment} from './web';
 type Theme=Parameters<typeof Action>[0]['theme'];
-export function IssueAttachments(props:{issueKey:string;hostId:string;theme:Theme}){return <Attachments key={`${props.hostId}/${props.issueKey}`} {...props}/>;}
-function Attachments({issueKey,hostId,theme}:{issueKey:string;hostId:string;theme:Theme}){
+export function IssueAttachments(props:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){return <Attachments key={`${props.hostId}/${props.issueKey}/${props.connectionRevision}/${props.readOnly}`} {...props}/>;}
+function Attachments({issueKey,hostId,theme,readOnly=false,connectionRevision=''}:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){
  const [expanded,setExpanded]=useState(true);const [rowWidth,setRowWidth]=useState(0);
  const preparePreview=useRpc(prepareBrowserPreview),loadPreview=useRpc(loadBrowserPreview);
  const c=theme.colors;const list=useRpc(listAttachments),meta=useRpc(attachmentSettings),read=useRpc(readAttachment),begin=useRpc(beginUpload),chunk=useRpc(uploadChunk),finish=useRpc(finishUpload),cancel=useRpc(cancelUpload);const cache=useQueryClient();
- const queryKey=['jira-attachments',hostId,issueKey];const query=useQuery({queryKey,queryFn:()=>list({key:issueKey}),retry:false});
- const limits=useQuery({queryKey:['jira-attachment-settings',hostId],queryFn:()=>meta({}),retry:false});
+ const queryKey=['jira-attachments',hostId,connectionRevision,issueKey];const query=useQuery({queryKey,queryFn:()=>list({key:issueKey}),retry:false});
+ const limits=useQuery({queryKey:['jira-attachment-settings',hostId,connectionRevision],queryFn:()=>meta({}),enabled:!readOnly,retry:false});
  const [file,setFile]=useState<LocalAttachment>();const [busy,setBusy]=useState('');const lock=useRef(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [preview,setPreview]=useState<{id:string;uri:string}>();
  const jira=()=>query.data?openExternal(`${query.data.site}/browse/${issueKey}`):undefined;
  const fail=(e:unknown)=>setError(e instanceof Error?e.message:'Attachment transfer failed.');
@@ -50,7 +50,7 @@ function Attachments({issueKey,hostId,theme}:{issueKey:string;hostId:string;them
    </View>
    {preview?.id===item.id?<Image accessibilityLabel={item.filename} source={{uri:preview.uri}} resizeMode="contain" style={{width:'100%',height:220,backgroundColor:c.surface1,borderRadius:6}}/>:null}
   </View>)}
-  {file?<View style={{padding:12,borderWidth:1,borderColor:c.border,borderRadius:9,gap:8}}><Text style={{color:c.foreground,fontSize:13}}>{file.name} · {fileSize(file.size)}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>Upload to {issueKey}. This file will be visible to people who can access the issue.</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}><Action theme={theme} primary icon="Upload" label="Upload" onPress={()=>void upload()} disabled={!!busy}/><Action theme={theme} icon="X" label="Cancel" onPress={()=>setFile(undefined)} disabled={!!busy}/></View></View>:canTransferFiles?<Action theme={theme} flushLeft icon="Plus" label="Add attachment" onPress={()=>void select()} disabled={!!busy||!limits.data?.enabled||!query.isSuccess}/>:<Action theme={theme} flushLeft icon="ExternalLink" label="Upload in Jira" onPress={()=>void jira()} disabled={!query.data}/>}
+  {readOnly?null:file?<View style={{padding:12,borderWidth:1,borderColor:c.border,borderRadius:9,gap:8}}><Text style={{color:c.foreground,fontSize:13}}>{file.name} · {fileSize(file.size)}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>Upload to {issueKey}. This file will be visible to people who can access the issue.</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}><Action theme={theme} primary icon="Upload" label="Upload" onPress={()=>void upload()} disabled={!!busy}/><Action theme={theme} icon="X" label="Cancel" onPress={()=>setFile(undefined)} disabled={!!busy}/></View></View>:canTransferFiles?<Action theme={theme} flushLeft icon="Plus" label="Add attachment" onPress={()=>void select()} disabled={!!busy||!limits.data?.enabled||!query.isSuccess}/>:<Action theme={theme} flushLeft icon="ExternalLink" label="Upload in Jira" onPress={()=>void jira()} disabled={!query.data}/>}
   {limits.data&&!limits.data.enabled?<Text style={{color:c.foregroundMuted,fontSize:12}}>Attachments are disabled in Jira.</Text>:null}
   {limits.error?<Text style={{color:c.statusDanger,fontSize:12}}>Upload settings unavailable. Check permissions or upload in Jira.</Text>:null}
   {busy||notice?<Text accessibilityLiveRegion="polite" style={{color:c.accent,fontSize:12}}>{busy||notice}</Text>:null}

@@ -10,7 +10,7 @@ import {readMoves,moveIssue} from '../shared/moves';
 type Option={id:string;name:string;statusId:string;column:string;development:boolean;required:string[];fields?:TransitionField[]};
 type MoveContext={begin:(key:string,statusId:string)=>void;drop:(statuses:string[])=>void;cancel:()=>void;allowed:(statuses:string[])=>boolean;busy:boolean;issueKey:string;dragging:boolean;end:()=>void};
 const Context=createContext<MoveContext>({begin:()=>{},drop:()=>{},cancel:()=>{},allowed:()=>false,busy:false,issueKey:'',dragging:false,end:()=>{}});
-export function BoardMoves({children,sprintId,theme,onChanged,site}:{children:ReactNode;site:string;sprintId:number;theme:PluginScreenProps['theme'];onChanged:()=>void}){
+export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=false}:{disabled?:boolean;children:ReactNode;site:string;sprintId:number;theme:PluginScreenProps['theme'];onChanged:()=>void}){
  const read=useRpc(readMoves),move=useRpc(moveIssue);
  const [dragging,setDragging]=useState(false);
  const [key,setKey]=useState(''),[options,setOptions]=useState<Option[]>([]),[targets,setTargets]=useState<string[]>();
@@ -20,7 +20,7 @@ export function BoardMoves({children,sprintId,theme,onChanged,site}:{children:Re
  const sourceStatus=useRef('');
  const generation=useRef(0);const latest=useRef({key:'',options:[] as Option[]});
  function begin(issueKey:string,statusId:string){
-  if(busy)return;
+  if(busy||disabled)return;
   setDragging(true);sourceStatus.current=statusId;
   ++generation.current;setKey(issueKey);setOptions([]);setTargets(undefined);setSelected(undefined);setValues({});setMessage('Choose a destination column.');latest.current={key:issueKey,options:[]};
  }
@@ -41,10 +41,10 @@ export function BoardMoves({children,sprintId,theme,onChanged,site}:{children:Re
 }
   finally{setBusy(false);onChanged();}
  }
- const allowed=(_ids:string[])=>!busy&&!!latest.current.key;
+ const allowed=(_ids:string[])=>!disabled&&!busy&&!!latest.current.key;
  function drop(ids:string[]){setDragging(false);if(!allowed(ids))return;if(ids.includes(sourceStatus.current)){cancel();return;}void resolve(ids);}
  function cancel(){if(busy)return;++generation.current;setSelected(undefined);setKey('');setOptions([]);setMessage('');latest.current={key:'',options:[]};}
- return <Context.Provider value={{begin,drop,cancel,allowed,busy,issueKey:key,dragging,end:()=>setDragging(false)}}>
+ return <Context.Provider value={{begin,drop,cancel,allowed,busy:busy||disabled,issueKey:key,dragging,end:()=>setDragging(false)}}>
  {key&&targets?<View style={{paddingHorizontal:12,paddingVertical:4,gap:4,borderWidth:1,borderColor:theme.colors.border,borderRadius:8}}>
  <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
   <Icon name="Info" size={16} color={theme.colors.foregroundMuted}/>

@@ -238,3 +238,37 @@ Initial dashboard loading shows neutral empty column surfaces with placeholder h
 ## Connection diagnostics
 
 Settings provides Test connection for the current unsaved board URL and secret-file path. It performs fresh read-only checks for URL validity, credential loading, site resolution, authentication, board access, active/future sprints, assigned sprint issues and independent workspace issue search. Stop at the first failure and identify that step without revealing credentials or raw Jira responses. With no available sprint, explicitly mark sprint issue access as skipped. Testing does not save settings or verify comment, attachment or transition permissions. Editing connection values clears the previous result.
+
+### Experimental TWG read-only dashboard (2026-11-04)
+
+A host connection can explicitly select TWG CLI OAuth instead of REST. The TWG
+preview loads actual board columns, active/future sprints and assigned issues;
+it preserves sprint selection and supports search. CLI credentials stay owned
+by TWG. There is no automatic REST fallback. Column configuration is cached for
+ten minutes per executable/site/profile/board/account, with a bounded cache.
+Ticket titles open Jira; new work, drag/drop and in-app issue details are outside
+this preview. Existing workspace links remain available. Full TWG feature parity
+and distribution readiness remain separate gates.
+
+TWG preview now supports read-only description and Jira fields in the dashboard
+modal/panel and workspace Jira panel. Dashboard reads revalidate assigned-sprint
+membership; workspace reads use the detected issue key without a sprint filter.
+Comments, attachments and write workflows remain outside this preview.
+
+TWG read-only support now includes comment reading and attachment viewing/download
+in dashboard details and the workspace Jira panel. Comments preserve author,
+creation/edit dates, rich text and available parent relationships, sorted newest
+activity first. Attachment previews use CLI-authenticated downloads with private
+temporary files and bounded caches. Posting, linked replies, uploads, Start work
+and Jira transitions remain unavailable in this mode.
+
+### TWG recovery and Start work
+
+TWG connections expose sanitized, actionable failures for sign-in, permissions,
+rate limits and CLI execution problems. Only an explicit issue-lookup 404 becomes
+the quiet workspace “No Jira issue found” state, without manual key entry.
+
+Start work uses TWG to validate the issue and the existing local workspace and
+agent implementation, including optional `/skill ISSUE-KEY` dispatch. It performs
+no Jira transition. Existing workspace reuse and card eligibility rules apply.
+TWG Jira writes remain disabled; any configured entry skill acts independently.

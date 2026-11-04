@@ -92,3 +92,195 @@ Findings:
 - **Correction to the earlier candidate:** generic `twg api` is unavailable in stable 1.4.2 (both command discovery and direct help reject it). The 1.3.0 shortcut must not be used for our supported transport.
 
 We cannot honestly mark board/access success formats verified from these artifacts. Dashboard runtime integration remains gated on authoritative vendor schemas or separately authorized sanitized response observations. Synthetic fixtures validate internal adapter behavior, not the undocumented vendor shape. No upgrade, login, tenant query or automatic fallback was performed.
+
+## Authorized read-only desktop verification — 4 November 2026
+
+TWG 1.4.2 successfully authenticated through an interactive desktop terminal.
+The agent-launched device authorization timed out even though browser consent
+was reported complete; the desktop-terminal login completed and saved the
+intended profile. Use CLI-owned interactive login; do not interpret browser
+success alone as proof that the CLI session is ready. No credential file was
+read by the plugin or this verification.
+
+Verified through the explicitly selected profile and site:
+
+- `user get me`: `data` is an object with `accountId`, `name`, and `email`.
+  The returned account matched the user-requested account. Only account ID and
+  display name belong in dashboard state.
+- `jira board get --id 51`: `data` is an array of board objects. The requested
+  board was returned with `id`, `name`, `type`, and `location`. This response
+  does **not** include column/status mappings or a view-settings ARI.
+- `jira board sprints query --board-id 51 --state active,future`: `data.sprints`
+  is an array, with `data.total` and `data.isLast`. It included two active
+  sprints with different `originBoardId` values. Never pick the first active
+  sprint as a proxy for team membership; preserve the user's selection.
+- `jira sprint workitems query --sprint-id <selected-active-sprint> --jql
+  'assignee = currentUser()' --fields
+  summary,status,issuetype,priority,assignee,labels,fixVersions,parent
+  --max-results 50`: returned 18 issues and `data.total = 18`,
+  `data.startAt = 0`, `data.maxResults = 50`. Issue objects expose `id`, `key`,
+  `fields`, and `url`; requested fields were present on the inspected issue.
+
+All calls used `-o json --output-summary none`. No transitions, comments,
+attachment uploads, or other Jira writes were performed. Private response
+bodies and credentials are not committed as fixtures.
+
+**Remaining dashboard integration gate:** resolve board column/status mappings
+through a supported TWG read command. Bundled help requires a view-settings ARI
+for `jira board view-settings query` and board-cell IDs/ARIs for
+`jira board cells query`; the board-get response supplies neither. Do not
+invent these identifiers or replace actual board columns with issue statuses.
+The successful reads above establish connectivity and concrete response
+shapes, not completion of the dashboard transport adapter.
+
+## Column mapping gate resolved — 4 November 2026
+
+The supported read command is **`jira board scope query --id <boardId>`**.
+Despite its scope-oriented name and GraphQL-oriented help text, TWG 1.4.2's
+bundled implementation routes this command to the Agile board configuration
+GET endpoint. A live read of board 51 confirmed `data.columnConfig.columns`,
+with each column's name and full `statuses[].id` array, in board order.
+It returned six columns with respectively 2, 10, 4, 1, 2, and 19 status IDs.
+No view-settings or board-cell ARI is needed. The backlog query returns issue
+search data and is not a configuration discovery route.
+
+Invocation (with CLI-owned authorization):
+
+```sh
+twg jira board scope query --id 51 --site example.atlassian.net \
+  --profile your-profile -o json --output-summary none
+```
+
+`server/twg-columns.ts` validates the v2 command envelope, board identity, and
+complete column/status structure. `TwgConnection.boardColumns` explicitly binds
+the selected site/profile and invokes only this read route. Synthetic tests
+cover multiple statuses per column, empty columns, order preservation, duplicate
+status IDs, incorrect board/command/version, and incomplete responses.
+
+This supersedes the earlier unresolved mapping gate. The read-only dashboard
+adapter can now combine scope configuration, current user, paginated sprints,
+and assigned sprint issues. Runtime dashboard routing, pagination, configuration
+caching keyed by site/profile/board, and end-to-end mocked adapter tests remain
+integration work; this change does not switch the dashboard away from REST.
+No Jira writes were made during the investigation.
+
+## Read-only dashboard integration — 4 November 2026
+
+Settings now offers an explicit **TWG CLI · read-only preview** switch. Existing
+installations continue using REST unless the user selects TWG. TWG mode requires
+only the board URL, executable path, and saved CLI profile; the secret-file path
+is not required and is never used as a fallback. Test TWG access validates the
+configured board's scope response before reporting verified board access.
+
+The dashboard RPC now routes TWG mode through `createTwgDashboard`. It reads the
+current user, scope configuration, active/future sprints, and assigned sprint
+issues. Offset pagination requires explicit completion evidence, rejects
+repeated pages/IDs and inconsistent offsets/totals, and is bounded to 100 pages.
+Multiple active sprints still require a saved or explicit user selection.
+
+Validated column configuration is cached in memory for ten minutes, with a
+128-entry bound and keys containing executable, site, profile, board, and
+current account ID. Failed responses are not cached. Identity, sprints and
+issues remain fresh. Plugin shutdown cancels active processes and clears cache.
+
+This is a board-reading preview, not full feature parity: ticket titles open
+Jira, drag/drop and creating work are disabled, and in-app details/comments/
+attachments are not routed through REST. Existing workspace links can still be
+opened. Unsupported REST entry points explicitly reject TWG mode before loading
+credentials or making HTTP calls. Switching back to REST restores existing
+features. A desktop terminal remains necessary for OAuth sign-in.
+
+Synthetic unit tests cover normalization, pagination, cache expiry/isolation,
+invalid sprint selections, wrong assignees, and prevention of REST fallback.
+Desktop/mobile component tests cover switching modes and saving without a
+secret file; sprint-persistence regression tests also pass.
+
+The completed adapter was also verified read-only against board 51: six columns,
+six available sprints, and 18 assigned issues in selected sprint 4180. Mapping
+column choices reuse the same cache without loading sprints/issues; their explicit
+Refresh columns action invalidates cached configuration. The local plugin was
+reloaded after integration; the existing user's selected transport is preserved.
+
+## TWG issue details — 4 November 2026
+
+The dashboard details modal/panel and workspace Jira panel now read issue details
+through `jira workitem get <key> --strict --fields <explicit-fields>`, bound to
+the saved site/profile. A live read confirmed the v2 response flattens issue fields
+into each item in `data`, including an ADF description. The decoder requires an
+exact single key match, rejects reported failed/omitted/truncated acquisition,
+and reuses the existing safe description/field normalizer. No CLI HTML is rendered
+and account IDs/email addresses are not included in the details response.
+
+Dashboard details first revalidate membership in the selected assigned sprint.
+Workspace lookup is independent of sprint and assignee, preserving existing key
+detection rules. Issue content is not cached server-side. Client query keys now
+include host and connection revision to avoid reusing another connection's data.
+
+This supersedes the earlier preview restriction on in-app details. Ticket titles
+open the configured details presentation again. Comments and attachments remain
+explicitly unavailable in TWG mode (their REST components are not mounted), and
+Start work/drag-drop remain disabled. Existing workspace links remain available.
+Errors and incomplete responses are shown with retry rather than falsely reporting
+that an inaccessible issue does not exist. All verification calls were read-only.
+
+## Read-only comments and attachments — 4 November 2026
+
+Both dashboard issue details and the workspace Jira panel now display comments
+and attachments through TWG. Verified native commands:
+
+- `jira workitem comment query --issue-id <key> --first 50 --order-by=-created`
+  returns `data[]` and `pageInfo.hasNextPage/nextCursor`. Follow `--after` until
+  complete, then sort by the newer of creation/modification time before UI paging.
+  Reject repeated cursors/comment IDs and incomplete pages; limit to 100 pages.
+- `jira workitem attachment query --issue-id <key>` returns metadata in `data[]`.
+- `jira workitem attachment download --attachment-id <id> --output-path <path>`
+  downloads using CLI-owned OAuth. The plugin supplies a private temporary
+  directory and fixed filename; it never follows paths returned in CLI JSON.
+
+Reads reuse the existing author/date, nested-comment (where parent IDs are
+provided), rich-text, compact attachment, in-app image preview, download, and
+local browser preview components. Posting, linked replies, and uploads are
+hidden in TWG mode and remain blocked by server-side REST guards. Upload settings
+are not requested. Connection-revision-specific query keys prevent stale data
+from being reused after switching connections.
+
+Before bytes are returned, the attachment must still appear on the requested
+issue and fit the 25 MB transfer limit. Files are opened without following
+symlinks, checked against metadata size, read with a fixed bound, and removed in
+`finally` on success or failure. A bounded 50 MB/32-entry in-memory byte cache
+expires entries after two minutes (cleanup every 30 seconds) and is cleared on
+plugin shutdown; concurrent download reservations are capped at 50 MB. Cache
+keys include executable/site/profile/issue/attachment identity. These are content
+caches, not credential stores. No OAuth credential is extracted or forwarded.
+
+Live verification read two comments, listed two attachments and downloaded a
+102396-byte PNG for a known issue; signature validation passed. No comments,
+files, or ticket changes were posted. Synthetic tests cover pagination/order,
+private-field removal, attachment membership, size mismatch, cleanup, reuse,
+and forbidden upload requests. Desktop/mobile UI tests cover viewing while
+write controls and upload-settings requests remain absent.
+
+### Recovery and local Start work — 4 November 2026
+
+Structured TWG errors now distinguish expired/rejected sign-in, permission denial,
+missing issues, rate limits, missing executables and execution limits. Only fixed
+recovery guidance is displayed; raw CLI diagnostics and suggested commands are
+not forwarded. Sign-in recovery remains in a terminal on the Paseo host using the
+configured profile, followed by retrying the request or connection check.
+
+An explicit issue-lookup 404 produces the existing quiet “No Jira issue found”
+workspace-panel state. Authentication, permission and malformed-response failures
+remain errors rather than being mistaken for missing tickets. There is no manual
+issue-key input. A 404 can also mean the selected profile cannot see the issue.
+
+Play is available again on eligible cards and dashboard details, with existing
+workspace links retaining Open workspace. Start work validates the assigned sprint
+issue through TWG and then uses the existing local workspace/branch/agent flow.
+It sends `/skill ISSUE-KEY` only when an entry skill is configured. It does not
+change Jira or request a transition. Workspace-side details retain no Play action.
+The user-configured skill controls its own subsequent actions independently.
+
+TWG status transitions, posting/replying and attachment uploads remain disabled.
+Verification used mocks only: 127 automated tests, 12 browser component tests and
+both typechecks passed. No real Jira requests, workspaces or agents were created
+for these tests.

@@ -156,3 +156,27 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Inspect TWG 1.3.0 bundled help under network/credential isolation; add a profile-support preflight that prevents authenticated calls on incompatible builds. Confirmed generic Jira API command as a candidate transport; output-contract and OAuth coverage gates remain open.
 
 - [x] Inspect official stable TWG 1.4.2 with checksum verification and offline isolation. Confirm profile support and identity layouts; record missing board/access schemas and removal of generic `api`. Add identity decoder tests; dashboard wire-format gate remains open.
+
+### TWG read-only preview verification (2026-11-04)
+
+- [x] Verify TWG 1.4.2 desktop OAuth with the intended account and site, without reading credential files.
+- [x] Verify live read contracts for identity, board scope/column mappings, sprints and assigned issues. This supersedes the earlier unresolved board wire-format gate.
+- [x] Route explicitly selected TWG dashboard connections through validated reads, bounded pagination and success-only column caching.
+- [x] Support saving TWG settings without a REST secret path; prevent unsupported features from falling back to REST credentials.
+- [x] Verify mocked desktop/mobile connection-mode switching and sprint persistence (7 component tests), and the full unit suite.
+- [ ] Implement TWG issue details, comments, attachments and workflow/Start work parity before treating TWG as a complete alternative.
+- [ ] Complete distribution-policy and public-release gates; enabling an experimental local preview does not close them.
+
+- [x] Add TWG read-only issue descriptions and fields to dashboard details and the workspace Jira panel, with exact-key validation, safe rich text, and no REST fallback.
+- [ ] Add TWG comments/attachments and write workflow parity separately; current TWG details remain read-only.
+
+- [x] Implement TWG read-only comments and attachment listing/download/preview in both detail surfaces, with pagination, safe temporary-file cleanup and mocked regression coverage.
+- [ ] Implement TWG write workflows only after separately authorizing that stage; no Jira writes were used for verification.
+
+### TWG recovery and local Start work verification (2026-11-04)
+
+- [x] Add sanitized sign-in, permission, missing-CLI, rate-limit and timeout recovery guidance.
+- [x] Treat explicit issue-lookup 404 as a quiet missing-ticket state; preserve authentication/permission errors and reject malformed responses.
+- [x] Restore local Start work through TWG validation, with optional entry skill and existing branch/workspace reuse; no Jira transition.
+- [x] Verify using mocks only: 127 automated tests, 12 browser component tests, and both typechecks. No live Jira or real workspace/agent actions.
+- [ ] TWG Jira write parity remains separate and requires authorization; earlier combined read/write parity items are only partially complete.

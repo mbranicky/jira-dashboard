@@ -17,15 +17,16 @@ export function TwgSettings({theme,boardUrl,executable:path,profile,onChange}:{t
  },[job?.id,job?.state,poll]);
  const run=async(action:'login'|'check')=>{
   setStarting(true);setError('');setJob(undefined);
-  try{const next=await start({action,executable:path.trim(),site,profile});active.current=next.id;if(mounted.current)setJob(next);else{void cancel({id:next.id}).catch(()=>{});}}
+  try{const next=await start({action,executable:path.trim(),site,profile,...(boardId?{boardId}:{})});active.current=next.id;if(mounted.current)setJob(next);else{void cancel({id:next.id}).catch(()=>{});}}
   catch{if(mounted.current)setError('Unable to start TWG. Use twg or an absolute executable path, and check whether another operation is running.');}
   finally{if(mounted.current)setStarting(false);}
  };
+ const boardId=Number(boardUrl.match(/\/boards\/(\d+)\/?(?:[?#].*)?$/)?.[1])||undefined;
  let site='';try{site=new URL(boardUrl).origin;}catch{}
  const target=twgTarget.safeParse({site,profile});
  const busy=starting||job?.state==='running';const c=theme.colors;
  return <View style={{gap:12,padding:16,borderWidth:1,borderColor:c.border,borderRadius:16,backgroundColor:c.surface1}}>
-  <SectionTitle theme={theme} icon="Terminal" title="TWG CLI · experimental" description="Sign in from a terminal on your Paseo host, then check CLI access here. The dashboard still uses REST."/>
+  <SectionTitle theme={theme} icon="Terminal" title="TWG CLI · experimental" description="Sign in from a terminal on your Paseo host, then check CLI access here. Enable the read-only preview above to load the dashboard through TWG."/>
   <Text style={{color:c.foregroundMuted,fontSize:13,lineHeight:19}}>On your desktop, open a terminal on the Paseo host and run twg login. Complete browser consent, then return here to test access. No token needs to be pasted here.</Text>
   <Text style={{color:c.foreground}}>TWG executable on host</Text>
   <TextInput accessibilityLabel="TWG executable on host" value={path} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(value,profile);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:8,padding:12}}/>
