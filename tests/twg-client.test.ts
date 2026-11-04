@@ -55,3 +55,8 @@ test('unsupported profile contract stops before any authenticated command',async
  await assert.rejects(client.checkAccess({site:'https://example.atlassian.net',profile:'work'}),/profile support/);
  assert.deepEqual(calls,[['--help']]);
 });
+
+ test('partial site input returns validation errors without throwing during settings edits',async()=>{
+  const {twgTarget}=await import('../shared/twg');
+  for(const site of ['', 'h', 'https:', 'not a URL'])assert.equal(twgTarget.safeParse({site,profile:'default'}).success,false);
+ });
