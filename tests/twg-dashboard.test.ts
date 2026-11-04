@@ -5,7 +5,7 @@ import {createTwgDashboard} from '../server/twg-dashboard';
 import {connectionSchema} from '../shared/contracts';
 import {commentsSession} from '../server/comments';
 import {attachmentsSession} from '../server/attachments';
-import {fetchBoard,fetchWorkspaceIssue} from '../server/jira';
+import {fetchBoard,fetchWorkspaceIssue,issueSession,fetchProjectStatuses} from '../server/jira';
 const config=connectionSchema.parse({transport:'twg',boardUrl:'https://example.atlassian.net/boards/7',envPath:'/must-not-read',twgProfile:'work'});
 const issue=(key:string,assignee='user')=>({key,fields:{summary:'Synthetic issue',status:{id:'10',name:'Open'},assignee:{accountId:assignee},issuetype:{name:'Story'},project:{key:'TEST'}}});
 function harness(){
@@ -54,8 +54,8 @@ test('failed metadata is not cached and duplicate/foreign-assignee issues fail c
 });
 test('TWG preview cannot fall back to REST credentials or network for unsupported features',async()=>{
  let fetched=false;const fetcher=(async()=>{fetched=true;throw Error('unexpected network');}) as typeof fetch;
- for(const run of [()=>commentsSession(config,fetcher),()=>attachmentsSession(config,fetcher),()=>fetchBoard(config),()=>fetchWorkspaceIssue(config,'TEST-1')]){
-  await assert.rejects(run(),/dashboard reads only/);
+ for(const run of [()=>commentsSession(config,fetcher),()=>attachmentsSession(config,fetcher),()=>fetchBoard(config),()=>fetchWorkspaceIssue(config,'TEST-1'),()=>issueSession(config,'TEST-1',fetcher),()=>fetchProjectStatuses(config,'TEST')]){
+  await assert.rejects(run(),/unavailable in TWG read-only mode/);
  }
  assert.equal(fetched,false);
 });

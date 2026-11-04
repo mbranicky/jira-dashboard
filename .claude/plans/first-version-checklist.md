@@ -139,44 +139,25 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [x] Verify with synthetic credential regression tests: all 89 Node tests and both type checks pass. Actual-token secret scan intentionally not run under the no-secret-read constraint.
 - [ ] Obtain the separate Atlassian distribution clarification; security hardening does not establish policy approval.
 
-## TWG CLI alternative — experimental branch
+## TWG CLI alternative — read-only preview (2026-11-04)
 
-- [x] Start an isolated host-side TWG adapter with bounded process execution, safe errors, cancellation and synthetic tests. See `docs/TWG_IMPLEMENTATION.md`.
-- [ ] Verify supported CLI contracts, OAuth setup/storage, site/profile binding and full dashboard parity before enabling the alternative in Settings. This foundation does not close the authentication distribution gate.
+- [x] Verify TWG 1.4.2 command contracts and authorized read-only desktop OAuth/board observations; see `docs/TWG_IMPLEMENTATION.md`.
+- [x] Keep OAuth in the CLI; guide terminal login on the host, explicitly bind site/profile, reject background login, and never fall back to REST credentials.
+- [x] Read board columns, active/future sprints and assigned issues with bounded pagination and success-only metadata caching.
+- [x] Persist sprint selection by board. Multiple active sprints require an explicit or saved selection.
+- [x] Show descriptions, fields, comments and attachments in dashboard details and workspace panels; safely preview/download attachments.
+- [x] Show sanitized recovery errors and quiet missing-ticket state only for explicit issue-lookup 404 responses.
+- [x] Restore local Start work and optional `/skill ISSUE-KEY` dispatch without Jira transitions; preserve branch/worktree reuse and separate dialogs.
+- [x] Verify REST and TWG with mocks; standard and Paseo 0.15 CI plus source/history secret scans passed at `f2fd2fc`.
+- [x] Consolidate setup/current-scope documentation and correct outdated unsupported-operation wording.
+- [x] Review branch against main for REST compatibility, connection isolation and Jira write guards; extend guard coverage to workflow sessions and status discovery.
+- [ ] Merge the read-only preview PR after its final checks pass.
 
-- [x] Add experimental TWG Settings login/access actions with host job polling, cancellation and safe errors; verified with 10 focused Node tests and 3 mocked desktop/mobile browser tests (2026-11-04). Real CLI compatibility and dashboard data adapters remain pending.
+Deferred beyond this PR:
 
-- [x] Correct TWG setup after discovering its controlling-terminal requirement: remove background login, guide terminal OAuth and reject old login RPC requests before execution. Earlier mocked login coverage did not establish live compatibility.
+- [ ] TWG status transitions/required-field handling and drag-and-drop.
+- [ ] TWG comment posting and linked replies.
+- [ ] TWG attachment uploads.
+- [ ] Resolve CLI distribution/embedding terms and the separate public-release authentication-policy gate. Private merge is not public-distribution approval.
 
-- [x] Bind TWG access checks to the board site and explicit saved profile; reject invalid targets and explicit error envelopes. Confirmed installed Paseo terminal creation requires a workspace. Real CLI success-schema verification remains pending.
-
-- [x] Request direct TWG JSON, reject file summaries and distinguish unverified output from successful access. Add internal dashboard snapshot validation with synthetic fixtures.
-- [ ] Obtain authoritative per-command TWG success/output contracts before enabling a live decoder; public catalogue and generic output guidance do not establish these shapes.
-
-- [x] Inspect TWG 1.3.0 bundled help under network/credential isolation; add a profile-support preflight that prevents authenticated calls on incompatible builds. Confirmed generic Jira API command as a candidate transport; output-contract and OAuth coverage gates remain open.
-
-- [x] Inspect official stable TWG 1.4.2 with checksum verification and offline isolation. Confirm profile support and identity layouts; record missing board/access schemas and removal of generic `api`. Add identity decoder tests; dashboard wire-format gate remains open.
-
-### TWG read-only preview verification (2026-11-04)
-
-- [x] Verify TWG 1.4.2 desktop OAuth with the intended account and site, without reading credential files.
-- [x] Verify live read contracts for identity, board scope/column mappings, sprints and assigned issues. This supersedes the earlier unresolved board wire-format gate.
-- [x] Route explicitly selected TWG dashboard connections through validated reads, bounded pagination and success-only column caching.
-- [x] Support saving TWG settings without a REST secret path; prevent unsupported features from falling back to REST credentials.
-- [x] Verify mocked desktop/mobile connection-mode switching and sprint persistence (7 component tests), and the full unit suite.
-- [ ] Implement TWG issue details, comments, attachments and workflow/Start work parity before treating TWG as a complete alternative.
-- [ ] Complete distribution-policy and public-release gates; enabling an experimental local preview does not close them.
-
-- [x] Add TWG read-only issue descriptions and fields to dashboard details and the workspace Jira panel, with exact-key validation, safe rich text, and no REST fallback.
-- [ ] Add TWG comments/attachments and write workflow parity separately; current TWG details remain read-only.
-
-- [x] Implement TWG read-only comments and attachment listing/download/preview in both detail surfaces, with pagination, safe temporary-file cleanup and mocked regression coverage.
-- [ ] Implement TWG write workflows only after separately authorizing that stage; no Jira writes were used for verification.
-
-### TWG recovery and local Start work verification (2026-11-04)
-
-- [x] Add sanitized sign-in, permission, missing-CLI, rate-limit and timeout recovery guidance.
-- [x] Treat explicit issue-lookup 404 as a quiet missing-ticket state; preserve authentication/permission errors and reject malformed responses.
-- [x] Restore local Start work through TWG validation, with optional entry skill and existing branch/workspace reuse; no Jira transition.
-- [x] Verify using mocks only: 127 automated tests, 12 browser component tests, and both typechecks. No live Jira or real workspace/agent actions.
-- [ ] TWG Jira write parity remains separate and requires authorization; earlier combined read/write parity items are only partially complete.
+Further automated verification uses mocks, without real Jira writes or agent/skill execution. Any entry skill selected by a user controls its own subsequent actions.

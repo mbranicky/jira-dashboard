@@ -2,6 +2,8 @@
 
 This is the official connection guide for Jira Dashboard. It covers credentials, required API scopes and token replacement for the supported Jira Cloud REST connection. No hosted authentication service, Atlassian password or MCP connection is required.
 
+For the experimental OAuth alternative, use the [TWG setup guide](TWG_SETUP.md). The API token scopes below apply only to REST.
+
 ## Configure the connection
 
 1. Create a scoped Jira API token using the checklist below.
