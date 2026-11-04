@@ -143,3 +143,44 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 
 - [x] Compare public documentation for REST, official MCP v2, TWG CLI, ACLI, third-party wrappers and Forge in `docs/JIRA_CONNECTIVITY_OPTIONS.md`. No credentials read or Jira tenant calls made.
 - [ ] Evaluate MCP v2 and TWG OAuth against the complete dashboard contract using synthetic fixtures; verify supported schemas, credential storage and distribution terms before selecting a replacement. This research does not close the authentication distribution gate.
+## TWG CLI alternative — read-only preview (2026-11-04)
+
+- [x] Verify TWG 1.4.2 command contracts and authorized read-only desktop OAuth/board observations; see `docs/TWG_IMPLEMENTATION.md`.
+- [x] Keep OAuth in the CLI; guide terminal login on the host, explicitly bind site/profile, reject background login, and never fall back to REST credentials.
+- [x] Read board columns, active/future sprints and assigned issues with bounded pagination and success-only metadata caching.
+- [x] Persist sprint selection by board. Multiple active sprints require an explicit or saved selection.
+- [x] Show descriptions, fields, comments and attachments in dashboard details and workspace panels; safely preview/download attachments.
+- [x] Show sanitized recovery errors and quiet missing-ticket state only for explicit issue-lookup 404 responses.
+- [x] Restore local Start work and optional `/skill ISSUE-KEY` dispatch without Jira transitions; preserve branch/worktree reuse and separate dialogs.
+- [x] Verify REST and TWG with mocks; standard and Paseo 0.15 CI plus source/history secret scans passed at `f2fd2fc`.
+- [x] Consolidate setup/current-scope documentation and correct outdated unsupported-operation wording.
+- [x] Review branch against main for REST compatibility, connection isolation and Jira write guards; extend guard coverage to workflow sessions and status discovery.
+- [x] Merge read-only PR #4 after checks passed.
+
+Deferred beyond this PR:
+
+- [x] Implement opt-in TWG transitions, screen fields and drag-and-drop using the shared workflow UI; ambiguous destination names fail closed.
+- [x] Implement opt-in TWG Markdown comments and linked replies with visibility preservation and duplicate-submission protection.
+- [x] Implement opt-in TWG uploads with private temporary files, cleanup, connection identity checks and explicit plugin-only limit guidance.
+- [ ] Resolve CLI distribution/embedding terms and the separate public-release authentication-policy gate. Private merge is not public-distribution approval.
+
+Further automated verification uses mocks, without real Jira writes or agent/skill execution. Any entry skill selected by a user controls its own subsequent actions.
+
+### TWG write-mode verification (feature-parity branch)
+
+- [x] Verify installed 1.4.2 help and bundled output contracts offline.
+- [x] Existing configurations remain read-only until explicitly enabled.
+- [x] Mocked verification: 135 backend tests and 52 browser tests (complete suites), both typechecks, secret audit and package validation pass.
+- [ ] Resolve CLI limitations for duplicate destination names, identifier-only comment restrictions and attachment-settings discovery before claiming unrestricted REST parity.
+- [x] Review write integration, including blank visibility restrictions and malformed upload receipts.
+- [x] Merge write integration in PR #5 after GitHub checks passed; no live Jira writes are required for automated verification.
+
+### Desktop follow-up (2026-11-04)
+
+- [x] User verified Teamwork Graph attachment upload and linked comment replies in Jira UI.
+- [x] User verified workflow moves after the stale-board-status lookup fix, including required story points and the In Development prerequisite before In Progress.
+- [x] PR #6 merged with expanded read diagnostics and Settings UI alignment.
+- [x] Remove experimental UI headings; preserve documented CLI and public-distribution limitations.
+- [x] Refresh user documentation and fictional listing screenshots for both connection options.
+
+These are user-performed live observations. Automated tests continue to use mocks; no live write tests are required or run by the agent.

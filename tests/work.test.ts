@@ -107,3 +107,13 @@ test('agent creation failure retries the same workspace and sends the entry skil
   assert.equal(f.calls.filter(c=>c.startsWith('send:')).length,1);
  }finally{await f.cleanup();}
 });
+test('TWG Start work creates local workspace and agent and dispatches the optional skill without Jira writes',async()=>{
+ for(const entrySkill of ['', 'init-issue']){
+ const f=await fixture();try{
+  const deps={...f.deps,issueSession:async()=>{throw Error('Jira access is forbidden during local startup');}} as typeof f.deps;
+  await startIssue(f.paseo,{...config,transport:'twg'},{...mapping,entrySkill,autoUpdateJira:true},'TD-99',undefined,deps,'Bug');
+  assert.ok(f.calls.includes('workspace:TD-99'));assert.ok(f.calls.includes('agent:TD-99'));assert.equal(f.calls.includes('transition'),false);
+  assert.deepEqual(f.calls.filter(c=>c.startsWith('send:')),entrySkill?['send:/init-issue TD-99']:[]);
+ }finally{await f.cleanup();}
+ }
+});

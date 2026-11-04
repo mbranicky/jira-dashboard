@@ -29,7 +29,7 @@ describe('Dashboard settings',()=>{
   }).as('connectionCheck');
   mount(<Harness/>);button('Settings').click();
   cy.get('[aria-label="Jira board URL"]').clear().type('https://example.atlassian.net/boards/77');
-  button('Test connection').click();cy.wait('@connectionCheck');
+  button('Test connection').first().click();cy.wait('@connectionCheck');
   cy.contains('Read connection verified').should('be.visible');
   cy.contains('Settings are not saved.').should('be.visible');
   cy.get('[aria-label="Jira board URL"]').type('8');cy.contains('Read connection verified').should('not.exist');
@@ -38,7 +38,7 @@ describe('Dashboard settings',()=>{
  });
  it('test connection failure → identifies the failed permission step',()=>{
   cy.intercept('POST','/__rpc/connection.test',{body:{ok:false,steps:[{label:'Board access',state:'failed',message:'Token scopes do not cover board configuration.'}]}});
-  mount(<Harness/>);button('Settings').click();button('Test connection').click();
+  mount(<Harness/>);button('Settings').click();button('Test connection').first().click();
   cy.contains('Connection needs attention').should('be.visible');
   cy.contains('Token scopes do not cover board configuration.').should('be.visible');
  });
@@ -54,7 +54,7 @@ describe('Dashboard settings',()=>{
   cy.get('[aria-label="Refresh interval in seconds"]').clear().type('29');button('Save connection').click();
   cy.contains('Enter a whole number of at least 30 seconds.').should('be.visible');
   cy.get('[aria-label="Refresh interval in seconds"]').clear().type('900');button('Save connection').click();
-  title().should('be.visible');button('Settings').click();cy.get('[aria-label="Refresh interval in seconds"]').should('have.value','900');
+  cy.contains('Settings saved.').should('be.visible');cy.get('[aria-label="Refresh interval in seconds"]').should('have.value','900');
  });
  it('save failure → visible error and editable values retained',()=>{
   mount(<Harness failSave/>);button('Settings').click();

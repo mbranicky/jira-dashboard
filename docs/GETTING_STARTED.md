@@ -1,6 +1,6 @@
 # Getting started
 
-Jira Dashboard is a trusted local Paseo plugin. Its backend reads the configured credential file and calls Jira Cloud as the token owner. Install it only on a host you trust. This initial repository is private; no npm or registry release is available yet.
+Jira Dashboard is a trusted local Paseo plugin. Its backend connects through a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. This initial repository is private; no npm or registry release is available yet.
 
 ## Install from a checkout
 
@@ -18,10 +18,11 @@ Private repository access requires your own GitHub authentication. Enable truste
 
 ## Connect Jira
 
-1. Follow [Jira setup](JIRA_SETUP.md) to create a scoped **Jira** token and a private `jira.env` file. Use the complete scope list for all features. No password or hosted authentication service is needed.
-2. In dashboard Settings, enter the board URL and absolute secret-file path on the daemon machine. On Unix the file must be owner-only (`chmod 600`).
-3. Choose a refresh interval of at least 30 seconds. **Test connection** checks the entered values without saving them. It verifies authentication, board configuration, sprint access, assigned sprint issues (when a sprint exists), and independent issue search. It deliberately bypasses metadata caches. It does not test comment, attachment or transition permissions or perform writes.
-4. Fix any failed step, then **Save connection**. The dashboard follows the active sprint and shows issues assigned to the token owner; future sprints can be selected manually.
+1. Choose a connection: [Teamwork Graph CLI OAuth](TWG_SETUP.md), or [REST with a scoped Jira token](JIRA_SETUP.md). Both use the Jira account configured on the Paseo host. No password or hosted authentication service is needed.
+2. Enter your board URL in Settings. For Teamwork Graph, enable **Teamwork Graph CLI** and set the executable and signed-in profile. For REST, provide the absolute path to the private `jira.env` file (owner-only permissions on Unix).
+3. Choose a refresh interval of at least 30 seconds. **Test connection** checks the entered values without saving: authentication, board configuration, sprints, assigned sprint issues and independent issue search. It bypasses metadata caches and does not perform writes or test write permissions.
+4. Fix any failed step, then **Save connection**. Settings stay open. For Teamwork Graph, enable **Allow Jira changes** and save to use comments, uploads and workflow moves.
+5. Use **Back to board**. Your sprint selection is remembered per board. Auto selects the active sprint only when exactly one is active; otherwise choose a sprint explicitly.
 
 ## Map a project and start work
 
@@ -31,7 +32,7 @@ Private repository access requires your own GitHub authentication. Enable truste
 4. For Git worktrees, the plugin reuses an existing issue branch/worktree. Multiple matches open a choice dialog. A new issue branch starts from the branch currently checked out in the project. It never generates random branch suffixes.
 5. Optionally enter an entry skill name, such as `init-issue`. The first prompt is `/init-issue DEMO-123`. Install/configure that skill yourself for the selected agent. Leaving it blank creates/opens the agent without sending a skill prompt.
 6. Optionally choose **Start work on move to column**. Dropping an issue into that column starts/reuses work only after Jira accepts the transition. Play starts work without changing Jira status.
-7. Save mappings. Select a suitable not-yet-started issue and click Play. This creates/reuses the issue-named workspace and agent; existing active workspaces get an Open workspace action. The workspace gets In Progress plus Story (green) or Bug (red) for the supported issue types.
+7. Save mappings; Settings stay open. Use **Back to board**, then select a suitable not-yet-started issue and click Play. This creates/reuses the issue-named workspace and agent; existing active workspaces get an Open workspace action. The workspace gets In Progress plus Story (green) or Bug (red) for the supported issue types.
 
 Workspace creation and agent prompts are real actions. Review the selected project and skill before the first Play. Jira moves, comments and uploads are sent only through their corresponding explicit actions. Workflow forms and branch choices appear in dialogs, never inside issue cards.
 
@@ -57,7 +58,7 @@ These screenshots use fictional data in a browser preview of the plugin componen
 
 ![Dashboard](../assets/dashboard.png)
 
-![Jira connection and appearance settings](../assets/settings.png)
+![Teamwork Graph connection and appearance settings](../assets/settings.png)
 
 ![Issue details panel](../assets/details.png)
 
