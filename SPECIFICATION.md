@@ -33,7 +33,7 @@ Token scopes are immutable: create a replacement token with the complete applica
 
 - Mirror Jira board column names, order and status mappings. Horizontal swimlanes are not required.
 - Show only issues assigned to the authenticated account within the selected board and sprint.
-- Follow the active sprint automatically when exactly one is active. Allow an explicit sprint override; offer only active and future sprints, never closed sprints.
+- Follow the active sprint automatically when exactly one is active. Allow an explicit sprint override; offer only active and future sprints, never closed sprints. Persist explicit sprint or Auto selection per host and canonical Jira site/board in dashboard preferences. Restore preferences before the initial board request; connection and appearance saves must preserve the selection. If a remembered sprint becomes unavailable, offer Choose another sprint. Multiple active sprints require an explicit choice; team membership is not inferred from the board response.
 - Show an explicit selection/empty state when several or no sprints are active.
 - Search by issue key or summary; show the matching count when filtering.
 - Provide manual Refresh, last successful update time and Settings actions. Retain the previous snapshot with an error message if refresh fails.

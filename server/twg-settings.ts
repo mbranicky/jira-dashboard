@@ -1,21 +1,22 @@
 import {randomUUID} from 'node:crypto';
-import {TwgConnection} from './twg-client';
+import {TwgConnection,TwgCompatibilityError} from './twg-client';
 import type {z} from 'zod';
 import type {twgState} from '../shared/twg';
 type State=z.infer<typeof twgState>;
 export function twgSettings(make=(path:string)=>new TwgConnection(path)) {
  let job:{value:State;connection:TwgConnection}|undefined;
  return {
-  start(input:{action:'login'|'check';executable:string}):State {
+  start(input:{action:'login'|'check';executable:string;site:string;profile:string}):State {
+   if(input.action==='login')throw new Error('TWG sign-in requires a terminal on the Paseo host. Run twg login there, then test access.');
    if(job?.value.state==='running')throw new Error('A TWG operation is already running.');
    job?.connection.close();
    const connection=make(input.executable);
-   const current={connection,value:{id:randomUUID(),state:'running',message:input.action==='login'?'Complete authorization in the browser on your Paseo host.':'Checking TWG CLI access…'} as State};
+   const current={connection,value:{id:randomUUID(),state:'running',message:'Checking TWG CLI access…'} as State};
    job=current;
-   void (input.action==='login'?connection.startLogin():connection.checkAccess()).then(()=>{
-    if(current.value.state==='running')current.value={...current.value,state:'succeeded',message:input.action==='login'?'Login command completed. Test TWG access next.':'TWG access command completed. Board access and write permissions are not verified.'};
-   }).catch(()=>{
-    if(current.value.state==='running')current.value={...current.value,state:'failed',message:'TWG could not complete this action. Check installation, browser consent and CLI compatibility on the host, then retry.'};
+   void connection.checkAccess({site:input.site,profile:input.profile}).then(()=>{
+    if(current.value.state==='running')current.value={...current.value,state:'unverified',message:'TWG returned JSON, but this CLI response format is not verified yet. Jira site access and board permissions remain unverified.'};
+   }).catch(error=>{
+    if(current.value.state==='running')current.value={...current.value,state:'failed',message:error instanceof TwgCompatibilityError?error.message:'TWG could not complete this action. Check installation, browser consent and CLI compatibility on the host, then retry.'};
    }).finally(()=>connection.close());
    return {...current.value};
   },

@@ -6,9 +6,9 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 test('settings jobs return immediately, reject overlap and redact failures', async()=>{
  let reject!:(error:Error)=>void;
  const service=twgSettings(path=>new TwgConnection(path,()=>new Promise((_,no)=>{reject=no;})));
- const job=service.start({action:'login',executable:'twg'});
+ const job=service.start({action:'check',executable:'twg',site:'https://example.atlassian.net',profile:'default'});
  assert.equal(job.state,'running');
- assert.throws(()=>service.start({action:'check',executable:'twg'}),/already running/);
+ assert.throws(()=>service.start({action:'check',executable:'twg',site:'https://example.atlassian.net',profile:'default'}),/already running/);
  reject(new Error('synthetic-secret'));await flush();
  assert.equal(service.poll(job.id).state,'failed');
  assert.ok(!service.poll(job.id).message.includes('synthetic-secret'));service.close();
@@ -16,14 +16,21 @@ test('settings jobs return immediately, reject overlap and redact failures', asy
 test('cancelled jobs cannot become successful and unknown IDs are rejected',async()=>{
  let finish!:(value:string)=>void;
  const service=twgSettings(path=>new TwgConnection(path,()=>new Promise(yes=>{finish=yes;})));
- const job=service.start({action:'check',executable:'twg'});
+ const job=service.start({action:'check',executable:'twg',site:'https://example.atlassian.net',profile:'default'});
  assert.throws(()=>service.cancel('other'));
  service.cancel(job.id);finish('{}');await flush();
  assert.equal(service.poll(job.id).state,'cancelled');service.close();assert.throws(()=>service.poll(job.id));
 });
 test('successful access check does not expose raw output or assert board permissions',async()=>{
- const service=twgSettings(path=>new TwgConnection(path,async()=>'{"sensitive":"synthetic"}'));
- const job=service.start({action:'check',executable:'twg'});await flush();
- const result=service.poll(job.id);assert.equal(result.state,'succeeded');
- assert.match(result.message,/not verified/);assert.ok(!JSON.stringify(result).includes('synthetic'));service.close();
+ const service=twgSettings(path=>new TwgConnection(path,async request=>request.args[0]==='--help'?'  --profile <name>':'{"sensitive":"synthetic"}'));
+ const job=service.start({action:'check',executable:'twg',site:'https://example.atlassian.net',profile:'default'});await flush();
+ const result=service.poll(job.id);assert.equal(result.state,'unverified');
+ assert.match(result.message,/unverified/);assert.ok(!JSON.stringify(result).includes('synthetic'));service.close();
+});
+
+test('settings refuse background OAuth before constructing a CLI connection',()=>{
+ let created=false;
+ const service=twgSettings(path=>{created=true;return new TwgConnection(path);});
+ assert.throws(()=>service.start({action:'login',executable:'twg',site:'https://example.atlassian.net',profile:'default'}),/requires a terminal/);
+ assert.equal(created,false);
 });

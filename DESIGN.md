@@ -76,7 +76,7 @@ A blank entry skill opens an idle agent. Existing work is reused without automat
 ## Empty and error states
 
 - Missing connection opens setup.
-- No or several active sprints prompts sprint selection.
+- No or several active sprints prompts sprint selection in Auto mode. Explicit choices and Auto persist per host/site/board across dashboard reopening. Failed preference saves show a visible retry message; unavailable saved sprints offer Choose another sprint.
 - No assigned issues or search matches has an explicit empty message.
 - Failed refresh retains the last successful snapshot and marks it potentially stale.
 - Missing mapping offers the compact Configure mapping icon.

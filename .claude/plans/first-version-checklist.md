@@ -145,3 +145,14 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [ ] Verify supported CLI contracts, OAuth setup/storage, site/profile binding and full dashboard parity before enabling the alternative in Settings. This foundation does not close the authentication distribution gate.
 
 - [x] Add experimental TWG Settings login/access actions with host job polling, cancellation and safe errors; verified with 10 focused Node tests and 3 mocked desktop/mobile browser tests (2026-11-04). Real CLI compatibility and dashboard data adapters remain pending.
+
+- [x] Correct TWG setup after discovering its controlling-terminal requirement: remove background login, guide terminal OAuth and reject old login RPC requests before execution. Earlier mocked login coverage did not establish live compatibility.
+
+- [x] Bind TWG access checks to the board site and explicit saved profile; reject invalid targets and explicit error envelopes. Confirmed installed Paseo terminal creation requires a workspace. Real CLI success-schema verification remains pending.
+
+- [x] Request direct TWG JSON, reject file summaries and distinguish unverified output from successful access. Add internal dashboard snapshot validation with synthetic fixtures.
+- [ ] Obtain authoritative per-command TWG success/output contracts before enabling a live decoder; public catalogue and generic output guidance do not establish these shapes.
+
+- [x] Inspect TWG 1.3.0 bundled help under network/credential isolation; add a profile-support preflight that prevents authenticated calls on incompatible builds. Confirmed generic Jira API command as a candidate transport; output-contract and OAuth coverage gates remain open.
+
+- [x] Inspect official stable TWG 1.4.2 with checksum verification and offline isolation. Confirm profile support and identity layouts; record missing board/access schemas and removal of generic `api`. Add identity decoder tests; dashboard wire-format gate remains open.
