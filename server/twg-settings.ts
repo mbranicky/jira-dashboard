@@ -1,3 +1,4 @@
+import {checkTwgConnection} from './twg-connection-check';
 import {TwgFailure} from './twg-errors';
 import {randomUUID} from 'node:crypto';
 import {TwgConnection,TwgCompatibilityError} from './twg-client';
@@ -14,8 +15,10 @@ export function twgSettings(make=(path:string)=>new TwgConnection(path)) {
    const connection=make(input.executable);
    const current={connection,value:{id:randomUUID(),state:'running',message:'Checking TWG CLI access…'} as State};
    job=current;
-   void (input.boardId?connection.boardColumns({site:input.site,profile:input.profile},input.boardId):connection.checkAccess({site:input.site,profile:input.profile})).then(()=>{
-    if(current.value.state==='running')current.value={...current.value,state:input.boardId?'succeeded':'unverified',message:input.boardId?'TWG board access verified. Save the connection with TWG enabled to load the dashboard.':'TWG returned JSON, but this CLI response format is not verified yet. Jira site access and board permissions remain unverified.'};
+   void (input.boardId?checkTwgConnection(connection,{site:input.site,profile:input.profile,boardId:input.boardId}):connection.checkAccess({site:input.site,profile:input.profile})).then(result=>{
+    if(current.value.state!=='running')return;
+    if(input.boardId){const checked=result as Awaited<ReturnType<typeof checkTwgConnection>>;current.value={...current.value,state:checked.ok?'succeeded':'failed',message:checked.ok?'Read connection verified':'Connection needs attention',result:checked};}
+    else current.value={...current.value,state:'unverified',message:'Jira site access and board permissions remain unverified.'};
    }).catch(error=>{
     if(current.value.state==='running')current.value={...current.value,state:'failed',message:error instanceof TwgCompatibilityError||error instanceof TwgFailure?error.message:'TWG could not complete this action. Check installation, browser consent and CLI compatibility on the host, then retry.'};
    }).finally(()=>connection.close());

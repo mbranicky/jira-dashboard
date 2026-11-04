@@ -92,3 +92,15 @@ rather than guessed. Internal comments and replies with only visibility identifi
 Uncertain write results are never retried automatically. Refresh and check Jira
 before submitting again. Disabling Jira changes hides write controls and blocks
 new submissions on the server; it cannot undo a request already sent to Jira.
+
+## Connection diagnostics
+
+**Test connection** runs fresh read-only checks of the entered values without
+saving them: board URL, CLI profile support, authenticated user, board columns,
+active/future sprints, assigned sprint issues and independent JQL issue search.
+Sprint and issue reads validate all pages. With no available sprint, sprint issue
+access is marked skipped; independent search still runs with a one-issue limit.
+Failures identify the step and retain completed checks in the same status table
+used by REST. No API token file is read and no Jira write is performed. Leaving
+Settings cancels an outstanding check. A successful test does not establish write
+permissions for comments, attachments or transitions.

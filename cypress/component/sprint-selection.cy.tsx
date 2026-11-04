@@ -11,7 +11,7 @@ describe('Remembered sprint selection',()=>{
   cy.wait('@board').its('request.body.sprintId').should('eq',2);
   cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();
   button('Select sprint').should('contain.text','Team two').and('not.contain.text','Auto');
-  button('Settings').click();cy.contains('[role="radio"]','Right side panel').click();button('Save connection').click();
+  button('Settings').click();cy.contains('[role="radio"]','Right side panel').click();button('Save connection').click();cy.contains('Settings saved.').should('be.visible');button('Back to board').scrollIntoView().click();
   button('Select sprint').should('contain.text','Team two');
   button('Select sprint').click();cy.contains('Follow active sprint').click();cy.wait('@board');
   cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();

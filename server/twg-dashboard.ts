@@ -9,8 +9,8 @@ import type {Connection} from '../shared/contracts';
 
 const sprint=z.object({id:z.number().int().positive(),name:z.string(),state:z.string()});
 const paging={total:z.number().int().nonnegative().optional(),startAt:z.number().int().nonnegative().optional(),isLast:z.boolean().optional()};
-const sprintsPage=z.object({apiVersion:z.literal('v2'),command:z.literal('jira.board.sprints.query'),data:z.object({...paging,sprints:z.array(sprint)})});
-const issuesPage=z.object({apiVersion:z.literal('v2'),command:z.literal('jira.sprint.workitems.query'),data:z.object({...paging,issues:z.array(rawIssue)})});
+export const sprintsPage=z.object({apiVersion:z.literal('v2'),command:z.literal('jira.board.sprints.query'),data:z.object({...paging,sprints:z.array(sprint)})});
+export const issuesPage=z.object({apiVersion:z.literal('v2'),command:z.literal('jira.sprint.workitems.query'),data:z.object({...paging,issues:z.array(rawIssue)})});
 /** Success-only, bounded metadata cache. Identity and issue content are never cached. */
 export function createTwgDashboard(make=(path:string)=>new TwgConnection(path),now=Date.now){
  const cache=new Map<string,{until:number;value:Awaited<ReturnType<TwgConnection['boardColumns']>>}>();
@@ -58,7 +58,7 @@ export function createTwgDashboard(make=(path:string)=>new TwgConnection(path),n
  }
  return {fetchBoard,issue,columns:async(config:Connection,refresh=false)=>{if(refresh)cache.clear();return (await fetchBoard(config,undefined,true)).columns;},clear:()=>cache.clear(),close:()=>{cache.clear();for(const cli of active)cli.close();active.clear();}};
 }
-async function pages<T,K extends string>(read:(start:number)=>Promise<{total?:number;startAt?:number;isLast?:boolean}&Record<K,T[]>>,key:K):Promise<T[]>{
+export async function pages<T,K extends string>(read:(start:number)=>Promise<{total?:number;startAt?:number;isLast?:boolean}&Record<K,T[]>>,key:K):Promise<T[]>{
  const output:T[]=[];const seen=new Set<string>();
  for(let page=0;page<100;page++){
   const data=await read(output.length),items=data[key];
