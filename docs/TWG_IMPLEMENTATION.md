@@ -1,10 +1,6 @@
 # TWG CLI integration
 
-Merged baseline, reviewed 4 November 2026: **experimental read-only Jira access
-plus local Start work**. The feature-parity branch adds opt-in writes as described
-in the final section below; the baseline sections document the original PR. REST remains the default when `transport` is absent.
-See [user setup and limitations](TWG_SETUP.md). The MCP implementation remains on
-its independent branch and is not included in this change.
+Current implementation, 5 November 2026: board/details/comments/attachment reads, local Start work and opt-in workflow moves, comment posting/linked replies and uploads. REST remains the default when `transport` is absent. See [user setup](TWG_SETUP.md) and the separate [MCP implementation](MCP_IMPLEMENTATION.md).
 
 ## Verified contracts and evidence
 
@@ -76,7 +72,7 @@ in `finally`. A 50 MiB/32-entry byte cache expires after two minutes; concurrent
 reservations are limited to 50 MiB. Content caches contain no credentials.
 Shutdown cancels active processes and clears caches.
 
-## Local actions and read-only enforcement
+## Local actions and write opt-in
 
 Play validates the issue through TWG, then uses the existing local branch/worktree,
 workspace, labels and agent flow. Existing branches/worktrees are reused; multiple
@@ -84,13 +80,9 @@ matches use the separate chooser dialog. Entry skill dispatch is optional and us
 `/skill ISSUE-KEY`. The plugin performs no Jira transition. A configured skill
 controls its own later actions independently.
 
-Dashboard cards and details retain Play/Open workspace; workspace Jira panels do
-not show Play. TWG hides Jira write controls and disables drag-and-drop. Server-side
-REST guards block workflow sessions, status discovery, comments and attachment
-writes before reading REST credentials or issuing HTTP calls. Switching back to
-REST retains the existing feature set. No automatic transport fallback occurs.
+Dashboard cards and details retain Play/Open workspace; workspace Jira panels do not show Play. Without saved `twgWrites`, Jira write controls and drag-and-drop are disabled and server-side guards reject mutations. With opt-in, TWG uses the adapters below. REST credentials are never used as fallback.
 
-## Merge review and follow-up
+## Historical merge review (4 November 2026)
 
 Reviewed the branch against main for routing, backward-compatible settings,
 connection-specific client reads, fixed CLI arguments, bounded content handling,
@@ -100,14 +92,11 @@ validation crash. Guard regression tests also cover workflow sessions and projec
 status discovery. Both supported Paseo SDK configurations run the full automated
 and browser suites in CI; source/history secret scanning is separate.
 
-Deferred from this read-only PR: workflow transitions/required fields, comment
-posting/linked replies and attachment uploads. CLI distribution/embedding terms
-and public-release authentication clearance remain separate unresolved gates.
+That original read-only PR deferred writes, now implemented below. CLI distribution/embedding terms and public-release authentication clearance remain separate unresolved gates.
 
-## Opt-in write integration — feature-parity branch
+## Opt-in write integration
 
-The `codex/twg-feature-parity` branch extends the merged read-only baseline with
-workflow moves, Markdown comments/linked replies and attachment uploads. Existing
+Workflow moves, Markdown comments/linked replies and attachment uploads are implemented. Existing
 connections retain `twgWrites: false`; users explicitly enable **Allow Jira changes** in Settings. This flag is enforced server-side before constructing
 write adapters. REST remains independent and is never used as fallback.
 
@@ -148,9 +137,7 @@ sanitized guidance. Play remains local and never updates Jira on its own.
 
 ### Remaining differences from REST
 
-TWG 1.4.2 does not expose attachment-settings discovery in the inspected command
-surface. UI labels the 25 MiB limit as the plugin limit; Jira enforces its actual
-settings and permissions at upload time. Transition destinations with duplicate
+TWG 1.4.2 exposes no native attachment-settings reader in the inspected command surface. A narrow anonymous Jira HTTP supplement reads enabled/uploadLimit without CLI credentials; this is not a native CLI capability. Valid settings block disabled uploads and cap size at the smaller of Jira's limit and 25 MiB. If unavailable, the UI explicitly labels the plugin-only fallback and Jira enforces actual settings at upload. See [attachment settings evidence](MCP_IMPLEMENTATION.md#actual-attachment-settings-for-mcp-and-twg-2026-11-05). Transition destinations with duplicate
 names cannot be mapped safely because the CLI removes destination IDs. Identifier-only
 comment visibility restrictions cannot be passed through its name-based flags.
 Those cases require Jira rather than guessed values or widened visibility.

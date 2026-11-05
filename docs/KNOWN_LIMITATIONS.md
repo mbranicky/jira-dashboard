@@ -1,9 +1,9 @@
 # Known limitations
 
 - One Jira Cloud site per Paseo host. Jira Server/Data Center and multiple sites are not supported.
-- All clients on that host use the configured REST token or Teamwork Graph profile's permissions. Jira project and issue permissions still apply in addition to token scopes.
+- All clients on that host use the configured REST token, Teamwork Graph profile or MCP account's permissions. Jira project and issue permissions still apply in addition to token scopes.
 - Connection diagnostics verify dashboard/search reads, not every comment, attachment or transition permission. A successful check is not a write-permission guarantee.
-- Replies are top-level comments with a link to the original. Native threaded reply creation and reactions are not supported.
+- Replies are top-level Jira comments with a link to the original. The dashboard renders recognized links as nested replies across all transports; native parent IDs take precedence. Native threaded reply creation and reactions are not implemented.
 - Some workflow fields cannot be completed through the plugin; the transition dialog directs the user to Jira. Failed moves keep the original column.
 - Panel selection/size and comment drafts are session state. Plugin/app restart clears them. Sprint selection is persisted per board. Search and mobile-column selection are not restored after dashboard navigation.
 - Provider and isolation choices are explicit. Paseo 0.14 does not expose every saved project default through its plugin API.
@@ -13,8 +13,14 @@
 
 ## Teamwork Graph
 
-Writes require **Allow Jira changes**. Duplicate destination status names and unsupported comment visibility restrictions require Jira. The CLI does not expose attachment settings, so the plugin applies its 25 MiB cap and Jira checks the actual server limit during upload. See [setup and limitations](TWG_SETUP.md).
+Writes require **Allow Jira changes**. Duplicate destination status names and unsupported comment visibility restrictions require Jira. The CLI has no native attachment-settings reader. An anonymous HTTP supplement reads actual Jira limits/enabled status when available; otherwise the UI explicitly reports the plugin-only fallback. See [setup and limitations](TWG_SETUP.md).
 
-## Dependency audit
+## Atlassian MCP
 
-The 2026-11-03 npm audit reports 12 moderate findings in the React Native development toolchain, with no high/critical findings. The proposed automatic fix changes React Native from the host-aligned version; compatibility review is required before updating it. Production dependencies have no reported vulnerabilities; the development-only findings and decision to avoid a forced incompatible upgrade are recorded in the security review.
+Host-browser OAuth consent is required; remote clients cannot complete the loopback callback on their own device. Writes require saved opt-in and granted write scope. Observed MCP transitions omit destination IDs; the adapter resolves them through exact status-name lookup and refuses ambiguous matches. This fix is mock-tested, without live move verification. Upload preparation/media response contracts are partly synthetic and may reject real variants. See [MCP setup](MCP_SETUP.md) and [implementation evidence](MCP_IMPLEMENTATION.md). Attachment settings use the same anonymous supplement as TWG. Other operating systems/native-store packaging still need verification.
+
+## Dependency audit (historical, 2026-11-03)
+
+The 2026-11-03 npm audit reports 12 moderate findings in the React Native development toolchain, with no high/critical findings. The proposed automatic fix changes React Native from the host-aligned version; compatibility review is required before updating it. At that checkpoint production dependencies had no reported vulnerabilities; the development-only findings and decision to avoid a forced incompatible upgrade are recorded in the security review.
+
+Current dependency check (2026-11-05): `npm audit` reports zero known vulnerabilities in the current tree, superseding the historical finding count above. This is a point-in-time advisory result, not a security guarantee.

@@ -22,3 +22,6 @@ test-results/
 playwright-report/
 cypress/screenshots/
 cypress/videos/
+
+# Installation-host native module location, regenerated during preparation.
+server/mcp-native-location.json

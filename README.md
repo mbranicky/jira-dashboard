@@ -31,7 +31,7 @@ On narrow screens, details fill the screen with a fixed header and scrollable co
 
 ## Get started
 
-Requires **Paseo 0.14.0 or newer**, Jira Cloud, and either a scoped Jira API token or Teamwork Graph CLI OAuth. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
+Requires **Paseo 0.14.0 or newer**, Jira Cloud, and a scoped Jira API token, Teamwork Graph CLI OAuth, or Atlassian MCP OAuth. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
 
 Until publication, install from an accessible checkout:
 
@@ -48,6 +48,7 @@ The repository is currently private, so cloning requires access. No registry ins
 1. Open **Jira Dashboard → Settings**.
 2. Enter your Jira board URL and choose a connection:
    - **Teamwork Graph CLI:** sign in with OAuth on the Paseo host using a named profile. Follow the [Teamwork Graph setup guide](docs/TWG_SETUP.md); no API token file is needed. Enable **Allow Jira changes** for moves, comments and uploads.
+   - **Atlassian MCP:** complete host-browser sign-in in Settings. For writes, enable **Allow Jira changes through MCP**, reconnect for additional consent, and save. See the [MCP setup guide](docs/MCP_SETUP.md) and its current workflow/upload limitations.
    - **REST API:** provide the absolute path to a private `jira.env` file. Follow the [token and scope guide](docs/JIRA_SETUP.md).
 3. Select **Test connection** to check authentication, board, sprints and issue access, then **Save connection**. Settings stay open; use **Back to board** when ready.
 4. Map each Jira project key to an existing Paseo project, choose the agent settings, and optionally name an entry skill.
@@ -61,7 +62,9 @@ Your API token stays in a private file on the daemon host and is sent to Atlassi
 
 TWG owns its OAuth credentials; the plugin does not read its credential files or extract tokens. TWG supports dashboard/details reads and local Start work. Jira changes are off by default; enable them explicitly for workflow moves, comments/replies and uploads. See the TWG setup guide for CLI-specific limitations.
 
-One Jira Cloud site is supported per host. Replies are new top-level comments linked to the original, rather than native threaded replies. Attachment transfers are limited to 25 MiB and Jira's upload limit; native mobile clients have file-picker limitations. Comment drafts are retained during the session, but not across an app/plugin restart.
+MCP stores its OAuth grant in the host OS credential store; consent and write upgrades are explicit. MCP resolves name-only transition destinations through exact status lookup; ambiguous matches require Jira. Upload response contracts remain partly unverified.
+
+One Jira Cloud site is supported per host. Replies are new top-level Jira comments linked to the original; the dashboard renders recognized linked replies nested under their source comment. Attachment transfers are limited to 25 MiB and Jira's upload limit; native mobile clients have file-picker limitations. Comment drafts are retained during the session, but not across an app/plugin restart.
 
 See [known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) and [connection troubleshooting](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md#troubleshooting-and-verification). The [authentication policy review](https://github.com/mbranicky/jira-dashboard/blob/main/docs/ATLASSIAN_AUTH_POLICY.md) records why public-distribution clearance for the local-token approach is not yet established and what clarification is needed.
 
@@ -72,8 +75,10 @@ See the [credential security audit](https://github.com/mbranicky/jira-dashboard/
 | Guide | What it covers |
 | --- | --- |
 | [Getting started](https://github.com/mbranicky/jira-dashboard/blob/main/docs/GETTING_STARTED.md) | Installation, Jira connection, project mappings and first workspace |
+| [Atlassian MCP OAuth](docs/MCP_SETUP.md) | Host sign-in, write consent, connection checks and compatibility limits |
 | [Teamwork Graph OAuth](docs/TWG_SETUP.md) | CLI installation, OAuth profiles, read diagnostics, opt-in writes and limitations |
 | [Jira setup and scopes](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md) | Complete token scopes, permissions, credentials and troubleshooting |
+| [Connectivity options](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_CONNECTIVITY_OPTIONS.md) | REST, MCP and CLI authentication alternatives and evaluation plan |
 | [Known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) | Supported clients and current boundaries |
 | [Testing](https://github.com/mbranicky/jira-dashboard/blob/main/docs/TESTING.md) | Unit, integration and browser workflow tests using synthetic data |
 | [Specification](https://github.com/mbranicky/jira-dashboard/blob/main/SPECIFICATION.md) · [Design](https://github.com/mbranicky/jira-dashboard/blob/main/DESIGN.md) | Behavior and interface decisions |

@@ -1,6 +1,6 @@
 # Jira Dashboard design
 
-Status: current implemented design and agreed refinements, 31 October 2026. Product behavior is specified in [SPECIFICATION.md](SPECIFICATION.md).
+Status: current implemented design and agreed refinements, 5 November 2026. Product behavior is specified in [SPECIFICATION.md](SPECIFICATION.md).
 
 ## Identity and visual direction
 
@@ -18,7 +18,7 @@ Search includes a search icon, focus border and clear button. Below the controls
 
 Desktop uses horizontally arranged 300-point columns with Jira's actual names and counts. Columns hold vertically scrollable cards. Compact mode offers a horizontal column selector with counts and one visible column; the outer vertical scroll handles its issue list rather than a second nested issue-list scroll.
 
-Column names and issue counts are data, not fixed design labels. There is no board-switcher implying multiple saved boards, workflow-aware drag-and-drop and no Start column.
+Column names and issue counts are data, not fixed design labels. The board supports workflow-aware drag-and-drop. There is no board-switcher implying multiple saved boards and no Start column.
 
 ## Compact issue cards
 
@@ -39,13 +39,13 @@ Do not repeat an assignee avatar on every card when the board only shows the cur
 
 ## Ticket details modal
 
-The title opens a read-only modal. Its full wrapping title sits above status, type, priority and Open in Jira. Load description and additional fields on demand; retain basic card information while loading or after a request error. Offer Retry for errors.
+The title opens the configured modal or dashboard side panel, with write controls governed by the selected connection. Its full wrapping title sits above status, type, priority and Open in Jira. Load description and additional fields on demand; retain basic card information while loading or after a request error. Offer Retry for errors.
 
 Desktop at widths of at least 760 points uses a centered dialog up to 1180 points wide, bounded by 24-point viewport margins. A fixed header holds the key and Close control. The body scrolls within available height. Description occupies the flexible left column; a 300-point fields panel sits on the right with 28-point separation.
 
 Below 760 points use the host modal/sheet with a single stacked, scrollable body. Content stretches across available width with one 16-point outer inset. Description and Jira fields align to the same left edge. The mobile fields section has a heading and separator rather than an additional padded panel. Do not center a fixed-width content strip inside a larger modal.
 
-Fields include parent, fix versions, labels, assignee, reporter, due date, created and updated timestamps. Description rendering supports basic wiki/document text, headings, lists and code blocks; attachment placeholders point users to Jira. Rich inline description formatting, embedded attachments, custom fields and story points remain future work; a separate attachments section provides file access.
+Fields include parent, fix versions, labels, assignee, reporter, due date, created and updated timestamps. Description rendering supports basic wiki/document text, headings, lists and code blocks; attachment placeholders point users to Jira. The supported rich-formatting subset is described below; embedded media, custom fields and story points are not fully rendered; a separate attachments section provides file access.
 
 ## Settings
 
@@ -53,7 +53,7 @@ Use a centered maximum width of 960 points and a single outer scroll when embedd
 
 ### Connection
 
-An icon-led heading introduces a rounded card with board URL and absolute secret-file path. Explain that the file lives on the daemon host and contains the email/API token; never show the token.
+An icon-led heading introduces the connection-method dropdown and selected transport card. REST shows the board URL and absolute host secret-file path; TWG shows CLI/profile inputs; MCP shows host sign-in controls. Preserve each method’s settings when switching. Never show credentials.
 
 Refresh interval uses an editable seconds input with integrated preset dropdown: 30, 60, 120 and 300. Accept whole numbers at least 30 with no product maximum. Invalid values show an inline message and red border. Place the control beside its explanation on desktop and below it on compact layouts. Save connection is a compact accent icon-and-label action aligned right.
 
@@ -63,15 +63,15 @@ Collapsible cards have user-entered names and summarize Jira key, Paseo project 
 
 Mapping name and Jira key share a row on desktop and stack on compact layouts. Project, provider, model and isolation are dropdowns. Provider/model options come from Paseo; selecting a provider resets the model. Compact dropdowns place labels above full-width controls, allow long values to wrap and bound menus to 220 points. The entry skill remains optional with explanatory text.
 
-Automatically update Jira status is an independent switch. Remove is a generic trash-icon action aligned right. Add mapping, Refresh projects and Save mappings remain compact icon-and-label actions with minimum 44-point hit targets.
+Start work on move to column is an optional mapping choice; Play never changes Jira status. Remove is a generic trash-icon action aligned right. Add mapping, Refresh projects and Save mappings remain compact icon-and-label actions with minimum 44-point hit targets.
 
 Configure mapping from an issue opens the mapping section with an expanded, unsaved draft first and the Jira key prefilled. It does not save automatically or create a workspace. Other fields remain user choices. Existing saved mappings are preserved; new Paseo projects must currently be created in Paseo first.
 
 ## Work interaction and feedback
 
-Start work prepares or reuses the workspace/agent. If automatic Jira updates require a transition, show an issue-specific selector and Confirm start/Cancel within the card. Never derive transitions from columns. Show busy/error feedback beside the action. Card position follows confirmed Jira status on refresh.
+Start work prepares or reuses the workspace/agent without changing Jira. Branch choices, workflow forms and failures appear in separate dialogs, never inside the card. Explicit moves use issue-specific transitions and supported fields; card position follows confirmed Jira status.
 
-A blank entry skill opens an idle agent. Existing work is reused without automatic skill reruns. Persistent linked-state presentation after reload, live agent running/idle indicators, a standalone Change Jira status action and explicit skill retry/rerun controls remain future design work.
+A blank entry skill opens an idle agent. Existing work is reused without automatic skill reruns. Live agent running/idle indicators, a standalone Change Jira status action and explicit skill retry/rerun controls remain future design work.
 
 ## Empty and error states
 
@@ -89,7 +89,7 @@ Desktop layouts were visually checked in Paseo. Dashboard/settings were also ins
 
 Those checks are desktop-hosted previews, not physical-phone tests. Early details screenshots retained a wider desktop shell around centered content and therefore showed misleading side gutters. Preview overrides were removed; the current mobile body stretches with consistent 16-point padding and no doubled fields inset.
 
-Physical-device gestures, keyboard, safe areas and full native-sheet behavior remain to be verified. Preserve this distinction when reporting mobile readiness or sharing screenshots.
+The user completed a phone review without reported issues on 3 November; device details were not recorded, so this does not establish exhaustive gestures, keyboard or safe-area coverage. Preserve this distinction when reporting mobile readiness or sharing screenshots.
 
 ## Workspace Jira issue tab
 
@@ -101,7 +101,7 @@ Show a muted loading message during initial resolution. Show **No Jira issue fou
 
 Saved dashboard links win over workspace names, which win over agent tab titles. Repeated occurrences of one key count once; unrelated agent metadata labels are not considered. The panel never offers Start work, skill execution or status changes. It now includes the comments section described below. Existing dashboard cards and their details modal keep their current behavior.
 
-Current validation covers detection, independent read boundaries and legacy-link recovery. The installed desktop panel, token-scope error and no-match state were visually verified with the current token; real DEMO-7415 description and fields were also verified in the desktop Explorer on 1 November 2026 after token replacement. Physical-phone visual verification remains outstanding.
+Current validation covers detection, independent read boundaries and legacy-link recovery. The installed desktop panel, token-scope error and no-match state were visually verified with the current token; real DEMO-7415 description and fields were also verified in the desktop Explorer on 1 November 2026 after token replacement. This historical observation predates the user’s 3 November phone review; see [Testing](docs/TESTING.md).
 
 
 ## Comments and composer
@@ -118,9 +118,9 @@ A shared compact section sits before Comments in the modal and Jira side panel. 
 
 Description, Attachments and Comments are independently collapsible in both issue detail surfaces, expanded by default. Headers expose expanded state and provide a 44-point touch target. Collapsing preserves mounted content, comment drafts and upload state. Compact attachment rows place actions beside file details when space permits and wrap them below on narrow panels.
 
-Attachment actions have distinct destinations: Eye previews supported images inside the plugin, Download saves the file, and External link opens the containing issue in Jira using the system browser. The external action avoids direct attachment URLs, which Jira may serve as downloads.
+Attachment actions have distinct destinations: Eye previews supported images inside the plugin, Download saves the file, and External link opens a local browser image preview when supported or the containing Jira issue for other files.
 
-Local browser image previews: the attachment external action opens PNG, JPEG, GIF and WebP inline through a temporary server bound only to 127.0.0.1. Random preview URLs expire after five minutes, images remain in memory (25 MiB per file, 50 MiB combined), and plugin shutdown removes them. Jira tokens never enter the browser URL. A nonce probe checks that the selected host is reachable on the client’s loopback; mobile clients, remote hosts and failed local previews fall back to the existing in-app image preview. Non-image external actions continue to open the containing Jira issue. This supersedes the earlier external-action description for images.
+Local browser image previews: the attachment external action opens PNG, JPEG, GIF and WebP inline through a temporary server bound only to 127.0.0.1. Random preview URLs expire after five minutes, images remain in memory (25 MiB per file, 50 MiB combined), and plugin shutdown removes them. Jira tokens never enter the browser URL. A nonce probe checks that the selected host is reachable on the client’s loopback; mobile clients, remote hosts and failed local previews fall back to the existing in-app image preview. Non-image external actions continue to open the containing Jira issue.
 
 On mobile widths below 760 points, issue details occupy the full screen rather than a bottom sheet. The issue-key header and 44-point close action remain fixed above the scrolling content. Native safe-area space is respected; descriptions, attachments, comments and Jira fields share one vertical scroll area. Desktop retains the centered two-column modal.
 
@@ -137,22 +137,22 @@ Card action priority: an existing workspace link takes precedence over status el
 Open workspace is shown only while the linked workspace still exists and is not archiving. A removed/archived workspace returns the card to its normal status-based action.
 
 ### Work actions inside issue details
-Place the shared compact Play / Open workspace action at the end of the dialog's status/action row. Allow metadata to wrap on narrow screens and retain the 44px action touch target, tooltip and accessible label. Keep transition selection and errors in this shared action area. Configure mapping closes the dialog and opens the prefilled settings. The Jira workspace side panel stays informational and has no work action.
+Place the shared compact Play / Open workspace action at the end of the dialog's status/action row. Allow metadata to wrap on narrow screens and retain the 44px action touch target, tooltip and accessible label. Keep branch/workflow choices and errors in separate dialogs. Configure mapping closes the dialog and opens the prefilled settings. The Jira workspace side panel stays informational and has no work action.
 
-Workflow-aware drag and drop is available on desktop. Highlight columns reachable through the issue's available Jira transitions, offer a transition picker when ambiguous, . Development moves should reuse the Start work flow.
+Workflow-aware drag and drop is available on desktop. Resolve transitions after a drop; a configured destination can start local work after a confirmed move.
 
 Move controls: cards have no separate Move to control. Dragging does not highlight columns. The move area shows issue key, loading/busy feedback, transition choices, required-field explanations and results. No optimistic card relocation occurs; refresh the board after the server responds.
 
-Each project mapping has an optional Start work on move to selector populated from Jira project workflow statuses, grouped into unique status IDs with issue type labels. An unset selection disables automatic work starts on moves, including for existing mappings; Play behavior is unchanged. Changing the Jira project key clears the selection. Renaming a status does not change its identity. An unavailable saved selection is visibly flagged and can be cleared or replaced. Transition availability for the individual issue is still revalidated before any move.
+Each project mapping has an optional Start work on move to column selector populated from actual board columns. An unset selection disables automatic work starts on moves, including for existing mappings; Play behavior is unchanged. Changing the Jira project key clears the selection. Renaming a status does not change its identity. An unavailable saved selection is visibly flagged and can be cleared or replaced. Transition availability for the individual issue is still revalidated before any move.
 
 ### Revised move interaction
-All columns accept attempted drops. There is no Move to menu. The card remains in its confirmed position while the move is pending. Resolve workflow transitions after destination selection; show rejection reasons without simulated relocation. A scrollable, compact modal presents transition fields, retained inputs, Jira validation feedback, Cancel, Open in Jira and Move issue. Unsupported field types explicitly direct users to Jira. This supersedes highlighting only allowed destinations and disabling required-field choices.
+All columns accept attempted drops. There is no Move to menu. The card remains in its confirmed position while the move is pending. Resolve workflow transitions after destination selection; show rejection reasons without simulated relocation. A scrollable, compact modal presents transition fields, retained inputs, Jira validation feedback, Cancel, Open in Jira and Move issue. Unsupported field types explicitly direct users to Jira.
 
 The standalone Move to card control and destination menu have been removed. Board moves are initiated by dragging; post-drop transition selection, fields and error handling remain available.
 
 Dropping into the source column is silently ignored before any Jira request, including columns containing multiple statuses. Drag targets have no added outlines or eligibility borders.
 
-During dragging, only the hovered column receives a subtle 4.5% black background tint. Cards and text are unchanged; there is no outline. The tint clears on leave, drop or drag cancellation.
+During dragging, only the hovered column receives a subtle 8% black background tint. Cards and text are unchanged; there is no outline. The tint clears on leave, drop or drag cancellation.
 
 Status selector revision: use configured board status IDs with names from already-loaded tickets, falling back to column plus status ID. Do not call the project-status endpoint or require additional scopes. Options are board-wide, not a claim that every status applies to every project; per-issue transitions remain authoritative. Stable successful metadata uses bounded host-memory caching (site 24h, identity 1h, board configuration 10m); Refresh statuses bypasses board configuration cache. Errors, issue data, sprint lists, transitions and writes are not cached.
 
@@ -207,36 +207,11 @@ Initial dashboard loading shows neutral empty column surfaces with placeholder h
 
 Place a compact Test connection action inside the connection settings card. Keep results directly below it: a short overall heading, then left-aligned step names and messages with pass/fail/skipped icons. Show progress while running and disable duplicate submissions. Explain that unsaved values are tested read-only and write/comment/attachment permissions are not verified. Clear stale results when URL or secret-file path changes.
 
-### TWG connection preview (2026-11-04)
+### TWG connection and local actions
 
-The connection card contains a labeled TWG read-only preview switch with a short
-explanation. REST fields are hidden when selected, while their saved values are
-preserved for switching back. TWG executable/profile inputs use existing settings
-styling. A quiet dashboard notice explains the preview boundary; unsupported
-Start work and dragging actions are not offered. Ticket titles open Jira rather
-than opening an incomplete details panel. Desktop and compact layouts share
-these behaviors.
+The connection-method dropdown selects TWG and reveals its executable/profile inputs while preserving other methods’ settings. Details, comments and attachments reuse the shared responsive sections. Local Play/Open workspace controls remain on dashboard cards/details, with separate branch/error dialogs; workspace Jira panels do not gain Play. Without saved write opt-in, hide comment/upload controls and disable moves while retaining reads and local work.
 
-TWG details reuse the same responsive description/fields layout as REST, including
-collapsible description and full-screen mobile presentation. Unsupported comments
-and attachments are replaced by one quiet availability note. Creating work is not
-offered; existing workspace navigation remains available.
-
-TWG comments and attachments now reuse the normal collapsible sections and compact
-attachment cards. Read-only mode removes Add comment, Reply, Add attachment and
-upload controls without changing the reading/preview layout. Creation and edited
-timestamps remain visible; external links and refresh controls remain available.
-
-### TWG recovery and local actions
-
-Keep connection recovery within existing error/retry surfaces with concise,
-sanitized guidance. An explicit missing issue uses the quiet workspace empty
-state; authentication and permission failures remain visibly distinct errors.
-
-Restore the existing Play/Open workspace controls for TWG on dashboard cards and
-dashboard details. Preserve card layout and use the existing separate Start work
-dialog for choices and failures. Workspace Jira panels do not gain Play. Comments
-and attachments retain their read-only presentation in TWG mode.
+Keep recovery within existing error/retry surfaces. Missing issues use the quiet workspace empty state; authentication/permission failures remain explicit.
 
 ### TWG opt-in Jira changes
 
@@ -249,3 +224,36 @@ local. The upload UI distinguishes the plugin cap from unknown server limits.
 Ambiguous destination status names and unpreservable reply visibility are refused.
 See `docs/TWG_IMPLEMENTATION.md` for verified command contracts and remaining
 CLI differences; this does not constitute unrestricted REST parity.
+
+### Atlassian MCP connection
+
+Settings uses one Connection method dropdown: REST API, Teamwork Graph CLI, or Atlassian MCP. Only the selected method’s configuration card is visible. Switching preserves the other methods’ draft settings and saved credentials. The Atlassian MCP card uses the shared section heading, themed surface and compact wrapping icon/text actions; signing in alone does not switch transports. Display verified account/site metadata, inline progress/errors, and Continue in browser only while sign-in is pending, without printing the raw authorization URL. Require host-browser confirmation and explain the phone/remote handoff. Keep Save connection behavior unchanged. Leaving Settings or selecting another connection method cancels pending sign-in while retaining saved credentials; Disconnect is a distinct explicit action.
+
+The MCP connection keeps the existing dashboard layout. Its Settings description explains read access to details, comments and attachments, plus local Start work. Cards and dashboard details use the shared Start work / Configure mapping / Open workspace controls and separate branch/error dialogs. Jira move, comment/reply and upload controls remain hidden until the MCP write opt-in is saved; preserve the issue key link to Jira and existing workspace navigation.
+
+### MCP connection card action hierarchy
+
+Use a compact inset status panel and consistent 40px icon/text controls. During browser consent, show only the primary Continue in browser action and outlined Cancel sign-in; hide disabled sign-in, check and disconnect controls. Connected state shows the account display name and selectable verified technical account ID and outlined management actions without a primary reconnect button. Reconnect reveals the host-confirmation step before launching consent. Host guidance is shown only before sign-in; keep the credential-storage explanation as one muted footer. Controls wrap on compact screens without stretching across the card.
+
+Comment layout: keep author, creation/edit timestamps and the external-link icon in one header. Place the icon at the trailing edge, with the shared content-sized, left-aligned compact tooltip. Read-only comments have no action footer. Replies retain a muted vertical guide and indentation capped at two levels to preserve mobile reading width. Comment toolbar and refresh icons use the same tooltip treatment.
+
+
+MCP write opt-in uses a compact Allow Jira changes through MCP row inside the connection-method card, matching the Teamwork Graph row with a bold label, muted description and trailing switch. When enabled on a read grant, the card explains that Reconnect MCP and host-browser sign-in are needed. Saving the switch does not itself launch consent. Enabled controls reuse the existing REST move dialog, comment/reply editor and upload flow in dashboard details and workspace panels; no new forms or errors are inserted into ticket cards.
+
+
+MCP Test connection displays the same inset step-by-step report as REST/TWG, beneath the connection actions. Show passed, failed and skipped stages with the shared icons and read-only footer. Keep the report within the card on desktop and mobile, clear stale reports when the draft board URL changes, and keep explicit sign-in separate from testing saved access.
+
+
+Dashboard search highlights literal, case-insensitive matches in both issue keys and titles. Use the theme’s accent/accentForeground pair with bold nested text, preserving original text, wrapping and accessible card labels. No dedicated search-highlight token is exposed by the current Paseo plugin theme. Clearing search removes all marks; parent text, tags and status are not searched or highlighted.
+
+### Linked reply presentation compatibility
+
+Jira Dashboard renders its generated linked replies beneath the referenced comment even though those writes currently create top-level Jira comments. Recognition is shared across transports and restricted to a standalone leading reply link for the same site/issue. The visible source link remains, native parent IDs take precedence, and missing parents/cycles never hide comments. No server comment is changed by this presentation step.
+
+This is a compatibility workaround, not a native Jira thread guarantee. When updating comment integrations, recheck REST and advertised MCP/TWG contracts for supported parent-comment back references on both reads and writes. Adopt verified native threading per transport when available, retaining the fallback for existing historical replies. A generic link elsewhere in a comment must never become a parent relationship.
+
+### Workspace discovery and section spacing
+
+An existing saved workspace link wins. Otherwise show Open workspace for one unambiguous active name/title match within the mapped Paseo project. Discovery failure shows a sanitized warning above board controls while retaining issues and validated saved links; successful refresh clears it.
+
+Stacked issue-details section gaps and attachment/comment top padding are 14px. The final Jira fields separator uses the same 14px gap/padding. Wide modal columns retain 28px separation and 20px fields padding.

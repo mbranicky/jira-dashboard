@@ -1,3 +1,4 @@
+import {Tooltip} from './tooltip';
 import {JiraContent} from './jira-content';
 import {SectionHeading} from './section-heading';
 import {useRef,useState} from 'react';
@@ -5,7 +6,7 @@ import {useRpc} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
 import {useInfiniteQuery,useQueryClient} from '@tanstack/react-query';
 import {Pressable,Text,TextInput,View} from 'react-native';
-import {commentThreads,listComments,postComment,markdownToAdf,richBlocks,safeLink,type JiraComment,type RichBlock} from '../shared/comments';
+import {linkedReplyThreads,commentThreads,listComments,postComment,markdownToAdf,richBlocks,safeLink,type JiraComment,type RichBlock} from '../shared/comments';
 import {openExternal} from './web';
 import {Action} from './settings-ui';
 
@@ -15,8 +16,8 @@ type Draft={text:string;parent?:JiraComment;requestId:string;uncertain?:boolean}
 const drafts=new Map<string,Draft>();
 const newId=()=> 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.floor(Math.random()*16);return (c==='x'?r:(r&3)|8).toString(16);});
 const message=(error:unknown)=>error instanceof Error?error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,''):'Could not load comments.';
-export function CommentContent({blocks,theme}:{blocks:RichBlock[];theme:Theme}){
- return <JiraContent blocks={blocks} theme={theme} empty="Empty comment."/>;
+export function CommentContent({blocks,theme,onOpenJira}:{blocks:RichBlock[];theme:Theme;onOpenJira?:()=>void}){
+ return <JiraContent onOpenJira={onOpenJira} blocks={blocks} theme={theme} empty="Empty comment."/>;
 }
 export function IssueComments({issueKey,hostId,theme,readOnly=false,connectionRevision=''}:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){
  return <Comments key={`${hostId}/${issueKey}/${connectionRevision}/${readOnly}`} readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issueKey} hostId={hostId} theme={theme}/>;
@@ -29,7 +30,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
  const posting=useRef(false);const input=useRef<TextInput>(null);const selection=useRef({start:0,end:0});
  const queryKey=['jira-comments',hostId,connectionRevision,issueKey];
  const query=useInfiniteQuery({queryKey,initialPageParam:0,queryFn:({pageParam})=>read({key:issueKey,startAt:pageParam}),getNextPageParam:last=>last.nextStart??undefined,retry:false});
- const comments=query.data?.pages.flatMap(p=>p.comments)??[];const rows=commentThreads(comments);const site=query.data?.pages[0]?.site;
+ const site=query.data?.pages[0]?.site;const comments=linkedReplyThreads(query.data?.pages.flatMap(p=>p.comments)??[],site,issueKey);const rows=commentThreads(comments);
  function update(value:Draft|undefined){setDraft(value);if(value)drafts.set(draftKey,value);else drafts.delete(draftKey);}
  function begin(parent?:JiraComment){if(draft)return;update({text:'',parent,requestId:newId()});setPreview(false);setError('');setNotice('');}
  function insert(before:string,after='',placeholder='text'){
@@ -46,7 +47,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
   }catch(e){setError(message(e));update({...submitted,uncertain:true});}
   finally{posting.current=false;setBusy(false);}
  }
- const iconButton=(label:string,icon:string,onPress:()=>void,disabled=false)=><Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({pressed})=>({width:40,height:40,alignItems:'center',justifyContent:'center',borderRadius:6,backgroundColor:pressed?c.surface2:'transparent',opacity:disabled?.4:1,transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={16} color={c.foregroundMuted}/></Pressable>;
+ const iconButton=(label:string,icon:string,onPress:()=>void,disabled=false)=><CommentIcon theme={theme} label={label} icon={icon} onPress={onPress} disabled={disabled}/>;
  const editor=!readOnly&&draft?<View style={{gap:10,minWidth:0}}>
   {draft.parent?<View style={{flexDirection:'row',gap:6,alignItems:'center'}}><Icon name="Reply" size={14} color={c.accent}/><Text style={{color:c.foregroundMuted,fontSize:12,flex:1}}>Linked reply to {draft.parent.author}</Text></View>:null}
   {draft.parent?<Text style={{color:c.foregroundMuted,fontSize:12,lineHeight:18}}>Posts a new top-level comment with a link to the original.{draft.parent.restricted?' Keeps the original visibility restriction.':''}</Text>:null}
@@ -70,15 +71,20 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
   {draft&&!draft.parent?editor:null}
   {query.isPending?<Text style={{color:c.foregroundMuted}}>Loading comments…</Text>:null}
   {query.error?<Text accessibilityRole="alert" style={{color:c.statusDanger,fontSize:13,lineHeight:19}}>{message(query.error)}</Text>:null}
-  {rows.map(({comment,depth})=><View key={comment.id} style={{gap:9,marginLeft:Math.min(depth,2)*12,paddingLeft:depth?10:0,borderLeftWidth:depth?2:0,borderLeftColor:c.border,minWidth:0}}>
-   <View style={{flexDirection:'row',gap:9,alignItems:'flex-start'}}><View style={{width:30,height:30,borderRadius:15,backgroundColor:c.surface2,alignItems:'center',justifyContent:'center'}}><Text style={{color:c.accent,fontSize:11,fontWeight:'700'}}>{comment.author.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</Text></View><View style={{flex:1,gap:3}}><Text style={{color:c.foreground,fontSize:13,fontWeight:'600'}}>{comment.author}</Text><Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Created {new Date(comment.created).toLocaleString()}{comment.restricted?' · Restricted':''}</Text>{comment.updated&&Date.parse(comment.updated)>Date.parse(comment.created)?<Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Edited {new Date(comment.updated).toLocaleString()}</Text>:null}</View></View>
+  {rows.map(({comment,depth})=><View key={comment.id} accessibilityLabel={`Comment by ${comment.author}`} style={{gap:8,marginTop:8,paddingTop:8,paddingBottom:8,marginLeft:Math.min(depth,2)*10,paddingLeft:depth?10:0,borderLeftWidth:depth?2:0,borderLeftColor:c.border,minWidth:0}}>
+   <View style={{flexDirection:'row',gap:9,alignItems:'flex-start'}}><View style={{width:30,height:30,borderRadius:15,backgroundColor:c.surface2,alignItems:'center',justifyContent:'center'}}><Text style={{color:c.accent,fontSize:11,fontWeight:'700'}}>{comment.author.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</Text></View><View style={{flex:1,minWidth:0,gap:2}}><Text style={{color:c.foreground,fontSize:13,fontWeight:'600'}}>{comment.author}</Text><Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Created {new Date(comment.created).toLocaleString()}{comment.restricted?' · Restricted':''}</Text>{comment.updated&&Date.parse(comment.updated)>Date.parse(comment.created)?<Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:16}}>Edited {new Date(comment.updated).toLocaleString()}</Text>:null}</View>{site?iconButton('Open comment in Jira','ExternalLink',()=>void openExternal(`${site}/browse/${issueKey}?focusedCommentId=${comment.id}`)):null}</View>
    {comment.parentId&&!comments.some(c=>c.id===comment.parentId)?<Text style={{color:c.foregroundMuted,fontSize:11}}>Reply · original comment not loaded or unavailable</Text>:null}
-   <CommentContent blocks={comment.blocks} theme={theme}/>
-   <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:2}}>{!readOnly?<Action theme={theme} flushLeft paddingRight={0} icon="Reply" label="Reply" onPress={()=>begin(comment)} disabled={!!draft}/>:null}{site?iconButton('Open comment in Jira','ExternalLink',()=>void openExternal(`${site}/browse/${issueKey}?focusedCommentId=${comment.id}`)):null}</View>
+   <CommentContent blocks={comment.blocks} theme={theme} onOpenJira={site?()=>void openExternal(`${site}/browse/${issueKey}?focusedCommentId=${comment.id}`):undefined}/>
+   {!readOnly?<View style={{flexDirection:'row',alignItems:'center'}}><Action theme={theme} flushLeft paddingRight={0} icon="Reply" label="Reply" onPress={()=>begin(comment)} disabled={!!draft}/></View>:null}
    {draft?.parent?.id===comment.id?editor:null}
   </View>)}
   {draft?.parent&&!comments.some(c=>c.id===draft.parent!.id)?editor:null}
   {query.hasNextPage?<Action theme={theme} icon="ChevronDown" label={query.isFetchingNextPage?'Loading…':`Load more comments (${rows.length} loaded)`} onPress={()=>void query.fetchNextPage()} disabled={query.isFetching}/>:null}
   </View>
  </View>;
+}
+
+function CommentIcon({theme,label,icon,onPress,disabled=false}:{theme:Theme;label:string;icon:string;onPress:()=>void;disabled?:boolean}){
+ const [tip,setTip]=useState(false);const c=theme.colors;
+ return <View style={{position:'relative',flexShrink:0,alignSelf:'flex-start',zIndex:tip?10:0}}>{tip?<Tooltip theme={theme} text={label} offset={40}/>:null}<Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onLongPress={()=>setTip(true)} onPress={()=>{setTip(false);onPress();}} style={({pressed})=>({width:40,height:40,alignItems:'center',justifyContent:'center',borderRadius:6,backgroundColor:pressed?c.surface2:'transparent',opacity:disabled?.4:1})}><Icon name={icon} size={16} color={c.foregroundMuted}/></Pressable></View>;
 }

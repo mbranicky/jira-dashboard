@@ -31,7 +31,7 @@ Personal API usage is documented. That does not establish that every private int
 1. Obtain written Atlassian clarification specifically covering the architecture above and distribution through GitHub/Paseo. Record the response, date, scope and any conditions here before marking the gate complete.
 2. If no exception applies, investigate a single distributable OAuth integration. The [documented 3LO flow](https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/) uses a client secret for token exchange and refresh. Shipping that shared secret in an open-source desktop plugin is not a secure solution. A fully local public-client flow must be confirmed with Atlassian; this review does not establish its availability. Asking every user to register their own OAuth app is specifically discouraged by the integration guidance.
 
-A hosted service has not been authorized, and authentication has not been changed. MCP is not an established replacement for our complete REST feature set in this review.
+A hosted service has not been authorized. This historical review predates the current MCP/TWG implementations; their availability does not establish public-distribution clearance or unrestricted REST parity. See [current MCP evidence](MCP_IMPLEMENTATION.md) and [TWG evidence](TWG_IMPLEMENTATION.md).
 
 ## Questions for Atlassian support
 
@@ -45,3 +45,7 @@ Use [Atlassian Developer support](https://developer.atlassian.com/support). No s
 ## Verification boundary
 
 Only public Atlassian documentation and local source were inspected. No Jira tenant API calls, credential reads, token replacement or test writes were performed for this review. Authentication code is unchanged. Documentation formatting is checked separately; application test results cannot establish policy approval.
+
+## Alternative connectivity research
+
+The [3 November connectivity report](JIRA_CONNECTIVITY_OPTIONS.md) compares official MCP v2, TWG CLI, ACLI, direct OAuth, third-party wrappers and Forge. MCP v2 and TWG OAuth were candidates at that research checkpoint and are now implemented with documented compatibility limits; neither documentation nor user-observed functionality establishes distribution approval. The existing release gate remains open.

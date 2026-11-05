@@ -1,6 +1,6 @@
 # Getting started
 
-Jira Dashboard is a trusted local Paseo plugin. Its backend connects through a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. This initial repository is private; no npm or registry release is available yet.
+Jira Dashboard is a trusted local Paseo plugin. Its backend connects through Atlassian MCP OAuth, a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. This initial repository is private; no npm or registry release is available yet.
 
 ## Install from a checkout
 
@@ -18,10 +18,10 @@ Private repository access requires your own GitHub authentication. Enable truste
 
 ## Connect Jira
 
-1. Choose a connection: [Teamwork Graph CLI OAuth](TWG_SETUP.md), or [REST with a scoped Jira token](JIRA_SETUP.md). Both use the Jira account configured on the Paseo host. No password or hosted authentication service is needed.
-2. Enter your board URL in Settings. For Teamwork Graph, enable **Teamwork Graph CLI** and set the executable and signed-in profile. For REST, provide the absolute path to the private `jira.env` file (owner-only permissions on Unix).
+1. Choose a connection: [Atlassian MCP OAuth](MCP_SETUP.md), [Teamwork Graph CLI OAuth](TWG_SETUP.md), or [REST with a scoped Jira token](JIRA_SETUP.md). All use the Jira account configured on the Paseo host. No password or hosted authentication service is needed.
+2. Enter your board URL in Settings. For MCP, select **Atlassian MCP** and complete host-browser sign-in. For Teamwork Graph, select **Teamwork Graph CLI** and set the executable and signed-in profile. For REST, provide the absolute path to the private `jira.env` file (owner-only permissions on Unix).
 3. Choose a refresh interval of at least 30 seconds. **Test connection** checks the entered values without saving: authentication, board configuration, sprints, assigned sprint issues and independent issue search. It bypasses metadata caches and does not perform writes or test write permissions.
-4. Fix any failed step, then **Save connection**. Settings stay open. For Teamwork Graph, enable **Allow Jira changes** and save to use comments, uploads and workflow moves.
+4. Fix any failed step, then **Save connection**. Settings stay open. For Teamwork Graph, enable **Allow Jira changes** and save to use comments, uploads and workflow moves. MCP additionally requires **Allow Jira changes through MCP** and explicit reconnection for write consent; check its current compatibility limits in the setup guide.
 5. Use **Back to board**. Your sprint selection is remembered per board. Auto selects the active sprint only when exactly one is active; otherwise choose a sprint explicitly.
 
 ## Map a project and start work
@@ -40,11 +40,11 @@ Workspace creation and agent prompts are real actions. Review the selected proje
 
 Choose modal or right-side details in Settings. The desktop dashboard panel can be resized/collapsed; mobile uses full-screen details. A workspace's **Jira** tab detects the relevant issue from the workspace/agent label or an explicit plugin-created association. No issue-key entry is needed in that tab.
 
-Descriptions, attachments and comments collapse independently. Replies are new top-level Jira comments linked to the original; native threaded reply creation is not supported. Markdown comment input is converted to Jira rich text. See [limitations](KNOWN_LIMITATIONS.md) and [connection troubleshooting](JIRA_SETUP.md).
+Descriptions, attachments and comments collapse independently. Replies are new top-level Jira comments linked to the original; the dashboard groups recognized linked replies under the original comment. Native reply creation is not implemented. Markdown is converted to ADF for REST and passed through the supported Markdown contracts for MCP/TWG. See [limitations](KNOWN_LIMITATIONS.md) and [connection troubleshooting](JIRA_SETUP.md).
 
 ## Git installation preparation
 
-The manifest declares `npm ci --omit=dev --ignore-scripts` for managed Git installation. This installs locked production dependencies without dependency lifecycle scripts or development tools. The historical MCP prototype SDK is development-only. The local-checkout walkthrough above uses the full development installation for type checks.
+The manifest runs `npm ci --omit=dev --ignore-scripts`, then `node scripts/prepare-native.mjs` for managed Git installation. This installs locked production dependencies, including the MCP SDK and keyring helper, without dependency lifecycle scripts or development tools. Preparation records installation-local native paths; the standalone Node executable must remain available. The local-checkout walkthrough above uses the full development installation for type checks.
 
 The package is still private and prepared for Git distribution. Publishing on npm would require a publishable runtime lock and removing redundant Git-only preparation first.
 

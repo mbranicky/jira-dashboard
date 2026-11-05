@@ -1,5 +1,23 @@
 # Testing Jira Dashboard
 
+## Full verification checkpoint — 2026-11-05
+
+Verified the current accumulated `codex/mcp-v2-oauth` working tree, including MCP transition destination resolution and the darker drag-hover tint. No commit, version bump, publication or live Jira write was performed.
+
+| Check | Locked Paseo 0.14 SDK | Isolated Paseo 0.15 SDK |
+| --- | --- | --- |
+| Source and UI typechecks | Passed | Passed |
+| Backend tests | 277 passed | 277 passed |
+| Chrome component tests | 109 passed, 13 specs | 109 passed, 13 specs |
+| Source heuristic audit | Passed | Passed |
+| Package contents | 118 files, passed | 118 files, passed |
+
+Gitleaks 8.30.1 scanned all 26 Git commits and current Git candidate files with no remaining findings. Three curl authorization-header matches were literal synthetic upload-parser fixtures; only those exact lines were annotated `gitleaks:allow`, with an explanation. No broad scanner exclusion was added. Current `npm audit` reports zero known vulnerabilities, including development dependencies; this supersedes the earlier dependency finding count for this checkpoint only.
+
+A separate clean copy ran the manifest's production installation and native preparation: 109 packages installed, zero reported vulnerabilities. Paseo client, MCP SDK and native keyring imports succeeded without credential-entry access. The unconfigured copy loaded in Paseo as temporary `jira-dashboard-verification` and reported running; its registration was removed afterward. The original configured dashboard remained running. This verifies local macOS installation/loading, not Windows/Linux credential stores or new OAuth consent. No credentials/settings were copied.
+
+Representative generated light/mobile search and dark/desktop MCP settings screenshots were visually inspected. Browser tests remain mocked component workflows, not real Jira/device end-to-end tests. MCP upload preparation/media output variants remain partly unverified; no successful live transition or upload is established by these tests. Temporary contract diagnostics were subsequently removed; see the follow-up below. The older records below describe their own revisions and must not be substituted for these results.
+
 ## Commands
 
 Use Node 24 (the UI toolchain requires at least Node 22.12) and install dependencies with `npm ci`. Cypress downloads its test runner during installation. Install Google Chrome for the native pointer/keyboard tests.
@@ -24,7 +42,7 @@ The Cypress component suite mounts the actual `Dashboard` and all its child comp
 
 The suite uses real browser pointer/keyboard events for divider dragging and Escape dismissal. Network release gates and retryable assertions replace fixed sleep delays. Each mount has a new host identity, fixture settings, and query cache, so tests do not depend on another test's state. Workspace navigation is simulated by unmounting/remounting the dashboard under the same host.
 
-## Verified baseline
+## Historical verified baseline (2026-11-03)
 
 On 2026-11-03, all 33 Cypress tests passed in Chrome 156 with Cypress 16.2.0 and Node 24.16.0. All 83 Node tests, both type checks, and the secret audit passed. GitHub Actions previously passed the then-current 16-test browser suite on Linux in run `41613924655` for initial commit `8bd3820`. The suite identified and fixed divider responder capture (an inner Pressable could steal dragging) and an absent web `aria-checked` attribute on the appearance selector.
 
@@ -48,13 +66,13 @@ Host icons use Lucide components; desktop `SettingsSelect` uses a semantic selec
 
 Do not weaken assertions to make failures pass. First distinguish fixture/harness mismatches from production bugs. Keep new stable `testID`s limited to otherwise unnamed layout regions such as scroll areas; use accessible names for controls.
 
-## Production installation smoke test
+## Historical production installation smoke test (2026-11-03)
 
 On 2026-11-03, copied tracked source into a temporary directory without node_modules, credentials or settings and executed the manifest preparation (`npm ci --omit=dev --ignore-scripts`). It installed 11 packages, reported no production vulnerabilities, and imported `@getpaseo/client/node` successfully. The prototype MCP SDK and Cypress were absent. Paseo 0.14.0 loaded the prepared directory under an isolated runtime ID and reported running; the temporary registration was then removed.
 
 This earlier directory check verified production dependency installation and host loading. The managed Git and first-run UI verification below completes the installation check for the merged revision. Real Jira writes are explicitly excluded from automated verification and are not a release requirement. Development dependency audit findings are tracked separately.
 
-## Clean managed Git installation from merged main
+## Historical clean managed Git installation from merged main
 
 Verified on 2026-11-03 with Paseo 0.15.0, using an isolated runtime ID:
 
@@ -85,7 +103,7 @@ The isolated target-SDK copy also loaded as a temporary plugin on the 0.15.0 dae
 
 Three registry capture tests render synthetic dashboard, details, settings and mobile views. Reviewed public copies live in assets/ and are packaged via manifest media. Replacements require visual review and an updated exact digest in the secret audit. They are not pixel-diff baselines.
 
-Three additional browser tests cover branch selection in a separate modal, retry after agent-start failure, and uncertain prompt delivery without offering an unsafe retry. Backend tests independently verify workspace reuse and no duplicate prompt. The current 33-test suite uses mocked service boundaries; no live workspace is created.
+Three additional browser tests cover branch selection in a separate modal, retry after agent-start failure, and uncertain prompt delivery without offering an unsafe retry. Backend tests independently verify workspace reuse and no duplicate prompt. That 33-test checkpoint used mocked service boundaries; no live workspace is created.
 
 ## Live verification record and phone review
 
@@ -115,4 +133,8 @@ These are browser component workflows plus backend unit/integration tests, not e
 
 ## Credential regression coverage
 
-The credential audit adds six tests, bringing the Node suite to 89 passing tests. `tests/credentials.test.ts` uses owner-only temporary synthetic files and injected transports for request authentication, rotation/removal, file restrictions and error redaction. `tests/metadata-cache.test.ts` covers equivalent header formats and credential isolation. No real secret file or Jira connection is needed. See [credential security](CREDENTIAL_SECURITY.md) for audit boundaries.
+The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 passing tests. `tests/credentials.test.ts` uses owner-only temporary synthetic files and injected transports for request authentication, rotation/removal, file restrictions and error redaction. `tests/metadata-cache.test.ts` covers equivalent header formats and credential isolation. No real secret file or Jira connection is needed. See [credential security](CREDENTIAL_SECURITY.md) for audit boundaries.
+
+## Diagnostics reduction follow-up — 2026-11-05
+
+After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.

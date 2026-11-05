@@ -6,7 +6,9 @@ export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','p
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
-  transport: z.enum(['rest','twg']).optional(),
+  transport: z.enum(['rest','twg','mcp']).optional(),
+  mcpWrites: z.boolean().default(false),
+  mcpHostId:z.string().max(256).default(''),
   twgWrites: z.boolean().default(false),
   boardUrl: z.string().default(''),
   envPath: z.string().default(''),
@@ -23,6 +25,7 @@ export const issueSchema = z.object({
   type: z.string(), priority: z.string().nullable(), projectKey: z.string(),
 });
 export const boardSchema = z.object({
+  workspaceWarning:z.string().optional(),
   site: z.string(), boardId: z.number(), name: z.string(), checkedAt: z.string(),
   user: z.object({ displayName: z.string() }),
   columns: z.array(z.object({ name: z.string(), statusIds: z.array(z.string()) })),

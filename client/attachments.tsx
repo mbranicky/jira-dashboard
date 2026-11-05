@@ -1,3 +1,4 @@
+import {Tooltip} from './tooltip';
 import {SectionHeading} from './section-heading';
 import {useRef,useState} from 'react';
 import {Image,Pressable,Text,View} from 'react-native';
@@ -36,7 +37,7 @@ function Attachments({issueKey,hostId,theme,readOnly=false,connectionRevision=''
   }
   setNotice('Showing the image here; a local browser preview is unavailable on this connection.');await transfer(item,true);
  }
- const button=(label:string,icon:string,action:()=>void,disabled=false)=><Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={action} style={({pressed})=>({width:40,height:40,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:pressed?c.surface2:'transparent',opacity:disabled?.4:1})}><Icon name={icon} size={16} color={c.foregroundMuted}/></Pressable>;
+ const button=(label:string,icon:string,action:()=>void,disabled=false)=><AttachmentAction theme={theme} label={label} icon={icon} onPress={action} disabled={disabled}/>;
  return <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:14,gap:10,minWidth:0}}>
   <View style={{flexDirection:'row',alignItems:'center',gap:8}}><SectionHeading title={`Attachments${query.data?` (${query.data.files.length})`:''}`} icon="Paperclip" theme={theme} expanded={expanded} onPress={()=>setExpanded(!expanded)}/>{button('Refresh attachments','RefreshCw',()=>void query.refetch(),query.isFetching||!!busy)}</View>
   <View onLayout={e=>setRowWidth(e.nativeEvent.layout.width)} style={{display:expanded?'flex':'none',gap:8,minWidth:0}}>
@@ -52,10 +53,16 @@ function Attachments({issueKey,hostId,theme,readOnly=false,connectionRevision=''
   </View>)}
   {readOnly?null:file?<View style={{padding:12,borderWidth:1,borderColor:c.border,borderRadius:9,gap:8}}><Text style={{color:c.foreground,fontSize:13}}>{file.name} · {fileSize(file.size)}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>Upload to {issueKey}. This file will be visible to people who can access the issue.</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}><Action theme={theme} primary icon="Upload" label="Upload" onPress={()=>void upload()} disabled={!!busy}/><Action theme={theme} icon="X" label="Cancel" onPress={()=>setFile(undefined)} disabled={!!busy}/></View></View>:canTransferFiles?<Action theme={theme} flushLeft icon="Plus" label="Add attachment" onPress={()=>void select()} disabled={!!busy||!limits.data?.enabled||!query.isSuccess}/>:<Action theme={theme} flushLeft icon="ExternalLink" label="Upload in Jira" onPress={()=>void jira()} disabled={!query.data}/>}
   {limits.data&&!limits.data.enabled?<Text style={{color:c.foregroundMuted,fontSize:12}}>Attachments are disabled in Jira.</Text>:null}
-  {limits.data?.limitSource==='plugin'?<Text style={{color:c.foregroundMuted,fontSize:12}}>25 MiB plugin limit. Jira checks its own upload limit and permissions when you upload.</Text>:null}
+  {limits.data?.limitSource==='plugin'?<Text style={{color:c.foregroundMuted,fontSize:12}}>Jira attachment settings could not be read. The plugin allows files up to 25 MiB; Jira checks whether attachments are enabled, its own limit and your permissions when you upload.</Text>:null}
   {limits.error?<Text style={{color:c.statusDanger,fontSize:12}}>Upload settings unavailable. Check permissions or upload in Jira.</Text>:null}
   {busy||notice?<Text accessibilityLiveRegion="polite" style={{color:c.accent,fontSize:12}}>{busy||notice}</Text>:null}
   {error?<Text accessibilityRole="alert" style={{color:c.statusDanger,fontSize:13,lineHeight:19}}>{error}</Text>:null}
   </View>
  </View>;
+}
+
+function AttachmentAction({theme,label,icon,onPress,disabled}:{theme:Theme;label:string;icon:string;onPress:()=>void;disabled:boolean}){
+ const [tip,setTip]=useState(false);const c=theme.colors;
+ const tooltip=label==='Open image in browser (in-app fallback)'?'Open in browser':label==='Open containing issue in Jira'?'Open in Jira':label;
+ return <View style={{position:'relative',flexShrink:0,zIndex:tip?10:0}}>{tip?<Tooltip theme={theme} text={tooltip} offset={40}/>:null}<Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onLongPress={()=>setTip(true)} onPress={()=>{setTip(false);onPress();}} style={({pressed})=>({width:40,height:40,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:pressed?c.surface2:'transparent',opacity:disabled?.4:1})}><Icon name={icon} size={16} color={c.foregroundMuted}/></Pressable></View>;
 }

@@ -12,6 +12,10 @@
       "ci",
       "--omit=dev",
       "--ignore-scripts"
+    ],
+    [
+      "node",
+      "scripts/prepare-native.mjs"
     ]
   ],
   "media": [
