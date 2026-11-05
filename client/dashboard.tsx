@@ -1,3 +1,5 @@
+import {ResponsiveSelect} from './responsive-select';
+import {McpSettings} from './mcp-settings';
 import {sprintSelectionKey} from '../shared/sprint-selection';
 import {TwgSettings} from './twg-settings';
 import {ConnectionCheck} from './connection-check';
@@ -23,15 +25,15 @@ type Surface=Pick<PluginScreenProps,'theme'|'layout'>;
 function Button({label,onPress,theme,disabled=false}:{label:string;onPress:()=>void;theme:Surface['theme'];disabled?:boolean}){
   return <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={{minHeight:44,justifyContent:'center',paddingHorizontal:14,paddingVertical:10,borderRadius:8,backgroundColor:theme.colors.surface2,opacity:disabled?0.5:1}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>{label}</Text></Pressable>;
 }
-export function ConnectionSettings(props:PluginSurfaceProps){return <ScrollView style={{flex:1,backgroundColor:props.theme.colors.surface0}}><ConnectionEditor {...props}/></ScrollView>;}
-function ConnectionEditor({theme,layout,onSaving}:{theme:Surface['theme'];layout:Surface['layout'];onSaving?:()=>void}){
+export function ConnectionSettings(props:PluginSurfaceProps){return <ScrollView style={{flex:1,backgroundColor:props.theme.colors.surface0}}><ConnectionEditor {...props} hostId={props.host.id}/></ScrollView>;}
+function ConnectionEditor({theme,layout,onSaving,hostId}:{hostId:string;theme:Surface['theme'];layout:Surface['layout'];onSaving?:()=>void}){
   const settings=useSettings(connection);
   const [saved,setSaved]=useState(false);
   if(settings.status==='loading')return <Text style={{color:theme.colors.foreground}}>Loading settings…</Text>;
   if(settings.status!=='ready')return <View style={{padding:20,gap:12}}><Text style={{color:theme.colors.foreground}}>Cannot load connection settings.</Text><Button theme={theme} label="Retry" onPress={()=>void settings.reload()}/></View>;
-  return <Editor key={settings.revision} theme={theme} layout={layout} initial={settings.values} saved={saved} setSaved={setSaved} saving={settings.saving} error={settings.saveError?String(settings.saveError):null} onSave={async value=>{onSaving?.();const ok=await settings.save(value,settings.revision);setSaved(ok);return ok;}}/>;
+  return <Editor hostId={hostId} key={settings.revision} theme={theme} layout={layout} initial={settings.values} saved={saved} setSaved={setSaved} saving={settings.saving} error={settings.saveError?String(settings.saveError):null} onSave={async value=>{onSaving?.();const ok=await settings.save(value,settings.revision);setSaved(ok);return ok;}}/>;
 }
-function Editor({theme,layout,initial,onSave,saving,error,saved,setSaved}:Surface & {saved:boolean;setSaved:(value:boolean)=>void;initial:Connection;onSave:(v:Connection)=>Promise<boolean>;saving:boolean;error:string|null}){
+function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}:Surface & {hostId:string;saved:boolean;setSaved:(value:boolean)=>void;initial:Connection;onSave:(v:Connection)=>Promise<boolean>;saving:boolean;error:string|null}){
   const [draft,setDraft]=useState(initial);
   const [interval,setInterval]=useState(String(initial.refreshSeconds));
   const [intervalTouched,setIntervalTouched]=useState(false);
@@ -44,16 +46,19 @@ function Editor({theme,layout,initial,onSave,saving,error,saved,setSaved}:Surfac
     <View style={{padding:layout.compact?16:24,gap:14,borderRadius:16,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border}}>
     <Text style={{color:theme.colors.foreground}}>Jira board URL</Text>
     <TextInput accessibilityLabel="Jira board URL" autoCapitalize="none" autoCorrect={false} value={draft.boardUrl} onChangeText={boardUrl=>{setSaved(false);setDraft({...draft,boardUrl});}} placeholder="https://your-site.atlassian.net/jira/software/c/projects/KEY/boards/51" placeholderTextColor={theme.colors.foregroundMuted} style={input}/>
-    <View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Teamwork Graph CLI</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Use your TWG OAuth profile instead of an API token for the dashboard.</Text></View><Switch accessibilityLabel="Use TWG CLI for dashboard" value={draft.transport==='twg'} onValueChange={enabled=>{setSaved(false);setDraft({...draft,transport:enabled?'twg':'rest'});}}/></View>
+    <ResponsiveSelect theme={theme} compact={layout.compact} label="Connection method" value={draft.transport??'rest'} options={[{label:'REST API',value:'rest'},{label:'Teamwork Graph CLI',value:'twg'},{label:'Atlassian MCP',value:'mcp'}]} onValueChange={value=>{setSaved(false);setDraft({...draft,transport:value as Connection['transport'],...(value==='mcp'?{mcpHostId:hostId}:{})});}}/>
+    {draft.transport==='mcp'?<Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Read your board, issue details, comments and attachments. Start work creates or reuses a Paseo workspace and agent.</Text>:null}
+    {draft.transport==='mcp'?<View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Allow Jira changes through MCP</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Enable workflow moves, comments and attachment uploads. Play itself does not change Jira.</Text></View><Switch accessibilityLabel="Allow Jira changes through MCP" value={draft.mcpWrites??false} onValueChange={mcpWrites=>{setSaved(false);setDraft({...draft,mcpWrites});}}/></View>:null}
     {draft.transport==='twg'?<View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Allow Jira changes</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Enable workflow moves, comments and attachment uploads. Play itself does not change Jira.</Text></View><Switch accessibilityLabel="Allow Jira changes" value={draft.twgWrites} onValueChange={enabled=>{setSaved(false);setDraft({...draft,twgWrites:enabled});}}/></View>:null}
-    {draft.transport!=='twg'?<>
+    {draft.transport!=='twg'&&draft.transport!=='mcp'?<>
     <Text style={{color:theme.colors.foreground}}>Secret file path on this host</Text>
     <TextInput accessibilityLabel="Secret file path" autoCapitalize="none" autoCorrect={false} value={draft.envPath} onChangeText={envPath=>{setSaved(false);setDraft({...draft,envPath});}} placeholder="/absolute/path/to/jira.env" placeholderTextColor={theme.colors.foregroundMuted} style={input}/>
     <Text style={{color:theme.colors.foregroundMuted}}>Use JIRA_EMAIL and JIRA_API_TOKEN in this file. Only the path is saved here. Protect the file with owner-only permissions (chmod 600).</Text>
     <ConnectionCheck key={`${draft.boardUrl}|${draft.envPath}`} theme={theme} boardUrl={draft.boardUrl} envPath={draft.envPath}/>
     </>:null}
     </View>
-    <TwgSettings theme={theme} boardUrl={draft.boardUrl} executable={draft.twgExecutable??'twg'} profile={draft.twgProfile??'default'} onChange={(executable,profile)=>{setSaved(false);setDraft({...draft,twgExecutable:executable,twgProfile:profile});}}/>
+    {draft.transport==='mcp'?<McpSettings theme={theme} hostId={hostId} boardUrl={draft.boardUrl} writeAccess={draft.mcpWrites}/>:null}
+    {draft.transport==='twg'?<TwgSettings theme={theme} boardUrl={draft.boardUrl} executable={draft.twgExecutable??'twg'} profile={draft.twgProfile??'default'} onChange={(executable,profile)=>{setSaved(false);setDraft({...draft,twgExecutable:executable,twgProfile:profile});}}/>:null}
     <View style={{flexDirection:layout.compact?'column':'row',gap:16,alignItems:layout.compact?'stretch':'center',paddingVertical:8}}>
     <View style={{flex:1,gap:6}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Refresh interval</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:13}}>How often the board checks Jira for updates.</Text></View>
     <View style={{width:layout.compact?'100%':260,gap:8}}>
@@ -71,7 +76,7 @@ function Editor({theme,layout,initial,onSave,saving,error,saved,setSaved}:Surfac
     </View></View>
     {error?<Text accessibilityRole="alert" style={{color:theme.colors.foreground}}>{error}</Text>:null}
     {saved?<Text style={{color:theme.colors.foreground}}>Settings saved. Open Jira Dashboard to test the connection.</Text>:null}
-    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
+    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():draft.transport==='mcp'?false:!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
   </View>;
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
@@ -93,13 +98,14 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   }
   const revision=settings.status==='ready'?settings.revision:'';
   const twgPreview=settings.status==='ready'&&settings.values.transport==='twg';
-  const twgReadOnly=twgPreview&&!settings.values.twgWrites;
-  const configured=settings.status==='ready'&&!!settings.values.boardUrl&&(twgPreview?!!settings.values.twgExecutable&&!!settings.values.twgProfile:!!settings.values.envPath);
+  const mcpPreview=settings.status==='ready'&&settings.values.transport==='mcp';
+  const twgReadOnly=mcpPreview&&!settings.values.mcpWrites||twgPreview&&!settings.values.twgWrites;
+  const configured=settings.status==='ready'&&!!settings.values.boardUrl&&(mcpPreview?!!settings.values.mcpHostId:twgPreview?!!settings.values.twgExecutable&&!!settings.values.twgProfile:!!settings.values.envPath);
   const board=useQuery({queryKey:['jira-board',host.id,sprintKey,revision,sprint],queryFn:()=>rpc(sprint?{sprintId:sprint}:{}),enabled:configured&&!editing&&preferences.status==='ready',retry:false,refetchInterval:settings.status==='ready'?settings.values.refreshSeconds*1000:false,refetchIntervalInBackground:false});
   const data=board.data;
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
-  if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
+  if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
   const filtered=data?.issues.filter(i=>`${i.key} ${i.summary}`.toLowerCase().includes(search.toLowerCase()))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
@@ -120,6 +126,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>
       </View>
+      {data?.workspaceWarning?<Text accessibilityRole="alert" style={{...muted,fontSize:13}}>{data.workspaceWarning}</Text>:null}
       <View style={{flexDirection:layout.compact?'column':'row',gap:10,alignItems:layout.compact?'stretch':'flex-start'}}>
         {data?<View style={{width:layout.compact?'100%':320,gap:4}}>
           <OverlayMenu open={sprintMenu} onOpenChange={setSprintMenu} theme={theme} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel="Select sprint" accessibilityState={{expanded:sprintMenu}} onPress={toggle} style={({pressed})=>({minHeight:44,flexDirection:'row',alignItems:'center',gap:9,paddingHorizontal:12,borderRadius:8,borderWidth:1,borderColor:theme.colors.border,backgroundColor:pressed?theme.colors.surface2:theme.colors.surface1})}>
@@ -134,7 +141,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
         </View>:null}
         <View style={{flex:layout.compact?undefined:1,minWidth:0,minHeight:44,flexDirection:'row',alignItems:'center',gap:8,paddingLeft:12,borderRadius:8,borderWidth:1,borderColor:searchFocused?theme.colors.accent:theme.colors.border,backgroundColor:theme.colors.surface1}}>
           <Icon name="Search" size={16} color={theme.colors.foregroundMuted}/>
-          <TextInput accessibilityLabel="Search issues" value={search} onChangeText={setSearch} onFocus={()=>setSearchFocused(true)} onBlur={()=>setSearchFocused(false)} autoCapitalize="none" autoCorrect={false} placeholder="Search issues…" placeholderTextColor={theme.colors.foregroundMuted} style={{...text,flex:1,minWidth:0,minHeight:44,fontSize:13,paddingVertical:10,paddingRight:12}}/>
+          <TextInput accessibilityLabel="Search issues" value={search} onChangeText={setSearch} onFocus={()=>setSearchFocused(true)} onBlur={()=>setSearchFocused(false)} autoCapitalize="none" autoCorrect={false} placeholder="Search issue key or title…" placeholderTextColor={theme.colors.foregroundMuted} style={{...text,flex:1,minWidth:0,minHeight:44,fontSize:13,paddingVertical:10,paddingRight:12}}/>
           {search?<Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={()=>setSearch('')} style={{width:44,height:44,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>:null}
         </View>
       </View>
@@ -155,10 +162,10 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
         if(layout.compact&&index!==selectedColumn)return null;
         const issues=filtered.filter(i=>c.statusIds.includes(i.statusId));
         return <DropColumn key={index} statusIds={c.statusIds} compact={layout.compact}>{hovered=><View style={{width:layout.compact?'100%':300,...(layout.compact?{}:{flex:1,minHeight:0}),backgroundColor:theme.colors.surface1,borderRadius:12,padding:12,gap:12}}>
-          {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.045)'}}/>:null}
+          {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.08)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'700',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;
@@ -166,6 +173,6 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     </ScrollView>
     </BoardMoves>}
   </View>
-  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
+  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails startAvailable={true} readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
   </View>;
 }

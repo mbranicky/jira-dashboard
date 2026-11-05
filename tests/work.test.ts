@@ -4,7 +4,7 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import type {PaseoApi} from '@getpaseo/client';
-import {startIssue,workIdentity,entryPrompt} from '../server/work';
+import {startIssue,workIdentity,entryPrompt,validateWork} from '../server/work';
 import type {Mapping} from '../shared/contracts';
 const config={boardUrl:'https://example.atlassian.net/boards/51',envPath:'/unused',refreshSeconds:60};
 const mapping:Mapping={name:'Test mapping',jiraProjectKey:'TD',paseoProjectId:'p1',provider:'codex',model:'',entrySkill:'',isolation:'directory',autoUpdateJira:false};
@@ -107,13 +107,25 @@ test('agent creation failure retries the same workspace and sends the entry skil
   assert.equal(f.calls.filter(c=>c.startsWith('send:')).length,1);
  }finally{await f.cleanup();}
 });
-test('TWG Start work creates local workspace and agent and dispatches the optional skill without Jira writes',async()=>{
+for(const transport of ['twg','mcp'] as const)test(`${transport} Start work creates local workspace and agent and dispatches the optional skill without Jira writes`,async()=>{
  for(const entrySkill of ['', 'init-issue']){
  const f=await fixture();try{
   const deps={...f.deps,issueSession:async()=>{throw Error('Jira access is forbidden during local startup');}} as typeof f.deps;
-  await startIssue(f.paseo,{...config,transport:'twg'},{...mapping,entrySkill,autoUpdateJira:true},'TD-99',undefined,deps,'Bug');
+  await startIssue(f.paseo,{...config,transport},{...mapping,entrySkill,autoUpdateJira:true},'TD-99',undefined,deps,'Bug');
   assert.ok(f.calls.includes('workspace:TD-99'));assert.ok(f.calls.includes('agent:TD-99'));assert.equal(f.calls.includes('transition'),false);
   assert.deepEqual(f.calls.filter(c=>c.startsWith('send:')),entrySkill?['send:/init-issue TD-99']:[]);
  }finally{await f.cleanup();}
  }
 });
+
+ test('MCP work validation uses its board reader and rejects stale issues or missing mappings',async()=>{
+  const mcpConfig={...config,transport:'mcp' as const,envPath:''};
+  const issue={key:'TD-101',projectKey:'TD',type:'Bug'};
+  const readBoard=(async(c:unknown,sprintId:unknown)=>{
+   assert.equal(c,mcpConfig);assert.equal(sprintId,12);
+   return {issues:[issue]};
+  }) as unknown as Parameters<typeof validateWork>[4];
+  assert.deepEqual(await validateWork(mcpConfig,[mapping],'TD-101',12,readBoard),{mapping,issue});
+  await assert.rejects(validateWork(mcpConfig,[mapping],'TD-102',12,readBoard),/no longer assigned/);
+  await assert.rejects(validateWork(mcpConfig,[],'TD-101',12,readBoard),/project mapping/);
+ });

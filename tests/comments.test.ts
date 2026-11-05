@@ -1,6 +1,7 @@
+import {descriptionDocument} from '../server/jira-html';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {markdownToAdf,richBlocks,commentThreads,safeLink} from '../shared/comments';
+import {linkedReplyThreads,markdownToAdf,richBlocks,commentThreads,safeLink} from '../shared/comments';
 import {normalizeComment,readCommentPage,createComment,commentPoster} from '../server/comments';
 const raw=(id='1',parentId?:string)=>({id,parentId,author:{displayName:'Example Author'},created:'2026-11-01T10:00:00Z',body:{type:'doc',version:1,content:[{type:'paragraph',content:[{type:'text',text:'Hello',marks:[{type:'strong'}]}]}]}});
 test('Markdown converts to ADF with formatting, lists, code and safe links',()=>{
@@ -43,4 +44,45 @@ test('threads sort newest first while preserving parent-child structure',()=>{
  const c=(id:string,created:string,updated?:string,parentId?:string)=>normalizeComment({...raw(id,parentId),created,updated});
  const rows=commentThreads([c('1','2026-01-01'),c('2','2026-02-01'),c('3','2026-01-01','2026-03-01'),c('4','2026-04-01',undefined,'3')]);
  assert.deepEqual(rows.map(r=>[r.comment.id,r.depth]),[['3',0],['4',1],['2',0],['1',0]]);
+});
+
+const replySite='https://example.atlassian.net';
+const replyHref=`${replySite}/browse/TC-1?focusedCommentId=1`;
+function linked(id='2',href=replyHref,label='Linked reply to comment 1'){
+ return normalizeComment({...raw(id),body:markdownToAdf(`[${label}](${href})\n\nReply body`)});
+}
+test('dashboard threads REST and MCP/TWG reply headings without modifying stored comments',()=>{
+ for(const label of ['Linked reply to Example Author','Linked reply to comment 1']){
+  const reply=linked('2',replyHref,label),parent=normalizeComment(raw());
+  const resolved=linkedReplyThreads([reply,parent],replySite,'TC-1');
+  assert.equal(reply.parentId,null);assert.equal(resolved[0].parentId,'1');assert.deepEqual(resolved[0].blocks,reply.blocks);
+  assert.deepEqual(commentThreads(resolved).map(r=>[r.comment.id,r.depth]),[['1',0],['2',1]]);
+  assert.equal(linkedReplyThreads([{...reply,parentId:'99'}],replySite,'TC-1')[0].parentId,'99');
+ }
+});
+test('ordinary references, quoted headings and cross-issue/site links are not reply relationships',()=>{
+ const candidates=[
+  linked('2',replyHref,'See original comment'),linked('2',replyHref.replace('example.','other.')),
+  linked('2',replyHref.replace('TC-1','TC-2')),linked('2',replyHref+'&other=1'),linked('2',replyHref+'#fragment'),
+  linked('2',replyHref.replace('=1','=2')),linked('2',replyHref.replace('=1','=no')),
+  normalizeComment({...raw('2'),body:markdownToAdf(`> [Linked reply to comment 1](${replyHref})`)}),
+  normalizeComment({...raw('2'),body:markdownToAdf(`Intro\n\n[Linked reply to comment 1](${replyHref})`)}),
+  normalizeComment({...raw('2'),body:markdownToAdf(`[Linked reply to comment 1](${replyHref}) with more text`)}),
+ ];
+ assert.ok(linkedReplyThreads(candidates,replySite,'TC-1').every(c=>c.parentId===null));
+ assert.equal(linkedReplyThreads([linked()],undefined,'TC-1')[0].parentId,null);
+});
+test('inferred replies survive pagination and cycles without hiding or duplicating comments',()=>{
+ const reply=linked();
+ assert.deepEqual(commentThreads(linkedReplyThreads([reply],replySite,'TC-1')).map(r=>[r.comment.id,r.depth]),[['2',0]]);
+ const parent=normalizeComment(raw('1'));
+ assert.deepEqual(commentThreads(linkedReplyThreads([reply,parent],replySite,'TC-1')).map(r=>[r.comment.id,r.depth]),[['1',0],['2',1]]);
+ const cycle=linked('1',replyHref.replace('=1','=2'));
+ const rows=commentThreads(linkedReplyThreads([reply,cycle],replySite,'TC-1'));
+ assert.equal(rows.length,2);assert.equal(new Set(rows.map(r=>r.comment.id)).size,2);
+});
+
+test('MCP HTML reply heading is recognized after content normalization',()=>{
+ const comment=normalizeComment({...raw('2'),body:descriptionDocument(`<p><a href="${replyHref}">Linked reply to comment 1</a></p><p>Reply</p>`)});
+ assert.equal(linkedReplyThreads([comment],replySite,'TC-1')[0].parentId,'1');
 });

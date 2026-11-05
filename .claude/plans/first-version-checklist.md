@@ -78,7 +78,7 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 ## Git installation readiness (2026-11-03)
 
 - [x] Correct outdated overview and disclose agent-provider data flow.
-- [x] Move historical MCP prototype SDK out of production dependencies.
+- [x] Historical baseline (2026-11-03): moved the prototype MCP SDK out of production dependencies. The current MCP implementation requires the SDK and keyring as production dependencies; repeat clean-install verification for that dependency set.
 - [x] Declare locked preparation: `npm ci --omit=dev --ignore-scripts`.
 - [x] Execute that preparation in an isolated source copy with no existing node_modules or private settings. Installed 11 packages; production dependency audit reported no vulnerabilities. MCP SDK and Cypress absent; production Paseo client import succeeds.
 - [x] Install the isolated prepared directory as `jira-dashboard-install-smoke` on Paseo 0.14.0; verify running, then remove it. Existing live plugin remains registered to the real checkout.
@@ -171,7 +171,8 @@ Further automated verification uses mocks, without real Jira writes or agent/ski
 - [x] Verify installed 1.4.2 help and bundled output contracts offline.
 - [x] Existing configurations remain read-only until explicitly enabled.
 - [x] Mocked verification: 135 backend tests and 52 browser tests (complete suites), both typechecks, secret audit and package validation pass.
-- [ ] Resolve CLI limitations for duplicate destination names, identifier-only comment restrictions and attachment-settings discovery before claiming unrestricted REST parity.
+- [ ] Resolve CLI limitations for duplicate destination names and identifier-only comment restrictions before claiming unrestricted REST parity.
+- [x] Read actual attachment settings through a bounded anonymous HTTP supplement for MCP/TWG, with explicit plugin-only fallback; no native metadata capability is claimed.
 - [x] Review write integration, including blank visibility restrictions and malformed upload receipts.
 - [x] Merge write integration in PR #5 after GitHub checks passed; no live Jira writes are required for automated verification.
 
@@ -184,3 +185,32 @@ Further automated verification uses mocks, without real Jira writes or agent/ski
 - [x] Refresh user documentation and fictional listing screenshots for both connection options.
 
 These are user-performed live observations. Automated tests continue to use mocks; no live write tests are required or run by the agent.
+
+## Atlassian MCP v2 continuation
+
+- [x] Bring the OAuth branch up to date with merged REST/Teamwork Graph support.
+- [x] Exercise the real SDK handshake and tool-catalogue pagination with mocked HTTP; reject closed-session reuse and sanitize transport failures.
+- [x] Complete mocked OAuth exchange/refresh, OS-store persistence and account/site verification in the MCP connection flow. User sign-in now works on the current macOS host; other native-store/platform packaging remains unverified.
+- [x] Inspect current advertised read/write input schemas and preserve existing connection options; output-contract limitations remain tracked below.
+
+- [x] Mock SDK OAuth discovery, registration, PKCE exchange, refresh and revoked-refresh recovery.
+- [x] Add account/site binding validation with mismatch and ambiguity tests; wire identity tools into the MCP connection flow.
+- [x] Replace session-only storage with an OS credential-store adapter, restore/rotation/disconnect tests and no plaintext fallback. No real Keychain or Jira access used.
+
+- [x] Verify the combined SDK OAuth/MCP persistence/restart/refresh flow using mocks.
+- [x] Integrate the MCP Settings connection and serialize active flows, cancellation, reconnect and disconnect; verify with lifecycle and desktop/mobile RPC mocks.
+- [x] Implement the guarded read-only MCP board adapter and opt-in Settings selection using synthetic contracts; cover pagination, caching, permissions, expired sessions and desktop/mobile restrictions with mocks.
+- [x] User verified MCP OAuth, board/details/comments and attachment reads on the current host.
+- [ ] Verify native-store packaging on other supported hosts and repeat clean production installation for the current dependency set.
+
+- [x] Enable MCP local Start work using the shared mapping, branch/worktree and agent workflow, without Jira writes or REST credentials.
+- [x] Confirm live MCP attachment preview, download and Open in browser with the user.
+- [x] Implement authorized MCP status/comment/reply/upload adapters and UI using advertised input schemas and mocked tests; no live test writes.
+- [x] Handle observed MCP comment receipts through exact-ID paginated readback, with mocked regression tests and no automatic write retries.
+- [x] Resolve observed MCP name-only transition destinations through exact status lookup, reject ambiguity/incomplete data, recheck before submission and replace raw validation JSON with readable errors. Regression tests use mocks; live successful moves remain unverified.
+- [ ] Establish upload preparation/media output contracts through authoritative schemas or safe evidence from ordinary user usage; no live test writes.
+- [x] Preserve omitted scope on same-grant OAuth refresh, with explicit reductions and grant separation tested.
+- [x] Keep board reads usable when optional workspace discovery fails; test saved-link retention and desktop/mobile warning recovery.
+- [x] Add MCP connection reports, themed search highlights, shared linked-reply nesting and manual-workspace navigation.
+- [x] Remove temporary OAuth progress, response-shape and catalogue diagnostics; retain only fixed failure codes with no payloads. Privacy/no-log success regressions and all 278 backend tests passed.
+- [x] Run full current automated/local verification (2026-11-05): both 0.14/0.15 SDKs, 277 backend and 109 browser tests each, typechecks, source/history scans, package validation, zero-vulnerability npm audit, and clean local production installation/loading. Other OS credential stores and unresolved MCP upload contracts remain separate gates.

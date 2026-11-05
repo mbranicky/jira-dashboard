@@ -1,3 +1,4 @@
+import {issueKeys} from '../shared/issue-detection';
 import {checkedOutBase,issueBranches,selectIssueBranch} from './issue-branches';
 import {createHash,randomUUID} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,readdir} from 'node:fs/promises';
@@ -150,14 +151,14 @@ export async function readWorkspaceLinks(dir:string,site:string,workspaceId:stri
 }
 
 
-export async function boardWorkspaceLinks(paseo:PaseoApi,config:Connection,keys:string[]){
+export async function boardWorkspaceLinks(paseo:PaseoApi,config:Connection,keys:string[],mappings:Mapping[]=[]){
   const local=await connectLocalHost(paseo);
   try{
     const links=await readBoardWorkspaceLinks(join(local.home,'plugin-data','jira-dashboard',local.serverId),parseBoardUrl(config.boardUrl).site,keys);
     await Promise.all(Object.entries(links).map(async([key,link])=>{
       if(!await activeWorkspace(paseo,link.workspaceId))delete links[key];
     }));
-    return links;
+    return await mergeDiscoveredWorkspaces(paseo,mappings,keys,links);
   }
   finally{await local.client.close();}
 }
@@ -183,4 +184,41 @@ export async function prepareIssueBranches(paseo:PaseoApi,mapping:Mapping,key:st
  const project=(await paseo.projects.list()).projects.find(p=>p.projectId===mapping.paseoProjectId);
  if(!project)throw Error('Mapped project is unavailable.');
  return issueBranches(project.projectRootPath,key);
+}
+
+/** Manual workspaces have no Start work receipt. Use an unambiguous complete key
+ * in the mapped project's workspace name/title without creating a saved receipt. */
+export async function discoverBoardWorkspaces(paseo:PaseoApi,mappings:Mapping[],keys:string[]){
+ const links:Record<string,{workspaceId:string}>={};
+ if(!keys.length||!mappings.length)return links;
+ const candidates=new Map<string,Set<string>>();let cursor:string|undefined;const seen=new Set<string>();
+ for(let page=0;page<1000;page++){
+  const result=await paseo.workspaces.list({page:{limit:100,...(cursor?{cursor}:{})}});
+  for(const workspace of result.entries){
+   if(workspace.archivingAt||workspace.background||workspace.internal)continue;
+   const detected=issueKeys([workspace.name,workspace.title]);
+   if(detected.length!==1)continue;
+   const key=detected[0];
+   if(!keys.includes(key)||!mappings.some(m=>m.jiraProjectKey===key.split('-')[0]&&m.paseoProjectId===workspace.projectId))continue;
+   const ids=candidates.get(key)??new Set<string>();ids.add(workspace.id);candidates.set(key,ids);
+  }
+  if(!result.pageInfo.hasMore){
+   for(const [key,ids] of candidates)if(ids.size===1)links[key]={workspaceId:[...ids][0]};
+   return links;
+  }
+  const next=result.pageInfo.nextCursor;
+  if(!next||seen.has(next))throw Error('Could not load all workspaces to match Jira issues.');
+  seen.add(next);cursor=next;
+ }
+ throw Error('Too many workspaces to match Jira issues.');
+}
+
+/** Optional name discovery must not discard a successfully loaded Jira board. */
+export async function mergeDiscoveredWorkspaces(paseo:PaseoApi,mappings:Mapping[],keys:string[],links:Record<string,{workspaceId:string;agentId?:string}>){
+ try{
+  const discovered=await discoverBoardWorkspaces(paseo,mappings,keys.filter(key=>!links[key]));
+  return {links:{...discovered,...links}};
+ }catch{
+  return {links,workspaceWarning:'Some workspace links could not be checked. Jira issues are available; refresh to try again.'};
+ }
 }

@@ -1,3 +1,4 @@
+import {selectConnection} from '../support/connection-method';
 import {mount} from 'cypress/react';
 import {Harness,stubRpc} from '../support/harness';
 const button=(name:string)=>cy.get(`[role="button"][aria-label="${name}"]`);
@@ -7,7 +8,7 @@ describe('TWG experimental settings',()=>{
   cy.viewport(1440,1000);
   cy.intercept('POST','/__rpc/twg.start',req=>{expect(req.body.executable).eq('twg');expect(req.body.site).eq('https://example.atlassian.net');expect(req.body.profile).eq('default');req.reply({id:'job',state:'running',message:'Waiting for browser consent.'});}).as('start');
   cy.intercept('POST','/__rpc/twg.poll',{id:'job',state:'unverified',message:'CLI response format remains unverified.'}).as('poll');
-  mount(<Harness/>);button('Settings').click();button('Sign in with TWG').should('not.exist');button('Test connection').last().click();cy.wait('@start');
+  mount(<Harness/>);button('Settings').click();selectConnection('twg');button('Sign in with TWG').should('not.exist');button('Test connection').last().click();cy.wait('@start');
   button('Cancel TWG operation').should('not.exist');cy.wait('@poll');cy.contains('CLI response format remains unverified.').should('be.visible');cy.contains('Connection needs attention').should('be.visible');cy.contains('Board access').should('be.visible');
   button('Test connection').last().click();cy.wait('@start').its('request.body.action').should('eq','check');
  });
@@ -15,7 +16,7 @@ describe('TWG experimental settings',()=>{
   cy.intercept('POST','/__rpc/twg.start',{id:'job',state:'running',message:'Checking…'});
   const labels=['Board URL','CLI compatibility','Authentication','Board access','Sprint access','Sprint issues','Workspace issue search'];
   cy.intercept('POST','/__rpc/twg.poll',{id:'job',state:'succeeded',message:'Read connection verified',result:{ok:true,steps:labels.map(label=>({label,state:'passed',message:`Verified ${label}`}))}});
-  mount(<Harness/>);button('Settings').click();button('Test connection').last().click();
+  mount(<Harness/>);button('Settings').click();selectConnection('twg');button('Test connection').last().click();
   cy.contains('Read connection verified').should('be.visible');
   for(const label of labels)cy.contains(`Verified ${label}`).should('exist');
   button('Cancel TWG operation').should('not.exist');
@@ -25,13 +26,13 @@ describe('TWG experimental settings',()=>{
   cy.intercept('POST','/__rpc/twg.start',{id:'job',state:'running',message:'Waiting for browser consent.'});
   cy.intercept('POST','/__rpc/twg.poll',{id:'job',state:'running',message:'Waiting for browser consent.'});
   cy.intercept('POST','/__rpc/twg.cancel',{id:'job',state:'cancelled',message:'TWG operation cancelled.'}).as('cancel');
-  mount(<Harness/>);button('Settings').click();cy.contains('On your desktop, open a terminal').scrollIntoView().should('be.visible');
+  mount(<Harness/>);button('Settings').click();selectConnection('twg');cy.contains('On your desktop, open a terminal').scrollIntoView().should('be.visible');
   button('Test connection').last().click();button('Cancel TWG operation').should('not.exist');button('Back to board').scrollIntoView().click();cy.wait('@cancel');
  });
  it('failed check gives a retryable error without disturbing REST fields',()=>{
   cy.intercept('POST','/__rpc/twg.start',{id:'job',state:'running',message:'Checking…'});
   cy.intercept('POST','/__rpc/twg.poll',{id:'job',state:'failed',message:'Check installation and authorization on the host.'});
-  mount(<Harness/>);button('Settings').click();button('Test connection').last().click();
+  mount(<Harness/>);button('Settings').click();selectConnection('twg');button('Test connection').last().click();
   cy.contains('Check installation and authorization on the host.').should('be.visible');
   cy.get('[aria-label="Jira board URL"]').should('have.value','https://example.atlassian.net/boards/1');
  });
@@ -47,9 +48,9 @@ describe('TWG read-only dashboard connection',()=>{
   cy.intercept('POST','/__rpc/attachments.read',{base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=',total:65,mimeType:'image/png'}).as('image');
   cy.intercept('POST','/__rpc/attachments.settings',()=>{throw Error('Read-only view must not request upload settings');});
   cy.intercept('POST','/__rpc/comments.post',()=>{throw Error('Read-only view must not post comments');});
-  mount(<Harness/>);button('Settings').click();
-  cy.get('[aria-label="Secret file path"]').clear();
-  cy.get('[aria-label="Use TWG CLI for dashboard"]').click();
+  mount(<Harness/>);button('Settings').click();selectConnection('twg');
+  selectConnection('rest');cy.get('[aria-label="Secret file path"]').clear();
+  selectConnection('twg');
   cy.get('[aria-label="Secret file path"]').should('not.exist');
   button('Save connection').scrollIntoView().click();
   cy.contains('Settings saved.').should('be.visible');button('Back to board').scrollIntoView().click();
@@ -67,8 +68,8 @@ describe('TWG read-only dashboard connection',()=>{
   cy.get('[aria-label="example.png"]').should('be.visible');
   button('Close issue details').click();
   button('Settings').click();
-  cy.get('[aria-label="Use TWG CLI for dashboard"]').should('be.checked');
-  cy.get('[aria-label="Use TWG CLI for dashboard"]').click();
+  cy.get('[aria-label="TWG profile"]').should('exist');
+  selectConnection('rest');
   cy.get('[aria-label="Secret file path"]').should('have.value','');
   button('Save connection').should('have.attr','aria-disabled','true');
  });

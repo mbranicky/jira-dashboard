@@ -1,6 +1,6 @@
 # Jira Cloud connectivity options
 
-Research date: 3 November 2026. Status: recommendation for evaluation, not an authentication migration or public-distribution approval.
+Historical research dated 3 November 2026. The recommendations and untested claims below describe that date, not current implementation status. MCP and TWG have since been implemented; see [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md) and [current limitations](KNOWN_LIMITATIONS.md). This research does not establish public-distribution approval.
 
 ## Recommendation
 

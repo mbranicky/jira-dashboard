@@ -1,6 +1,6 @@
 # Credential handling and security audit
 
-Reviewed and hardened on 3 November 2026. Scope: shipped plugin backend, settings/RPC contracts, requests, metadata caches, workspace state and agent startup. Historical prototype scripts are not shipped and are not covered by the runtime guarantees below.
+Historical REST-focused review and hardening, 3 November 2026. Scope at that checkpoint: plugin backend, settings/RPC contracts, requests, metadata caches, workspace state and agent startup. The current MCP/TWG authentication boundaries are documented in [MCP implementation](MCP_IMPLEMENTATION.md) and [TWG implementation](TWG_IMPLEMENTATION.md); this older audit does not certify those additions. Historical prototype scripts are not shipped and are not covered by the runtime guarantees below.
 
 ## Security boundary
 

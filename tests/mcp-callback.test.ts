@@ -26,3 +26,23 @@ test('callback listener times out without a browser', async () => {
   await assert.rejects(flow.callback, /timed out/);
   assert.throws(() => flow.session.state(), /closed/);
 });
+test('stopping the listener after connection preserves OAuth credentials and clears expiry', async () => {
+  const flow = await createMcpCallback(async () => {}, 10);
+  flow.session.saveTokens({access_token: 'synthetic', token_type: 'Bearer'});
+  flow.stop();
+  await assert.rejects(flow.callback, /cancelled/);
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(flow.session.tokens()?.access_token, 'synthetic');
+  flow.cancel();
+  assert.throws(() => flow.session.tokens(), /closed/);
+});
+
+test('browser consent keeps its complete ten-minute callback window',async context=>{
+ context.mock.timers.enable({apis:['setTimeout']});
+ const flow=await createMcpCallback(async()=>{});
+ let settled=false;void flow.callback.catch(()=>{settled=true;});
+ try {
+  context.mock.timers.tick(599999);await Promise.resolve();assert.equal(settled,false);
+  context.mock.timers.tick(1);await assert.rejects(flow.callback,/timed out after ten minutes/);
+ }finally{flow.cancel();context.mock.timers.reset();}
+});

@@ -1,8 +1,11 @@
+import type {McpCredentialStore} from './mcp-store';
 import {createServer} from 'node:http';
 import {McpOAuthSession} from './mcp-oauth';
 
+export class McpCallbackTimeout extends Error {constructor(){super('Authorization timed out after ten minutes. Start sign-in again.');}}
+
 /** Bind only loopback. The authorization URL callback is supplied by the future host UI. */
-export async function createMcpCallback(authorize: (url: URL) => Promise<void>, timeoutMs = 600_000) {
+export async function createMcpCallback(authorize: (url: URL) => Promise<void>, timeoutMs = 600_000, store?: McpCredentialStore, access={writeAccess:false,forceAuthorization:false}) {
   let session: McpOAuthSession;
   let resolve!: (url: URL) => void;
   let reject!: (error: Error) => void;
@@ -39,12 +42,12 @@ export async function createMcpCallback(authorize: (url: URL) => Promise<void>, 
   });
   const address = server.address();
   if (!address || typeof address === 'string') {shutdown(); throw new Error('Could not start authorization callback.');}
-  session = new McpOAuthSession(address.port, authorize);
-  const cancel = () => {
+  session = new McpOAuthSession(address.port, authorize, Date.now, store, access);
+  const stop = () => {
     shutdown();
-    session.dispose();
-    if (!settled) {settled = true; reject(new Error('Authorization cancelled or timed out.'));}
+    if (!settled) {settled = true; reject(new Error('Authorization cancelled.'));}
   };
-  timer = setTimeout(cancel, timeoutMs); timer.unref();
-  return {session, callback, cancel};
+  const cancel = () => {stop(); session.dispose();};
+  timer = setTimeout(() => {if(!settled){settled=true;reject(new McpCallbackTimeout());}shutdown();session.dispose();}, timeoutMs); timer.unref();
+  return {session, callback, cancel, stop};
 }

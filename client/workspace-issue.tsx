@@ -15,7 +15,7 @@ import {openExternal} from './web';
 
 export const OpenWorkspaceIssue=createContext<(workspaceId:string)=>void>(()=>{});
 export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProps){
- const settings=useSettings(connection);const readOnly=settings.status==='ready'&&settings.values.transport==='twg'&&!settings.values.twgWrites;
+ const settings=useSettings(connection);const mcpPreview=settings.status==='ready'&&settings.values.transport==='mcp';const readOnly=mcpPreview&&!settings.values.mcpWrites||settings.status==='ready'&&settings.values.transport==='twg'&&!settings.values.twgWrites;
  const revision=settings.status==='ready'?settings.revision:'';
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const c=theme.colors;const paseo=usePaseo();
@@ -55,9 +55,9 @@ export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProp
    {error?<Text accessibilityRole="alert" style={{color:c.statusDanger,fontSize:13,lineHeight:20}}>{error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,'')}</Text>:loading?<Text style={{color:c.foregroundMuted}}>Loading Jira issue…</Text>:detected.status==='ambiguous'?<Text style={{color:c.foregroundMuted,lineHeight:20}}>Multiple Jira issue keys found. This workspace’s issue is ambiguous.</Text>:!data?<Text style={{color:c.foregroundMuted}}>No Jira issue found.</Text>:<>
     <Text selectable style={{color:c.foreground,fontSize:18,lineHeight:25,fontWeight:'600'}}>{data.issue.summary}</Text>
     <View style={{gap:8}}><Text style={{color:c.accent,fontSize:12,fontWeight:'600'}}>{data.issue.status}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>{data.issue.type} · {data.issue.priority??'No priority'}</Text></View>
-    <View style={{gap:10}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:10}}><JiraContent blocks={data.details.richDescription??[]} theme={theme}/></View></View>
+    <View style={{gap:10}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:10}}><JiraContent onOpenJira={()=>void openExternal(`${data.site}/browse/${encodeURIComponent(data.issue.key)}`)} blocks={data.details.richDescription??[]} theme={theme}/></View></View>
     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:16,gap:16}}><Text style={{color:c.foreground,fontWeight:'600',fontSize:14}}>Jira fields</Text><IssueFields issue={data.issue} details={data.details} theme={theme}/></View>
-    <IssueAttachments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/>
+    {<><IssueAttachments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/></>}
    </>}
   </ScrollView>
  </View>;

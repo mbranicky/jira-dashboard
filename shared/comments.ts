@@ -2,7 +2,7 @@ import {wikiDocument} from './jira-wiki';
 import {defineRpc} from '@getpaseo/plugin';
 import {z} from 'zod';
 export const inlineSchema=z.object({text:z.string(),bold:z.boolean().optional(),italic:z.boolean().optional(),code:z.boolean().optional(),strike:z.boolean().optional(),underline:z.boolean().optional(),href:z.string().optional()});
-export const richBlockSchema=z.object({kind:z.enum(['paragraph','heading','code','quote','table','panel']),runs:z.array(inlineSchema),prefix:z.string().optional(),level:z.number().optional(),rows:z.array(z.array(z.array(inlineSchema))).optional(),panel:z.string().optional()});
+export const richBlockSchema=z.object({kind:z.enum(['paragraph','heading','code','quote','table','panel','attachment']),runs:z.array(inlineSchema),prefix:z.string().optional(),level:z.number().optional(),rows:z.array(z.array(z.array(inlineSchema))).optional(),panel:z.string().optional()});
 export type RichBlock=z.infer<typeof richBlockSchema>;
 export const commentSchema=z.object({id:z.string(),parentId:z.string().nullable(),author:z.string(),created:z.string(),updated:z.string().nullable(),blocks:z.array(richBlockSchema),restricted:z.boolean()});
 export type JiraComment=z.infer<typeof commentSchema>;
@@ -88,13 +88,38 @@ export function richBlocks(value:unknown):RichBlock[]{
    (node.content??[]).forEach((child,i)=>walk(child,depth+1,prefix+(node.type==='bulletList'?'• ':`${Number(node.attrs?.order??1)+i}. `)));return;
   }
   if(node.type==='blockquote'){(node.content??[]).forEach(n=>walk(n,depth+1,prefix+'› '));return;}
-  if(['media','mediaSingle','mediaGroup'].includes(node.type)){output.push({kind:'paragraph',runs:[{text:'[Attachment — open in Jira]'}]});return;}
+  if(['media','mediaSingle','mediaGroup'].includes(node.type)){output.push({kind:'attachment',runs:[],...(prefix?{prefix}:{})});return;}
   if(node.type==='rule'){output.push({kind:'paragraph',runs:[{text:'────────'}]});return;}
   if(!node.content?.length&&!['doc','listItem'].includes(node.type))output.push({kind:'paragraph',runs:[{text:'[Unsupported Jira content — open in Jira]'}]});
   for(const child of node.content??[])walk(child,depth+1,prefix);
  }
  if(value&&typeof value==='object')walk(value as AdfNode);
  return output;
+}
+/** Dashboard-only threading fallback: Jira writes currently lack a verified parent
+ * parameter across our transports. Recognize only our standalone leading reply
+ * link, scoped to this site/issue; preserve the visible link and native parentId.
+ * Recheck Jira REST/MCP/TWG contracts before extending this workaround. Prefer
+ * native parent references when available; never send inferred IDs as native data.
+ */
+export function linkedReplyThreads(comments:JiraComment[],site:string|undefined,key:string):JiraComment[]{
+ if(!site)return comments;
+ let issueUrl:URL;try{issueUrl=new URL(`${site}/browse/${key}`);}catch{return comments;}
+ return comments.map(comment=>{
+  if(comment.parentId)return comment;
+  const first=comment.blocks[0];
+  if(first?.kind!=='paragraph'||first.prefix)return comment;
+  const runs=first.runs.filter(run=>run.text.trim());
+  if(!runs.length||runs.some(run=>!run.href||run.href!==runs[0].href||run.code))return comment;
+  if(!/^Linked reply to \S[^\r\n]*$/.test(runs.map(run=>run.text).join('')))return comment;
+  try{
+   const url=new URL(runs[0].href!);
+   if(url.origin!==issueUrl.origin||url.pathname!==issueUrl.pathname||url.username||url.password||url.hash)return comment;
+   const params=[...url.searchParams];
+   if(params.length!==1||params[0][0]!=='focusedCommentId'||!/^\d+$/.test(params[0][1])||params[0][1]===comment.id)return comment;
+   return {...comment,parentId:params[0][1]};
+  }catch{return comment;}
+ });
 }
 /** Flatten threads with capped visual indentation, retaining orphaned/cyclic comments once. */
 export function commentActivity(c:JiraComment){return Math.max(Date.parse(c.created)||0,Date.parse(c.updated??'')||0);}

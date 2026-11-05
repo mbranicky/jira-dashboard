@@ -27,7 +27,7 @@ export function TwgSettings({theme,boardUrl,executable:path,profile,onChange}:{t
  const target=twgTarget.safeParse({site,profile});
  const busy=starting||job?.state==='running';const c=theme.colors;
  return <View style={{gap:12,padding:16,borderWidth:1,borderColor:c.border,borderRadius:16,backgroundColor:c.surface1}}>
-  <SectionTitle theme={theme} icon="Terminal" title="Teamwork Graph CLI" description="Sign in from a terminal on your Paseo host, then check CLI access here. Enable TWG above to load the dashboard through TWG."/>
+  <SectionTitle theme={theme} icon="Terminal" title="Teamwork Graph CLI" description="Sign in from a terminal on your Paseo host, then check CLI access here."/>
   <Text style={{color:c.foregroundMuted,fontSize:13,lineHeight:19}}>On your desktop, open a terminal on the Paseo host and run twg login. Complete browser consent, then return here to test access. No token needs to be pasted here.</Text>
   <Text style={{color:c.foreground}}>TWG executable on host</Text>
   <TextInput accessibilityLabel="TWG executable on host" value={path} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(value,profile);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:8,padding:12}}/>

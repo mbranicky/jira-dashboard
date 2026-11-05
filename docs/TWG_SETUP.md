@@ -1,7 +1,7 @@
 # Teamwork Graph CLI OAuth setup
 
 TWG is an optional connection for Jira Dashboard. Existing installations keep REST
-until **Teamwork Graph CLI** is enabled. This connection supports dashboard
+until **Teamwork Graph CLI** is selected in Connection method. This connection supports dashboard
 and issue reads, comments, attachment viewing/downloads and local Start work.
 Jira changes are disabled by default. Enable **Allow Jira changes**
 in Settings to use workflow moves, comment posting/replies and attachment uploads.
@@ -21,7 +21,7 @@ in Settings to use workflow moves, comment posting/replies and attachment upload
 
    Complete browser consent with the intended work account. The terminal belongs
    on the host even when you use Paseo from a phone or another computer.
-3. Open **Jira Dashboard → Settings**, enter the full board URL and enable
+3. Open **Jira Dashboard → Settings**, enter the full board URL and select
    **Teamwork Graph CLI**.
 4. Set **TWG executable on host** to `twg`, or preferably its absolute path if the
    daemon's PATH differs from your terminal. Set **TWG profile** to the exact name
@@ -84,9 +84,7 @@ and the [authentication policy review](ATLASSIAN_AUTH_POLICY.md).
 
 ## Write-mode limitations
 
-TWG does not expose the server's attachment settings in the inspected command
-surface. The UI explicitly shows the 25 MiB plugin cap; Jira may reject files under
-a smaller server limit or when attachments are disabled. Transition discovery
+TWG has no native attachment-settings reader. The plugin attempts a credential-free Jira metadata read for the actual enabled flag and size limit, capped at 25 MiB. If that read is unavailable, the UI labels the plugin-only limit and explains that Jira checks its actual settings during upload. Transition discovery
 returns destination names without IDs: duplicate names on the board are refused
 rather than guessed. Internal comments and replies with only visibility identifiers
 (no transferable role/group name) must be handled in Jira.

@@ -1,6 +1,6 @@
 # Jira Dashboard for Paseo
 
-Status: current product specification and implementation checkpoint, 31 October 2026.
+Status: current product specification and implementation checkpoint, 5 November 2026.
 
 ## Purpose and identity
 
@@ -14,9 +14,9 @@ Support one Jira Cloud site and one configured board per host configuration. The
 
 Example: `https://example.atlassian.net/jira/software/c/projects/DEMO/boards/51` selects board 51 on the example site.
 
-Connectivity uses scoped Jira API tokens and REST, superseding the unsuccessful MCP/OAuth experiment. No hosted authentication service, Atlassian password or language model is needed for dashboard reads.
+Connectivity supports REST with scoped Jira API tokens, Teamwork Graph CLI OAuth and Atlassian MCP v2 OAuth. MCP/TWG write controls require saved opt-in; MCP also requires write consent. Current response-contract limitations are described in [MCP implementation](docs/MCP_IMPLEMENTATION.md) and [TWG implementation](docs/TWG_IMPLEMENTATION.md). No hosted authentication service, Atlassian password or language model is needed for dashboard reads.
 
-The implemented credential source is an absolute path to a private `jira.env` file on the Paseo daemon host:
+For REST, the credential source is an absolute path to a private `jira.env` file on the Paseo daemon host:
 
 ```dotenv
 JIRA_EMAIL=your.name@example.com
@@ -25,7 +25,7 @@ JIRA_API_TOKEN=replace-with-your-scoped-api-token
 
 Parse the file as data, never execute or source it. Require owner-only file permissions on supported systems. Store only the file path in ordinary settings. Never expose credentials in client responses, logs, snapshots or agent prompts. Resolve the site's cloud ID and route scoped-token requests through `https://api.atlassian.com/ex/jira/{cloudId}`; use the site URL for Jira links and association identity.
 
-Direct email/token entry with secure storage is agreed future scope, not an implemented settings control. Manual cloud-ID fallback and credential replacement/removal UI are also future work. Historical MCP investigation files remain reference artifacts only.
+Direct email/token entry with secure storage is agreed future scope, not an implemented settings control. Manual cloud-ID fallback and credential replacement/removal UI are also future work. Historical MCP prototype files remain reference artifacts; the new MCP v2 implementation is tracked separately.
 
 Token scopes are immutable: create a replacement token with the complete applicable scope list, replace the secret in jira.env, verify it, and revoke the superseded token. Exact endpoint scopes and setup instructions are maintained in [docs/JIRA_SETUP.md](docs/JIRA_SETUP.md). Connection validation remains read-only. Public-distribution applicability of Atlassian's API-token collection guidance remains unresolved; local prototype availability does not settle that question.
 
@@ -35,7 +35,7 @@ Token scopes are immutable: create a replacement token with the complete applica
 - Show only issues assigned to the authenticated account within the selected board and sprint.
 - Follow the active sprint automatically when exactly one is active. Allow an explicit sprint override; offer only active and future sprints, never closed sprints. Persist explicit sprint or Auto selection per host and canonical Jira site/board in dashboard preferences. Restore preferences before the initial board request; connection and appearance saves must preserve the selection. If a remembered sprint becomes unavailable, offer Choose another sprint. Multiple active sprints require an explicit choice; team membership is not inferred from the board response.
 - Show an explicit selection/empty state when several or no sprints are active.
-- Search by issue key or summary; show the matching count when filtering.
+- Search by issue key or summary; show the matching count and highlight all literal case-insensitive matches in those fields using theme accent colors.
 - Provide manual Refresh, last successful update time and Settings actions. Retain the previous snapshot with an error message if refresh fails.
 - Refresh interval accepts whole-number seconds of at least 30, with no product-defined maximum. Presets are 30, 60, 120 and 300 seconds in an editable dropdown.
 - Jira is the source of confirmed status. Workflow-aware board moves are supported; there is no Start column or optimistic column reassignment.
@@ -44,9 +44,9 @@ Token scopes are immutable: create a replacement token with the complete applica
 
 Cards display the full wrapping title, optional parent, fix versions and labels, actual status, issue type, Jira key, priority and a compact footer action. The key opens Jira externally.
 
-Clicking the title opens the issue-details modal. Clicking the parent or tags toggles metadata expansion independently of the title. Collapsed metadata shows up to two versions and one label, plus a vertically aligned overflow count. Parent and tags share a compact interactive group rather than separate tall rows.
+Clicking the title opens the configured modal or dashboard side panel. Clicking the parent or tags toggles metadata expansion independently of the title. Collapsed metadata shows up to two versions and one label, plus a vertically aligned overflow count. Parent and tags share a compact interactive group rather than separate tall rows.
 
-The details modal displays the title, status, type, priority, description, parent, versions, labels, assignee, reporter, due date, created date and updated date. It includes Open in Jira, loading, error/retry and close controls. Fetch details on demand through the sprint issue endpoint, checking selected-sprint membership and assignment. Basic Jira wiki text and document blocks are rendered as readable text, headings, lists and code; rich formatting and embedded attachments are not fully reproduced. A separate attachments section provides file access. Story points and custom fields are not yet included.
+The details modal displays the title, status, type, priority, description, parent, versions, labels, assignee, reporter, due date, created date and updated date. It includes Open in Jira, loading, error/retry and close controls. Fetch details on demand through the selected transport, checking selected-sprint membership and assignment for dashboard details. Basic Jira wiki text and document blocks are rendered as readable text, headings, lists and code; rich formatting and embedded attachments are not fully reproduced. A separate attachments section provides file access. Story points and custom fields are not yet included.
 
 Desktop details use a wide two-column dialog; mobile uses a stacked, scrollable body. See [DESIGN.md](DESIGN.md) for layout details.
 
@@ -63,7 +63,7 @@ Each Jira project key has at most one mapping. Several keys may map to the same 
 | Agent provider | Required explicit selection from available Paseo providers |
 | Model | Optional; options depend on the provider, otherwise use its default |
 | Workspace isolation | Required: new Git worktree or shared project directory |
-| Automatically update Jira status | Independent toggle, enabled by default for new mappings |
+| Start work on move to column | Optional trigger after a confirmed explicit workflow move; Play itself never transitions Jira |
 
 Explicit provider and isolation choices are the agreed Paseo 0.14 workaround because the plugin API does not expose saved app creation defaults. Changing provider clears the model override. Unavailable saved provider/model choices are identified; startup validates model availability before creating resources.
 
@@ -82,15 +82,13 @@ Start work resolves the mapping and creates or reuses the issue's workspace and 
 3. Apply the workspace label `In Progress`, creating it if absent and applying it to reused workspaces too.
 4. Use the selected provider and model/default. Open the agent and invoke the external entry skill only when configured. Blank skill sends no prompt.
 
-If automatic Jira updates are enabled for a first start, retrieve transitions into the In Progress status category and ask the user to choose one. Do not infer transitions from board column names. An already In Progress issue needs no transition. A rejected transition blocks workspace creation; required workflow fields are not yet collected. Once accepted by Jira, the transition is not rolled back if local setup later fails.
+Play performs no Jira write, including with legacy automatic-update settings. Explicit drag-and-drop discovers issue-specific transitions and collects supported required fields in a separate dialog. A configured destination can start local work only after Jira confirms the move. A rejected move starts no work; later local failure does not undo a confirmed transition. External Jira changes never launch work. Existing linked work is reused without repeating the skill.
 
-If automatic updates are disabled, Start work performs no Jira write. A skill or person may change status later. External Jira changes never launch work. Existing linked work is reused without repeating the skill or transition.
-
-After a successful start in the mounted card, its action becomes Open workspace and opens the linked agent. After reload, Start work still resolves the persisted association safely; persistent linked-state presentation and live agent activity indicators remain future refinements.
+Open workspace resolves active saved links on every board refresh. Unlinked issues may discover a unique active workspace whose name/title contains one complete issue key in the mapped Paseo project. Saved links win; ambiguity never chooses arbitrarily. Optional discovery failure preserves the board and validated saved links, discards partial discoveries and shows a separate retryable warning. Live agent activity indicators remain future work.
 
 ## Persistence and recovery
 
-Store issue associations privately under the target daemon home, scoped by daemon, Jira site and issue key. Stable idempotency identifiers and coalesced simultaneous requests prevent duplicate resources. Resume partial local setup using saved workspace/agent identifiers. Deleted or archived linked resources produce an error rather than silently creating duplicates.
+Store issue associations privately under the target daemon home, scoped by daemon, Jira site and issue key. Stable idempotency identifiers and coalesced simultaneous requests prevent duplicate resources. Resume partial local setup using saved workspace/agent identifiers. Missing/archiving workspaces lose their navigation action; a later start uses a fresh generation of creation identifiers. Lookup failures remain errors rather than being interpreted as deletion.
 
 Persist the skill delivery attempt before sending. An uncertain acknowledgement is surfaced and never automatically resent. Dedicated retry/rerun controls and manual recovery for deleted linked resources remain future work. There is no agreed automatic removal of the In Progress workspace label.
 
@@ -106,19 +104,15 @@ Persist the skill delivery attempt before sending. An uncertain acknowledgement 
 8. Starting a mapped issue creates the exact issue-key workspace/agent and In Progress label, or reuses existing resources.
 9. Blank skill creates an idle agent; a configured skill receives the issue reference once.
 10. Rejected Jira transitions create no local resources; later local failure does not undo an accepted transition.
-11. Disabling automatic updates prevents plugin Jira writes during Start work.
+11. Play never changes Jira status, regardless of legacy automatic-update settings.
 12. External Jira changes never start work; only explicit user moves or Start work can launch work; there is no Start column.
 13. Desktop details place description left and fields right; compact details remain stacked and scrollable.
 
 ## Verification and outstanding scope
 
-The plugin is installed locally on Paseo 0.14. Live read checks against board 51 returned six columns, Runtime 225 and 17 assigned issues at the time of testing. Issue details were also retrieved live through the sprint endpoint with the existing token. These counts are observations, not fixed requirements.
+See [Testing](docs/TESTING.md) for historical live observations and mocked test boundaries, and [the handoff](docs/AGENT_HANDOFF.md) for current focused checks. Older test counts do not certify the accumulated branch. The user completed a phone review without reported issues; viewport tests are not exhaustive native-device coverage. No live Jira test writes are authorized.
 
-Latest recorded checks: typecheck and 26 automated tests passed. A disposable local smoke test verified an idle workspace/agent named SMOKE-1, label creation and reuse; no real Jira write or skill prompt was sent by that test. Real entry-skill execution and live transitions have not been systematically validated by this workflow.
-
-Desktop UI and compact-content previews were inspected. Some early modal screenshots centered a 375-point body in desktop framing and exaggerated gutters; they are not evidence of physical-phone appearance. Physical-device touch gestures, keyboard, safe areas and full mobile-sheet behavior remain unverified.
-
-Future scope includes direct-token secure storage, in-plugin project creation, app-default inheritance when supported, standalone status changes, explicit skill rerun/recovery controls, persistent agent activity indicators, richer description/custom-field rendering, and multiple saved boards on the single Jira site. None should be presented as already implemented.
+Future scope includes direct-token secure storage, in-plugin project creation, app-default inheritance when supported, explicit skill rerun/recovery controls, live agent activity indicators, custom fields and multiple saved boards. Current MCP transition/upload contracts and cross-platform native-store packaging remain compatibility work, not verified parity.
 
 ## Workspace Jira issue panel
 
@@ -134,26 +128,26 @@ Deduplicate repeated keys within a tier. Multiple distinct keys at the first mat
 
 New Start work records persist the site and issue key alongside workspace/agent identifiers. Legacy hash-only records can be recovered when a current workspace/agent name still contains the original key; recovered records retain that association for subsequent renames. An old record whose original key was already removed from every name cannot be reverse-decoded.
 
-The panel reads the exact key through `GET /rest/api/3/search/jql`, independent of board, sprint, assignee and project mapping. Jira account visibility still applies. It displays the full summary, status, type, priority, description, parent, fix versions, labels, assignee, reporter and dates. Refresh rechecks detection and details; Open in Jira opens the resolved ticket. The panel also supports the explicit comment actions described below. No status updates, workspace creation or skill execution occur from this panel.
+The panel reads the exact key through the selected transport (REST uses `GET /rest/api/3/search/jql`), independent of board, sprint, assignee and project mapping. Jira account visibility still applies. It displays the full summary, status, type, priority, description, parent, fix versions, labels, assignee, reporter and dates. Refresh rechecks detection and details; Open in Jira opens the resolved ticket. The panel also supports the explicit comment actions described below. No status updates, workspace creation or skill execution occur from this panel.
 
 Details are fetched when the panel mounts and cached for one minute in the plugin's host-scoped query cache. Workspace names react to the host snapshot; agent titles are refreshed on agent events and every 30 seconds while mounted. No background Jira polling is introduced. The layout is a single vertically scrollable column suitable for both the narrow desktop Explorer and compact clients.
 
-Verification for this addition: typecheck and 26 automated tests pass. The Explorer tab, scope-error state and “No Jira issue found.” state were verified in the running desktop app. On 1 November 2026, the replacement token passed board 51 reads (sprint 4180, 17 assigned issues), independent lookup of DEMO-7415 and workflow reads. The running desktop Explorer tab displayed its full description and Jira fields. No Jira changes or real agent starts were made during this verification. Physical-phone verification remains outstanding.
+Verification for this addition: typecheck and 26 automated tests pass. The Explorer tab, scope-error state and “No Jira issue found.” state were verified in the running desktop app. On 1 November 2026, the replacement token passed board 51 reads (sprint 4180, 17 assigned issues), independent lookup of DEMO-7415 and workflow reads. The running desktop Explorer tab displayed its full description and Jira fields. No Jira changes or real agent starts were made during this verification. These historical checks predate the user’s 3 November phone review; see [Testing](docs/TESTING.md) for its limits.
 
 
 ## Issue comments and linked replies
 
-Comments are available in both the dashboard issue-details modal and the workspace Jira tab. Read through the dedicated per-issue comments endpoint with 50-row pages and an explicit Load more action. Preserve `parentId` relationships supplied by Jira, render children under their parents, cap visual indentation on narrow screens, and keep orphaned or cyclic data visible once rather than dropping it. A parent on a later page is labelled unavailable/not loaded until fetched.
+Comments are available in both the dashboard issue-details modal and the workspace Jira tab. Read through the selected transport with bounded pagination and an explicit Load more action. Preserve `parentId` relationships supplied by Jira, render children under their parents, cap visual indentation on narrow screens, and keep orphaned or cyclic data visible once rather than dropping it. A parent on a later page is labelled unavailable/not loaded until fetched.
 
 Show author initials/name, local creation date and time, edited/restricted markers, formatted body, Reply and Open in Jira. Reactions, votes and comment editing/deletion are not implemented.
 
 Add comment and Reply open a Markdown composer with formatting shortcuts and preview. The supported subset is bold, italic, inline code, fenced code blocks, headings, simple ordered/unordered lists, quotes and HTTP(S) links. The plugin converts this subset to Atlassian Document Format (ADF) for Jira REST v3; it does not rely on Jira accepting raw Markdown. Unsupported syntax remains text. Existing ADF is normalized into safe native text with basic formatting, mentions and attachment placeholders; remote HTML is never executed. Full Markdown, native mention autocomplete and embedded-media rendering are not included.
 
-The user chose **linked replies**: Reply posts a new top-level comment prefixed with a link labelled “Linked reply to [author]”. The editor and Post linked reply action explicitly describe this. It does not claim to create a native Jira thread. Fetch the original comment immediately before posting; retain its visibility restriction. If the original is inaccessible or its audience cannot be preserved, fail rather than post publicly. Internal Jira Service Management comments must be replied to in Jira. Dedicated comment reads expose native parent IDs, but the published Add comment contract does not document a supported parent-comment input.
+The user chose **linked replies**: Reply posts a new top-level comment prefixed with a link labelled “Linked reply to [author]”. The editor and Post linked reply action explicitly describe this. The shared renderer nests recognized leading reply links under their same-site/same-issue parent; it preserves the body/link, gives native parent IDs precedence and keeps missing/cyclic parents visible. It does not claim to create a native Jira thread. Recheck native read/write parent contracts when updating integrations and retain the fallback for historical replies. Fetch the original comment immediately before posting; retain its visibility restriction. If the original is inaccessible or its audience cannot be preserved, fail rather than post publicly. Internal Jira Service Management comments must be replied to in Jira. Dedicated comment reads expose native parent IDs, but the published Add comment contract does not document a supported parent-comment input.
 
 Posting occurs only when the user presses Post comment/Post linked reply. Disable duplicate clicks; coalesce identical request IDs during the server plugin session. Never automatically retry a failed write. Retain failed drafts and require the user to check comments/Jira before enabling another attempt. Drafts survive modal/tab unmounting in client memory, scoped by host and issue; they do not survive plugin/app reload. Request receipts also do not survive plugin reload, so they are not an exactly-once delivery guarantee. Successful posting clears the draft and refreshes comments. No automatic author mention or notification is inserted in linked replies; normal Jira notifications may apply.
 
-Verification on 1 November 2026: typecheck and 32 tests pass. Live DEMO-7415 comment reads, author/timestamp rendering, the linked-reply editor and Markdown preview were checked in the narrow desktop Explorer. The temporary draft was discarded without posting. Posting, restriction preservation and duplicate protection were exercised through mocked requests; no real Jira comment was created for this verification. Physical-phone verification remains outstanding.
+Verification on 1 November 2026: typecheck and 32 tests pass. Live DEMO-7415 comment reads, author/timestamp rendering, the linked-reply editor and Markdown preview were checked in the narrow desktop Explorer. The temporary draft was discarded without posting. Posting, restriction preservation and duplicate protection were exercised through mocked requests; no real Jira comment was created for this verification. These historical checks predate the user’s 3 November phone review; see [Testing](docs/TESTING.md) for its limits.
 
 ## Attachments
 
@@ -161,9 +155,9 @@ Both the details modal and Jira workspace panel share an attachments section: fi
 
 Description, Attachments and Comments are independently collapsible in both issue detail surfaces, expanded by default. Headers expose expanded state and provide a 44-point touch target. Collapsing preserves mounted content, comment drafts and upload state. Compact attachment rows place actions beside file details when space permits and wrap them below on narrow panels.
 
-Attachment actions have distinct destinations: Eye previews supported images inside the plugin, Download saves the file, and External link opens the containing issue in Jira using the system browser. The external action avoids direct attachment URLs, which Jira may serve as downloads.
+Attachment actions have distinct destinations: Eye previews supported images inside the plugin, Download saves the file, and External link opens a local browser image preview where supported or the containing Jira issue for other files.
 
-Local browser image previews: the attachment external action opens PNG, JPEG, GIF and WebP inline through a temporary server bound only to 127.0.0.1. Random preview URLs expire after five minutes, images remain in memory (25 MiB per file, 50 MiB combined), and plugin shutdown removes them. Jira tokens never enter the browser URL. A nonce probe checks that the selected host is reachable on the client’s loopback; mobile clients, remote hosts and failed local previews fall back to the existing in-app image preview. Non-image external actions continue to open the containing Jira issue. This supersedes the earlier external-action description for images.
+Local browser image previews: the attachment external action opens PNG, JPEG, GIF and WebP inline through a temporary server bound only to 127.0.0.1. Random preview URLs expire after five minutes, images remain in memory (25 MiB per file, 50 MiB combined), and plugin shutdown removes them. Jira tokens never enter the browser URL. A nonce probe checks that the selected host is reachable on the client’s loopback; mobile clients, remote hosts and failed local previews fall back to the existing in-app image preview. Non-image external actions continue to open the containing Jira issue.
 
 On mobile widths below 760 points, issue details occupy the full screen rather than a bottom sheet. The issue-key header and 44-point close action remain fixed above the scrolling content. Native safe-area space is respected; descriptions, attachments, comments and Jira fields share one vertical scroll area. Desktop retains the centered two-column modal.
 
@@ -184,15 +178,15 @@ The dashboard issue details dialog offers the same compact Start work / Open wor
 
 ### Workflow-aware board moves
 Desktop cards support dragging into another board column. There is no separate Move to control. The server queries transitions available to the current user for this specific issue, maps destination status IDs to actual board columns, and checks fresh transition availability again before submission. Same-column transitions are omitted. Multiple transitions into a column require an explicit choice.
-Every explicit move updates Jira regardless of the mapping's automatic-update setting. Required-field transitions are disabled with a handoff message to complete them in Jira; workflow validators remain enforced by Jira. A failed or uncertain update never starts work and is not automatically retried. Refresh confirmed Jira state after every attempted move.
+Every explicit move requires write access for the selected transport. Supported required fields are collected in a dialog; unsupported fields require Jira, and Jira enforces workflow validators. A failed or uncertain update never starts work and is not automatically retried. Refresh confirmed Jira state after every attempted move.
 Destinations matching the project mapping’s selected Start work status ID invoke the existing Start work flow after Jira accepts the transition. Validate the project mapping before changing Jira. Workspace/agent reuse and optional skill behavior are unchanged. Other transitions only update Jira. No status-name or category guessing is used for move triggers.
 If workspace creation fails after Jira succeeds, show an explicit partial-success warning; do not roll Jira back. Concurrent move requests for the same issue are rejected while one is running.
 
-Each project mapping has an optional Start work on move to selector populated from Jira project workflow statuses, grouped into unique status IDs with issue type labels. An unset selection disables automatic work starts on moves, including for existing mappings; Play behavior is unchanged. Changing the Jira project key clears the selection. Renaming a status does not change its identity. An unavailable saved selection is visibly flagged and can be cleared or replaced. Transition availability for the individual issue is still revalidated before any move.
+Each project mapping has an optional Start work on move to column selector populated from actual board columns. An unset selection disables automatic work starts on moves, including for existing mappings; Play behavior is unchanged. Changing the Jira project key clears the selection. Renaming a status does not change its identity. An unavailable saved selection is visibly flagged and can be cleared or replaced. Transition availability for the individual issue is still revalidated before any move.
 
 ### Attempt-first move interaction
-This supersedes pre-filtered drag targets and disabled required-field transitions. Users may drop into any board column; no Jira request is made on drag start. After a drop, resolve issue transitions for the destination. If none exists, explain that Jira offers no transition and retain the original card position. Offer a choice when multiple transitions match.
-A compact confirmation dialog renders transition fields from Jira metadata: text, number, parent issue key, enumerated single choice and multiple choice. Unsupported schemas link to Jira. Send edited fields together with the transition, rechecking metadata and allowed choices server-side. Jira remains authoritative for required fields and workflow validators. Surface Jira error messages, retain user-entered values and refresh transition metadata for retry. Never automatically retry writes. Cancel leaves the original status untouched; board placement only changes after confirmed Jira data is refreshed. Start work still runs only after a successful trigger-status transition.
+Users may drop into any board column; no Jira request is made on drag start. After a drop, resolve issue transitions for the destination. If none exists, explain that Jira offers no transition and retain the original card position. Offer a choice when multiple transitions match.
+A compact confirmation dialog renders transition fields from Jira metadata: text, number, parent issue key, enumerated single choice and multiple choice. Unsupported schemas link to Jira. Send edited fields together with the transition, rechecking metadata and allowed choices server-side. Jira remains authoritative for required fields and workflow validators. Surface sanitized validation/recovery messages, retain user-entered values and refresh transition metadata for retry. Never automatically retry writes. Cancel leaves the original status untouched; board placement only changes after confirmed Jira data is refreshed. Start work still runs only after a successful trigger-status transition.
 
 The standalone Move to card control and destination menu have been removed. Board moves are initiated by dragging; post-drop transition selection, fields and error handling remain available.
 
@@ -237,50 +231,20 @@ Initial dashboard loading shows neutral empty column surfaces with placeholder h
 
 ## Connection diagnostics
 
-Settings provides Test connection for the current unsaved board URL and secret-file path. It performs fresh read-only checks for URL validity, credential loading, site resolution, authentication, board access, active/future sprints, assigned sprint issues and independent workspace issue search. Stop at the first failure and identify that step without revealing credentials or raw Jira responses. With no available sprint, explicitly mark sprint issue access as skipped. Testing does not save settings or verify comment, attachment or transition permissions. Editing connection values clears the previous result.
+Settings provides Test connection for the current unsaved board URL and selected transport configuration. REST additionally checks the secret file; TWG checks CLI/profile compatibility; MCP verifies saved OAuth access and its tool catalogue without consent. It performs fresh read-only checks for URL validity, credential loading, site resolution, authentication, board access, active/future sprints, assigned sprint issues and independent workspace issue search. Stop at the first failure and identify that step without revealing credentials or raw Jira responses. With no available sprint, explicitly mark sprint issue access as skipped. Testing does not save settings or verify comment, attachment or transition permissions. Editing connection values clears the previous result.
 
-### Experimental TWG read-only dashboard (2026-11-04)
+### Teamwork Graph CLI
 
-A host connection can explicitly select TWG CLI OAuth instead of REST. The TWG
-preview loads actual board columns, active/future sprints and assigned issues;
-it preserves sprint selection and supports search. CLI credentials stay owned
-by TWG. There is no automatic REST fallback. Column configuration is cached for
-ten minutes per executable/site/profile/board/account, with a bounded cache.
-Ticket titles open Jira; new work, drag/drop and in-app issue details are outside
-this preview. Existing workspace links remain available. Full TWG feature parity
-and distribution readiness remain separate gates.
+TWG OAuth supports the shared board, independent issue lookup, rich details, comments/attachment reads and local Start work. Credentials remain owned by TWG; REST is never an authentication fallback. Reads validate complete pagination, current assignment and board mappings. Board metadata is cached for ten minutes per executable/site/profile/board/account.
 
-TWG preview now supports read-only description and Jira fields in the dashboard
-modal/panel and workspace Jira panel. Dashboard reads revalidate assigned-sprint
-membership; workspace reads use the detected issue key without a sprint filter.
-Comments, attachments and write workflows remain outside this preview.
+Writes are disabled by default. Saved Allow Jira changes enables workflow moves, Markdown comments/linked replies and uploads through the CLI adapters. Duplicate destination names and unpreservable reply restrictions require Jira. See [TWG implementation](docs/TWG_IMPLEMENTATION.md).
 
-TWG read-only support now includes comment reading and attachment viewing/download
-in dashboard details and the workspace Jira panel. Comments preserve author,
-creation/edit dates, rich text and available parent relationships, sorted newest
-activity first. Attachment previews use CLI-authenticated downloads with private
-temporary files and bounded caches. Posting, linked replies, uploads, Start work
-and Jira transitions remain unavailable in this mode.
+### Atlassian MCP
 
-### TWG recovery and Start work
+Explicit host-browser OAuth establishes a pinned account/site grant in protected storage. Opening Settings does not launch consent. Dashboard loading can restore saved authorization passively; failure requires explicit retry. Cancel/unmount/site changes close pending flows without deleting the saved grant. Disconnect deliberately deletes the local entry. RPCs never expose tokens or store contents.
 
-TWG connections expose sanitized, actionable failures for sign-in, permissions,
-rate limits and CLI execution problems. Only an explicit issue-lookup 404 becomes
-the quiet workspace “No Jira issue found” state, without manual key entry.
+MCP supports the same board/details/content reads and local Start work, with bounded schema-validated tools and pagination. Test connection checks unsaved values read-only and cannot replace an active connection with another draft site. Allow Jira changes through MCP requires both saved opt-in and additional explicit write consent. Write adapters preserve visibility, validate workflow inputs, never automatically retry and confirm results through fresh reads. Missing transition destination IDs are resolved through exact status-name lookup; ambiguous/incomplete results are refused. Upload preparation/media outputs remain partly unverified; see [MCP implementation](docs/MCP_IMPLEMENTATION.md).
 
-Start work uses TWG to validate the issue and the existing local workspace and
-agent implementation, including optional `/skill ISSUE-KEY` dispatch. It performs
-no Jira transition. Existing workspace reuse and card eligibility rules apply.
-TWG Jira writes remain disabled; any configured entry skill acts independently.
+### Attachment settings across transports
 
-### TWG opt-in Jira changes
-
-TWG retains read-only behavior by default. Connection settings expose an explicit
-Allow Jira changes switch, enforced on the server. When enabled, use
-the existing move dialog, comment/linked-reply editor and attachment uploader in
-both dashboard details and workspace Jira panel. Card layout stays unchanged.
-Start work after a move occurs only after a confirmed Jira transition; Play remains
-local. The upload UI distinguishes the plugin cap from unknown server limits.
-Ambiguous destination status names and unpreservable reply visibility are refused.
-See `docs/TWG_IMPLEMENTATION.md` for verified command contracts and remaining
-CLI differences; this does not constitute unrestricted REST parity.
+REST reads Jira attachment settings directly. MCP/TWG currently have no verified native metadata reader, so a narrow anonymous HTTP supplement reads enabled/uploadLimit from the configured Jira Cloud origin. No OAuth/CLI/REST credentials or cookies are forwarded, and redirects are rejected. Valid settings block disabled uploads and enforce the smaller of the server limit and 25 MiB. Unavailable/malformed settings retain an explicitly labelled plugin-only fallback; its enabled flag means an upload can be attempted, not that Jira's enabled status was verified.

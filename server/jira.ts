@@ -1,3 +1,4 @@
+import {descriptionDocument} from './jira-html';
 import {assertRestConnection} from '../shared/connection-mode';
 import {metadataFetch} from './metadata-cache';
 import {richBlocks} from '../shared/comments';
@@ -113,7 +114,7 @@ export async function issueSession(config:Connection,key:string,fetcher:typeof f
       if(!response.issues.length)throw new Error("Issue details are no longer available in this sprint.");
       const result=z.object({fields:z.object({description:z.unknown().optional(),assignee:z.object({displayName:z.string()}).nullish(),reporter:z.object({displayName:z.string()}).nullish(),duedate:z.string().nullish(),created:z.string().nullish(),updated:z.string().nullish()})}).parse(response.issues[0]);
       const f=result.fields;
-      return issueDetailsSchema.parse({richDescription:richBlocks(f.description),description:descriptionBlocks(f.description),assignee:f.assignee?.displayName??null,reporter:f.reporter?.displayName??null,dueDate:f.duedate??null,created:f.created??null,updated:f.updated??null});
+      return issueDetailsSchema.parse({richDescription:richBlocks(descriptionDocument(f.description)),description:descriptionBlocks(f.description),assignee:f.assignee?.displayName??null,reporter:f.reporter?.displayName??null,dueDate:f.duedate??null,created:f.created??null,updated:f.updated??null});
     },
     async availableTransitions(){
       return z.object({transitions:z.array(z.object({
@@ -165,7 +166,7 @@ export async function readWorkspaceIssueByKey(get:Read,site:string,key:string){
  if(data.issues.length!==1)throw new Error('Jira returned an ambiguous issue match.');
  const raw=rawIssue.parse(data.issues[0]);const f=raw.fields;
  const extra=z.object({fields:z.object({description:z.unknown().optional(),assignee:z.object({displayName:z.string()}).nullish(),reporter:z.object({displayName:z.string()}).nullish(),duedate:z.string().nullish(),created:z.string().nullish(),updated:z.string().nullish()})}).parse(data.issues[0]).fields;
- return {site,issue:issueSchema.parse({key:raw.key,summary:f.summary,statusId:f.status.id,status:f.status.name,statusCategory:f.status.statusCategory?.key,type:f.issuetype.name,priority:f.priority?.name??null,projectKey:f.project.key,parent:f.parent?{key:f.parent.key,summary:f.parent.fields.summary}:null,fixVersions:f.fixVersions?.map(v=>v.name)??[],labels:f.labels??[]}),details:issueDetailsSchema.parse({richDescription:richBlocks(extra.description),description:descriptionBlocks(extra.description),assignee:extra.assignee?.displayName??null,reporter:extra.reporter?.displayName??null,dueDate:extra.duedate??null,created:extra.created??null,updated:extra.updated??null})};
+ return {site,issue:issueSchema.parse({key:raw.key,summary:f.summary,statusId:f.status.id,status:f.status.name,statusCategory:f.status.statusCategory?.key,type:f.issuetype.name,priority:f.priority?.name??null,projectKey:f.project.key,parent:f.parent?{key:f.parent.key,summary:f.parent.fields.summary}:null,fixVersions:f.fixVersions?.map(v=>v.name)??[],labels:f.labels??[]}),details:issueDetailsSchema.parse({richDescription:richBlocks(descriptionDocument(extra.description)),description:descriptionBlocks(extra.description),assignee:extra.assignee?.displayName??null,reporter:extra.reporter?.displayName??null,dueDate:extra.duedate??null,created:extra.created??null,updated:extra.updated??null})};
 }
 
 export function normalizeProjectStatuses(value:unknown){
