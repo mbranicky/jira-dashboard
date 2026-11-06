@@ -14,7 +14,9 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Prepare the 1.0.0 changelog and update installation and setup text for the public repository.
 - [x] Review runtime and development dependencies, scripts and packaged files. Keep publication disabled during preparation.
 - [x] Confirm the 1.0.0 connection methods: ship all three — REST API with a scoped token, Teamwork Graph CLI OAuth, and Atlassian MCP OAuth.
-- [ ] Resolve the outstanding distribution questions for REST token authentication and use of the Teamwork Graph CLI before registry submission.
+- [x] Verify that Atlassian documents tools invoking the separately installed Teamwork Graph CLI. The plugin calls a user-selected CLI profile and ships no CLI binary.
+- [ ] Before Paseo registry submission, clarify whether a distributed plugin may read a scoped REST token from the user's private local file. If this counts as token collection, identify a supported authentication flow.
+- [ ] For REST and TWG, clarify whether one host identity may serve the account owner's devices and whether different people on that host need separate Atlassian identities. Record the written guidance and satisfy any conditions before submission. See the [authentication review and support draft](../../docs/ATLASSIAN_AUTH_POLICY.md#draft-support-request).
 - [x] Record 1.0.0 host coverage: macOS on Apple silicon verified, Ubuntu CI coverage only, Windows and Intel Macs unverified.
 - [x] Document verified MCP attachment reads, mock-only upload coverage and how to check an unconfirmed upload in Jira. See [known limitations](../../docs/KNOWN_LIMITATIONS.md#atlassian-mcp).
 - [ ] Verify the final artifact for the chosen distribution channels. Obtain release authorization before tagging, publishing or submitting a directory listing.
@@ -173,7 +175,7 @@ Deferred beyond this PR:
 - [x] Implement opt-in TWG transitions, screen fields and drag-and-drop using the shared workflow UI; ambiguous destination names fail closed.
 - [x] Implement opt-in TWG Markdown comments and linked replies with visibility preservation and duplicate-submission protection.
 - [x] Implement opt-in TWG uploads with private temporary files, cleanup, connection identity checks and explicit plugin-only limit guidance.
-- [ ] Resolve CLI distribution/embedding terms and the separate public-release authentication-policy gate. Private merge is not public-distribution approval.
+- [x] Confirm documented CLI invocation by external tools. The shared-host identity question remains open in the 1.0.0 checklist above.
 
 Further automated verification uses mocks, without real Jira writes or agent/skill execution. Any entry skill selected by a user controls its own subsequent actions.
 
