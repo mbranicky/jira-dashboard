@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: npm-shrinkwrap.json
+      - name: Build the packed plugin from a clean extraction
+        run: node scripts/check-packed-build.mjs
       - run: npm ci
       - run: npm run check
       - run: npm run test:ui
@@ -39,6 +42,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: npm-shrinkwrap.json
       - run: npm ci
       - name: Install exact target SDKs without changing the baseline
         run: npm install --no-save --ignore-scripts @getpaseo/plugin@0.15.0 @getpaseo/client@0.15.0
