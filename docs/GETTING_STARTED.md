@@ -62,7 +62,7 @@ These screenshots use fictional data in a browser preview of the plugin componen
 
 ![Dashboard](../assets/dashboard.png)
 
-![Teamwork Graph connection and appearance settings](../assets/settings.png)
+![Connected Atlassian MCP account, Jira write opt-in and read-only connection test report](../assets/settings.png)
 
 ![Issue details panel](../assets/details.png)
 

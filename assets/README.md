@@ -14,4 +14,4 @@ Dashboard, details, settings and mobile PNGs show real plugin components with fi
 
 Review new captures visually for clipping and private data before copying them from ignored test-results/ui into assets. Update the exact reviewed SHA-256 digests in scripts/secret-audit.mjs only after that review. Manifest media paths are verified in the distributable package.
 
-Refreshed 2026-11-04: current dashboard, details and mobile layouts, plus Teamwork Graph OAuth settings with **Allow Jira changes** and **Test connection**. All captures were visually reviewed and contain only fictional data. The capture browser uses a tall window to avoid clipping the settings viewport.
+Refreshed 2026-11-06 for the 1.0.0 release preparation. The desktop previews show the three-column sprint board and issue side panel in dark mode. The mobile preview shows issue details in light mode. Settings shows a fictional connected Atlassian MCP account, the write opt-in and the complete read-only connection report.
