@@ -11,13 +11,25 @@
 - Automated browser tests use host adapters and synthetic Jira data. They do not prove real Jira permissions or every host/device behavior. The user completed a mobile review; clean Git installation was also verified. Real Jira write tests are not a release requirement. See [Testing](TESTING.md).
 - The repository is public and includes Atlassian MCP support on `main`. Version 1.0.0 is in preparation. Install from source until the first release. Registry release requirements are tracked in the [checklist](../.claude/plans/first-version-checklist.md).
 
+## Paseo hosts
+
+| Host | 1.0.0 verification |
+| --- | --- |
+| macOS on Apple silicon | Verified on a local Paseo host. Host testing covers Paseo 0.14.0 and 0.15.0. |
+| Linux | Automated checks run on Ubuntu. Installation on a running Linux daemon and MCP credential storage through Secret Service remain unverified. |
+| Windows and Intel Macs | Host installation and credential storage remain unverified. |
+
+The mobile review covered a client connected to a Paseo host. See the [verification record](TESTING.md) for details.
+
 ## Teamwork Graph
 
 Writes require **Allow Jira changes**. Duplicate destination status names and unsupported comment visibility restrictions require Jira. The CLI has no native attachment-settings reader. An anonymous HTTP supplement reads actual Jira limits/enabled status when available; otherwise the UI explicitly reports the plugin-only fallback. See [setup and limitations](TWG_SETUP.md).
 
 ## Atlassian MCP
 
-Host-browser OAuth consent is required; remote clients cannot complete the loopback callback on their own device. Writes require saved opt-in and granted write scope. Observed MCP transitions omit destination IDs; the adapter resolves them through exact status-name lookup and refuses ambiguous matches. This fix is mock-tested, without live move verification. Upload preparation/media response contracts are partly synthetic and may reject real variants. See [MCP setup](MCP_SETUP.md) and [implementation evidence](MCP_IMPLEMENTATION.md). Attachment settings use the same anonymous supplement as TWG. Other operating systems/native-store packaging still need verification.
+Host-browser OAuth consent is required; remote clients cannot complete the loopback callback on their own device. Writes require saved opt-in and granted write scope. Observed MCP transitions omit destination IDs; the adapter resolves them through exact status-name lookup and refuses ambiguous matches. This fix is mock-tested, without live move verification. See [MCP setup](MCP_SETUP.md) and [implementation evidence](MCP_IMPLEMENTATION.md). Attachment settings use the same anonymous supplement as TWG.
+
+MCP attachment preview and download were verified on macOS on Apple silicon. Uploads are available with Jira changes enabled and have been tested only with simulated responses. If the plugin cannot confirm an upload, refresh the issue’s attachments and check Jira before trying again. If the file is missing, you can upload it directly in Jira. The MCP catalogue describes the upload steps but provides no output schema for the upload instructions or the returned file ID.
 
 ## Dependency audit (historical, 2026-11-03)
 

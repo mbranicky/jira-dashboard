@@ -4,7 +4,7 @@ Jira Sprint Workspace is a trusted local Paseo plugin. Its backend connects thro
 
 ## Install from a checkout
 
-Use Paseo 0.14.0 or newer, Node 24, npm, and Git on the daemon machine. The locked SDK baseline is 0.14.0; compatibility checks also cover the 0.15.0 SDK and installed app. Google Chrome is needed only for browser tests.
+Use Paseo 0.14.0 or newer, Node 24, npm, and Git on the daemon machine. The verified Paseo host is macOS on Apple silicon. Linux has automated test coverage on Ubuntu. Windows and Intel Mac hosts are unverified. See [host verification](KNOWN_LIMITATIONS.md#paseo-hosts) for details. Google Chrome is needed only for browser tests.
 
 ```sh
 git clone https://github.com/mbranicky/jira-dashboard.git

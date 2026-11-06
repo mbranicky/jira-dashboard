@@ -1,6 +1,6 @@
 # Atlassian MCP OAuth setup
 
-MCP is an optional connection for Jira Sprint Workspace. It supports board and issue reads, comments, attachment preview/download and local Start work. Opt-in Jira write adapters are implemented, but name-only transition destinations require an unambiguous status lookup and upload response contracts remain partly unverified. See [known limitations](KNOWN_LIMITATIONS.md#atlassian-mcp).
+MCP is an optional connection for Jira Sprint Workspace. It supports board and issue reads, comments, attachment preview/download and local Start work. Opt-in Jira write adapters are implemented, but name-only transition destinations require an unambiguous status lookup. See [known limitations](KNOWN_LIMITATIONS.md#atlassian-mcp).
 
 ## Connect on the Paseo host
 
@@ -24,4 +24,4 @@ Play creates/reuses local work and never changes Jira. Workflow moves, comments 
 
 Attachment transfers are capped at 25 MiB. An anonymous, credential-free Jira metadata read supplies the actual enabled status/limit when available; otherwise the UI identifies the plugin-only fallback. Uploads still use MCP, not REST credentials. Native mobile file picking and other shared limits are documented in [Known limitations](KNOWN_LIMITATIONS.md).
 
-Current macOS sign-in and read paths are user-verified. Other host platforms/native-store packaging and remaining write output contracts are not established by mocked tests. [Implementation notes](MCP_IMPLEMENTATION.md) distinguish observed contracts from synthetic fixtures.
+MCP attachment preview and download were verified on macOS on Apple silicon. Uploads are available with Jira changes enabled and have been tested only with simulated responses. If the plugin cannot confirm an upload, refresh the issue’s attachments and check Jira before trying again. If the file is missing, you can upload it directly in Jira. See [Paseo hosts](KNOWN_LIMITATIONS.md#paseo-hosts) for platform coverage. [Implementation notes](MCP_IMPLEMENTATION.md) distinguish observed contracts from synthetic fixtures.

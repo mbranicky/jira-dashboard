@@ -31,7 +31,7 @@ On narrow screens, details fill the screen with a fixed header and scrollable co
 
 ## Get started
 
-Requires **Paseo 0.14.0 or newer**, Jira Cloud, and a scoped Jira API token, Teamwork Graph CLI OAuth, or Atlassian MCP OAuth. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
+Requires **Paseo 0.14.0 or newer**, Jira Cloud, and a scoped Jira API token, Teamwork Graph CLI OAuth, or Atlassian MCP OAuth. The verified Paseo host is macOS on Apple silicon. Linux has automated test coverage on Ubuntu. Windows and Intel Mac hosts are unverified. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
 
 To install from the public repository, run:
 
@@ -62,7 +62,7 @@ Your API token stays in a private file on the daemon host and is sent to Atlassi
 
 TWG owns its OAuth credentials; the plugin does not read its credential files or extract tokens. TWG supports dashboard/details reads and local Start work. Jira changes are off by default; enable them explicitly for workflow moves, comments/replies and uploads. See the TWG setup guide for CLI-specific limitations.
 
-MCP stores its OAuth grant in the host OS credential store; consent and write upgrades are explicit. MCP resolves name-only transition destinations through exact status lookup; ambiguous matches require Jira. Upload response contracts remain partly unverified.
+MCP stores its OAuth grant in the host OS credential store; consent and write upgrades are explicit. MCP resolves name-only transition destinations through exact status lookup; ambiguous matches require Jira. MCP attachment preview and download were verified on macOS on Apple silicon. Uploads are available with Jira changes enabled and have been tested only with simulated responses. If the plugin cannot confirm an upload, refresh the issue’s attachments and check Jira before trying again. If the file is missing, you can upload it directly in Jira.
 
 One Jira Cloud site is supported per host. Replies are new top-level Jira comments linked to the original; the dashboard renders recognized linked replies nested under their source comment. Attachment transfers are limited to 25 MiB and Jira's upload limit; native mobile clients have file-picker limitations. Comment drafts are retained during the session, but not across an app/plugin restart.
 
