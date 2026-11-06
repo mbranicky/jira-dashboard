@@ -21,8 +21,8 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Record 1.0.0 host coverage: macOS on Apple silicon verified, Ubuntu CI coverage only, Windows and Intel Macs unverified.
 - [x] Document verified MCP attachment reads, mock-only upload coverage and how to check an unconfirmed upload in Jira. See [known limitations](../../docs/KNOWN_LIMITATIONS.md#atlassian-mcp).
 - [x] Build the 1.0.0 candidate tarball from `8ae5eb1` on Apple silicon and open **Jira Workspace** on an isolated Paseo 0.15.2 host. All mock connection steps passed for REST (8/8), Teamwork Graph CLI (7/7) and Atlassian MCP (7/7). See the [tarball test record](../../docs/TESTING.md#apple-silicon-npm-tarball-test).
-- [ ] Resolve the local-token and shared-host questions above for public npm distribution, or adopt an authentication design that addresses them.
-- [ ] Finalize the npm installation instructions and 1.0.0 changelog, confirm the publisher and first-publish authentication, and remove the `private: true` guard in the reviewed release changes. On 6 November 2026 the public npm registry returned 404 for `paseo-jira-sprint-workspace`. Recheck the name before publishing.
+- [x] Record the maintainer’s 6 November decision to release all three methods to npm with the local-token and shared-host questions unresolved. Continue tracking Atlassian’s answer before a separate Paseo directory submission.
+- [x] Prepare npm installation instructions, the 1.0.0 changelog and public package metadata. The maintainer selected browser-authenticated CLI publication for the first version and GitHub Actions trusted publishing for subsequent releases. On 6 November 2026 the public npm registry returned 404 for `paseo-jira-sprint-workspace`. Recheck the name before publishing.
 - [ ] Verify the exact final tarball after release edits. Run CI, review packaged contents and record the final digest before requesting authorization to tag and publish.
 - [ ] After authorized npm publication, install version 1.0.0 by name on a clean host. Submit a Paseo directory listing only with separate authorization.
 

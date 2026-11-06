@@ -194,7 +194,7 @@ Caches are bounded, isolated by URL and credentials, coalesce concurrent request
 
 ### Public distribution review
 
-Research completed on 3 November 2026: **public-distribution clearance is not established**. Atlassian documents API tokens for personal scripts but warns against third-party apps collecting them. No explicit exception was found for our user-hosted, open-source plugin. Reading a user-owned secret file is a security distinction, not confirmed policy permission. See the [authentication policy review](ATLASSIAN_AUTH_POLICY.md) for official sources, implementation boundaries and the precise questions for Atlassian. Keep public distribution and registry submission pending written clarification or a supported authentication design; the current implementation is unchanged.
+Research completed on 3 November 2026: **public-distribution clearance is not established**. Atlassian documents API tokens for personal scripts but warns against third-party apps collecting them. No explicit exception was found for our user-hosted, open-source plugin. Reading a user-owned secret file is a security distinction, not confirmed policy permission. See the [authentication policy review](ATLASSIAN_AUTH_POLICY.md) for official sources, implementation boundaries and the precise questions for Atlassian. The maintainer accepted this open question for npm 1.0.0. Submission to the Paseo directory remains pending written clarification or a supported authentication design.
 
 ### Credential security
 
