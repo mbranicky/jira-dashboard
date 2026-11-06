@@ -1,5 +1,21 @@
 # Testing Jira Sprint Workspace
 
+## Apple silicon npm tarball test
+
+On 6 November 2026, we packed `paseo-jira-sprint-workspace@1.0.0` from clean `main` at `8ae5eb1`. The candidate tarball had SHA-256 `f69cbb069b35f8e0e74086a15bc527bd2b5be23657f639506a2572bf109ef227`.
+
+On macOS arm64 with Node 24.16.0, the extracted package completed both manifest build steps (`npm ci --omit=dev --ignore-scripts` and `node scripts/prepare-native.mjs`). An isolated, loopback-only Paseo 0.15.2 host loaded the extracted directory and reported the plugin running. In the host’s browser UI, selecting **Jira Workspace** opened the first-run settings. The connection menu offered all three methods.
+
+We then instrumented the temporary installation with mock HTTP responses, a mock TWG executable and mock MCP credential storage. We called the plugin’s read-only connection RPCs on the running host. Each verified a synthetic identity, board, sprint, one assigned issue and independent issue search.
+
+| Connection method | Connection check | Additional coverage |
+| --- | --- | --- |
+| REST API | 8 of 8 steps passed | Owner-only fixture credential file and site lookup |
+| Teamwork Graph CLI | 7 of 7 steps passed | CLI profile support and reads through the fixture executable |
+| Atlassian MCP | 7 of 7 steps passed | Saved fixture session and read-tool catalogue |
+
+The UI check preceded instrumentation. The adapter checks used synthetic credentials and exercised neither live OAuth consent nor live Jira writes. The host and fixtures were removed after the test. Installation by name from the public npm registry remains a separate post-publication check.
+
 ## Full verification checkpoint — 2026-11-05
 
 Verified the current accumulated `codex/mcp-v2-oauth` working tree, including MCP transition destination resolution and the darker drag-hover tint. No commit, version bump, publication or live Jira write was performed.
