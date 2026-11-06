@@ -1,6 +1,6 @@
 {
-  "name": "paseo-jira-dashboard",
-  "version": "0.1.0",
+  "name": "paseo-jira-sprint-workspace",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -32,15 +32,12 @@
   "files": [
     "paseo-plugin.json",
     "OVERVIEW.md",
-    "OVERVIEW.*.md",
-    "index.client.ts",
+    "CHANGELOG.md",
     "index.client.tsx",
     "index.server.ts",
-    "index.server.tsx",
     "client/",
     "server/",
     "shared/",
-    "README.md",
     "docs/",
     "SPECIFICATION.md",
     "DESIGN.md",

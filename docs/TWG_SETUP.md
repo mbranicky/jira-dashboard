@@ -1,6 +1,6 @@
 # Teamwork Graph CLI OAuth setup
 
-TWG is an optional connection for Jira Dashboard. Existing installations keep REST
+TWG is an optional connection for Jira Sprint Workspace. Existing installations keep REST
 until **Teamwork Graph CLI** is selected in Connection method. This connection supports dashboard
 and issue reads, comments, attachment viewing/downloads and local Start work.
 Jira changes are disabled by default. Enable **Allow Jira changes**
@@ -21,7 +21,7 @@ in Settings to use workflow moves, comment posting/replies and attachment upload
 
    Complete browser consent with the intended work account. The terminal belongs
    on the host even when you use Paseo from a phone or another computer.
-3. Open **Jira Dashboard → Settings**, enter the full board URL and select
+3. Open **Jira Sprint Workspace → Settings**, enter the full board URL and select
    **Teamwork Graph CLI**.
 4. Set **TWG executable on host** to `twg`, or preferably its absolute path if the
    daemon's PATH differs from your terminal. Set **TWG profile** to the exact name

@@ -7,23 +7,34 @@ const detail=()=>cy.get('[aria-label^="Open details for DEMO-123:"]');
 describe('Registry previews',()=>{
  beforeEach(()=>registryRpc());
  it('desktop board and details → readable public listing screenshots',()=>{
-  cy.viewport(1200,600);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
+  cy.viewport(1000,880);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
   detail().should('be.visible');button('Start work DEMO-124').should('be.visible');
   cy.get('[data-cy-root]').screenshot('registry-dashboard');
-  detail().click();cy.contains('What success looks like').should('be.visible');
+  cy.viewport(1500,880);detail().click();cy.contains('What success looks like').should('be.visible');
   cy.get('[data-testid="details-panel"]').should('contain.text','DEMO-123');
   cy.get('[data-cy-root]').screenshot('registry-details');
  });
  it('settings → public setup screenshot with synthetic values',()=>{
-  cy.viewport(1100,1000);mount(<Harness preview transport="twg" twgWrites mappingItems={registryMappings}/>);button('Settings').click();
+  cy.intercept('POST','/__rpc/mcp.status',{state:'connected',message:'Connected',account:'Alex Morgan',accountId:'demo-account-01',site:'https://example.atlassian.net',writeAccess:true});
+  cy.intercept('POST','/__rpc/mcp.test',{ok:true,steps:[
+   ['Board URL','Valid Jira Cloud board URL.'],['Authentication','Connected as Alex Morgan.'],
+   ['MCP compatibility','Required board tools are available.'],['Board access','Product team: 3 columns.'],
+   ['Sprint access','1 active sprint available.'],['Sprint issues','7 assigned issues readable in Sprint 12.'],
+   ['Workspace issue search','Independent issue search is available.'],
+  ].map(([label,message])=>({label,message,state:'passed'}))});
+  cy.viewport(1040,1260);mount(<Harness preview light transport="mcp" mcpWrites mappingItems={registryMappings}/>);button('Settings').click();
   cy.contains('Jira connection').should('be.visible');
   cy.get('[aria-label="Jira board URL"]').should('have.value','https://example.atlassian.net/boards/1');
-  cy.get('[data-cy-root]').screenshot('registry-settings',{scale:true});
+  button('Reconnect MCP').should('exist');button('Test connection').click();
+  cy.contains('Read connection verified').should('be.visible');
+  cy.get('[aria-label="Atlassian MCP connection"]').parent().scrollIntoView().screenshot('registry-settings');
  });
  it('mobile details → full-screen readable issue',()=>{
-  cy.viewport(390,600);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
+  cy.viewport(390,820);mount(<Harness preview light mode="panel" mappingItems={registryMappings}/>);
   button('IN PROGRESS · 2').click();detail().click();
   button('Close issue details').should('be.visible');cy.contains('What success looks like').should('be.visible');
+  cy.contains('[role="button"]','Attachments (0)').click({scrollBehavior:false});
+  cy.contains('The updated flow is ready for review.',{matchCase:false}).should('exist');
   cy.get('[data-cy-root]').screenshot('registry-mobile');
  });
 });

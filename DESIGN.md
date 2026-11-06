@@ -1,10 +1,10 @@
-# Jira Dashboard design
+# Jira Sprint Workspace design
 
 Status: current implemented design and agreed refinements, 5 November 2026. Product behavior is specified in [SPECIFICATION.md](SPECIFICATION.md).
 
 ## Identity and visual direction
 
-Use **Jira Dashboard** for the sidebar, screen, plugin display name and Open Jira Dashboard command. Keep the familiar Jira board structure while providing compact Paseo workspace actions. Use theme colors, quiet secondary controls, icons, restrained surfaces and consistent spacing. Do not introduce large full-width card actions.
+Use **Jira Sprint Workspace** for the sidebar, screen, plugin display name and Open Jira Sprint Workspace command. Keep the familiar Jira board structure while providing compact Paseo workspace actions. Use theme colors, quiet secondary controls, icons, restrained surfaces and consistent spacing. Do not introduce large full-width card actions.
 
 ## Dashboard header and controls
 
@@ -185,7 +185,7 @@ Automatically started workspaces use an additional colored type label for quick 
 
 Sprint choices, refresh presets, compact mapping selectors and transition choice fields use anchored overlay menus rather than expanding the document flow. Menus dismiss on outside click or Escape/back, scroll within bounded space, flip above their trigger when needed and stay within viewport gutters. Refresh presets continue to allow a custom typed interval; multi-choice transition controls retain search and checkboxes.
 
-Default browser focus outlines are suppressed within Jira Dashboard surfaces and dialogs. The suppression is scoped to plugin-owned elements; Paseo's surrounding UI retains its own styling. Normal control borders, hover feedback, text carets and validation borders remain intact.
+Default browser focus outlines are suppressed within Jira Sprint Workspace surfaces and dialogs. The suppression is scoped to plugin-owned elements; Paseo's surrounding UI retains its own styling. Normal control borders, hover feedback, text carets and validation borders remain intact.
 
 ### Shared tooltip presentation
 
@@ -248,7 +248,7 @@ Dashboard search highlights literal, case-insensitive matches in both issue keys
 
 ### Linked reply presentation compatibility
 
-Jira Dashboard renders its generated linked replies beneath the referenced comment even though those writes currently create top-level Jira comments. Recognition is shared across transports and restricted to a standalone leading reply link for the same site/issue. The visible source link remains, native parent IDs take precedence, and missing parents/cycles never hide comments. No server comment is changed by this presentation step.
+Jira Sprint Workspace renders its generated linked replies beneath the referenced comment even though those writes currently create top-level Jira comments. Recognition is shared across transports and restricted to a standalone leading reply link for the same site/issue. The visible source link remains, native parent IDs take precedence, and missing parents/cycles never hide comments. No server comment is changed by this presentation step.
 
 This is a compatibility workaround, not a native Jira thread guarantee. When updating comment integrations, recheck REST and advertised MCP/TWG contracts for supported parent-comment back references on both reads and writes. Adopt verified native threading per transport when available, retaining the fallback for existing historical replies. A generic link elsewhere in a comment must never become a parent relationship.
 

@@ -1,10 +1,10 @@
-# Jira Dashboard — agent handoff
+# Jira Sprint Workspace — agent handoff
 
 Updated: 2026-11-06. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
 
 ## Repository and delivery status
 
-The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. Version 0.1.0 is available from source only.
+The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. Version 1.0.0 is in preparation. Install from source until the first release.
 
 Latest fix: MCP transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
@@ -14,7 +14,7 @@ No live move was tested or submitted by the agent. The fix is covered by mocked 
 
 - Implement and test writes with mocks only. **No live Jira test writes**, including comments, uploads and transitions. Do not retry a user's submission.
 - Preserve selected transport, configuration and saved OAuth authorization. Never reset or disconnect for development convenience.
-- Reload only `paseo plugin reload jira-dashboard`, then require running. Never restart the daemon.
+- Reload only `paseo plugin reload paseo-jira-sprint-workspace`, then require running. Never restart the daemon.
 - Never read actual credentials or expose tokens, authorization URLs/codes, comment bodies, attachment bytes or raw provider errors in diagnostics.
 - All unlabeled action icons use compact, content-sized, left-aligned shared tooltips; obvious close and refresh controls may omit them. No Cypress thank-you sign-off.
 - Keep cards content-focused; forms, branch choices and errors belong in separate dialogs. Reuse existing branches/worktrees, without random suffixes. External Jira actions use icon buttons with tooltips.

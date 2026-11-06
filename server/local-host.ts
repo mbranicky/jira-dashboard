@@ -12,7 +12,7 @@ export async function connectLocalHost(paseo:PaseoApi) {
   const {stdout}=await promisify(execFile)('paseo',['daemon','status','--json'],{timeout:15000});
   const status=JSON.parse(stdout) as {home:string;listen:string;serverId:string};
   if(status.serverId!==self.serverId)throw new Error('Cannot connect to this Paseo host for workspace labels. Check the daemon home configuration.');
-  const client=createHostClient(status.listen,{clientId:'jira-dashboard-workspaces',clientType:'cli',localCredential:async()=> (await readFile(join(status.home,'local-credential'),'utf8')).trim(),logger:{debug(){},info(){},warn(){},error(){}}});
+  const client=createHostClient(status.listen,{clientId:'paseo-jira-sprint-workspace',clientType:'cli',localCredential:async()=> (await readFile(join(status.home,'local-credential'),'utf8')).trim(),logger:{debug(){},info(){},warn(){},error(){}}});
   try {await client.connect();}catch(error){await client.close();throw error;}
   return {client,home:status.home,serverId:self.serverId};
 }

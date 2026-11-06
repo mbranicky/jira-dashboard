@@ -75,7 +75,7 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
     </OverlayMenu>
     </View></View>
     {error?<Text accessibilityRole="alert" style={{color:theme.colors.foreground}}>{error}</Text>:null}
-    {saved?<Text style={{color:theme.colors.foreground}}>Settings saved. Open Jira Dashboard to test the connection.</Text>:null}
+    {saved?<Text style={{color:theme.colors.foreground}}>Settings saved. Open Jira Sprint Workspace to test the connection.</Text>:null}
     <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():draft.transport==='mcp'?false:!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
   </View>;
 }
@@ -124,7 +124,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
       <View style={{flexDirection:layout.compact?'column':'row',justifyContent:'space-between',alignItems:layout.compact?'stretch':'center',gap:8}}>
         <View style={{flexDirection:'row',alignItems:'center',gap:12,flexShrink:1}}>
           <View style={{width:40,height:40,borderRadius:10,backgroundColor:theme.colors.surface2,alignItems:'center',justifyContent:'center'}}><Icon name="Columns3" size={20} color={theme.colors.accent}/></View>
-          <View style={{gap:4,flexShrink:1}}><Text style={{...text,fontSize:22,fontWeight:'700'}}>{data?.name??'Jira Dashboard'}</Text><Text style={{...muted,fontSize:12}}>{data?`${data.user.displayName} · Assigned to me`:'Your assigned sprint issues'}</Text></View>
+          <View style={{gap:4,flexShrink:1}}><Text style={{...text,fontSize:22,fontWeight:'700'}}>{data?.name??'Jira Sprint Workspace'}</Text><Text style={{...muted,fontSize:12}}>{data?`${data.user.displayName} · Assigned to me`:'Your assigned sprint issues'}</Text></View>
         </View>
         <View style={{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-end'}}>
           <Action theme={theme} icon="RefreshCw" label={board.isFetching?'Refreshing…':'Refresh'} disabled={board.isFetching||!configured} onPress={()=>void board.refetch()}/>

@@ -4,9 +4,18 @@ IMPORTANT: When working on items in this checklist, you MUST check off each item
 Do not wait until the end — check off each item immediately after finishing it.
 This file is the source of truth for tracking progress.
 -->
-# Jira Dashboard first-version checklist
+# Jira Sprint Workspace first-release checklist
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
+
+## 1.0.0 release preparation (2026-11-06)
+
+- [x] Choose the public display name **Jira Sprint Workspace**, default plugin ID and package name `paseo-jira-sprint-workspace`, and package version `1.0.0`. Document the ID change for development installations.
+- [x] Prepare the 1.0.0 changelog and update installation and setup text for the public repository.
+- [x] Review runtime and development dependencies, scripts and packaged files. Keep publication disabled during preparation.
+- [ ] Resolve the distribution scope for REST token authentication and the Teamwork Graph CLI.
+- [ ] Decide the supported host platforms and how to describe MCP uploads given the outstanding verification below.
+- [ ] Verify the final artifact for the chosen distribution channels. Obtain release authorization before tagging, publishing or submitting a directory listing.
 
 ## Before first version
 
@@ -45,13 +54,13 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 
 - [x] **Release documentation** — README, license, changelog, supported Paseo version, known limitations, and a short troubleshooting guide.
 
-  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Clean production-only copy loaded successfully on Paseo 0.14.0 with an isolated runtime ID; no Jira credentials or mappings copied. Managed Git installation and rendered first-run settings verified on Paseo 0.15.0 at merged main `f67eea528327773ece1da72d8c5d6ededcfe7634`; see `docs/TESTING.md`. Version remains 0.1.0; package remains private.
+  Already covered: README documentation index, overview, specification, design guide, troubleshooting, and manifest requirement `paseo >=0.14.0`. Added installation/development instructions, Unreleased changelog, consolidated limitations and user-selected MIT license. Clean production-only copy loaded successfully on Paseo 0.14.0 with an isolated runtime ID; no Jira credentials or mappings copied. Managed Git installation and rendered first-run settings verified on Paseo 0.15.0 at merged main `f67eea528327773ece1da72d8c5d6ededcfe7634`; see `docs/TESTING.md`. That checkpoint used version 0.1.0 and disabled npm publication.
 
 ## Worthwhile product improvements
 
-- [ ] **Remember dashboard filters:** restore the selected sprint, search, and mobile column when returning from a workspace.
+- [x] **Remember dashboard filters:** restore the selected sprint, search, and mobile column when returning from a workspace.
 
-  Selected ticket, panel width, and collapse state already survive dashboard navigation per host. Sprint/search/column are still component-local. App/plugin restart retention is a separate decision.
+  Sprint selection is saved per board. PR #10 added per-host, per-board session retention for search and the mobile column; it also added a read-only refresh beside uncertain comment drafts.
 
 - [ ] **Protect unfinished comments:** warn before switching tickets or closing details when a comment draft would be lost.
 
@@ -128,7 +137,7 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 - [ ] Close the authentication distribution gate: obtain written Atlassian confirmation for this architecture, or adopt a supported authentication design before public distribution/registry submission. Research alone does not establish approval; local-token code remains unchanged.
 - [x] Review changes, repeat audits and merge release-readiness PR #2 after its checks passed. Merged-main checks also passed in Actions run `41654410542`.
 - [x] Verify clean managed Git installation from merged main `f67eea5` without real Jira credentials; first-run UI verified and temporary installation removed (2026-11-03).
-- [ ] Finalize release notes and obtain direction to make the repository public and submit it.
+- [x] Make the source repository public and prepare the first release notes. Submission remains a separate decision.
 
 - [x] Refresh README for discovery: dashboard screenshot near the top, main capabilities, setup path, details preview and absolute documentation links for registry/npm readers. Remote assets become anonymously accessible after these changes reach main and the repository is public.
 
