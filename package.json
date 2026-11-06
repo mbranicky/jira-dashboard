@@ -1,7 +1,6 @@
 {
   "name": "paseo-jira-sprint-workspace",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
   "scripts": {
     "prototype": "node prototype/connect.mjs",
@@ -74,5 +73,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mbranicky/jira-dashboard.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

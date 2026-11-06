@@ -2,11 +2,13 @@
 
 Reviewed 6 November 2026. Paseo registry submission is awaiting Atlassian’s written response on local REST token use and shared-host access for REST and Teamwork Graph CLI. Both questions are tracked in [ECOHELP-182681](https://ecosystem.atlassian.net/servicedesk/customer/portal/34/ECOHELP-182681).
 
+The maintainer accepted the unresolved distribution risk for the **npm 1.0.0 release** on 6 November 2026, including all three connection methods. Atlassian’s response is still pending. The separate Paseo directory submission remains on hold.
+
 ## Conclusion
 
 Do not treat the current local API-token design as approved for a publicly distributed Jira integration. Atlassian documents tokens for personal scripts, but its integration guidance rejects collecting user tokens and recommends a distributable OAuth app. No explicit exception for a free, open-source, user-hosted Paseo plugin was found in the sources below.
 
-This is a release-risk assessment, not a legal determination or a statement from Atlassian about this particular plugin. The source repository is now public. Registry submission remains pending written clarification or an authentication design that follows the documented integration model.
+This is a release-risk assessment, not a legal determination or a statement from Atlassian about this particular plugin. The source repository is now public. Paseo directory submission remains pending written clarification or an authentication design that follows the documented integration model.
 
 ## What the official sources establish
 

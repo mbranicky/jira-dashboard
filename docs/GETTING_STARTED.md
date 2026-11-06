@@ -1,10 +1,10 @@
 # Getting started
 
-Jira Sprint Workspace is a trusted local Paseo plugin. Its backend connects through Atlassian MCP OAuth, a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. The repository is public. Version 1.0.0 is being prepared for release.
+Jira Sprint Workspace is a trusted local Paseo plugin. Its backend connects through Atlassian MCP OAuth, a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. Install the npm release with `paseo plugin install npm:paseo-jira-sprint-workspace@1.0.0`.
 
 ## Install from a checkout
 
-Use Paseo 0.14.0 or newer, Node 24, npm, and Git on the daemon machine. The verified Paseo host is macOS on Apple silicon. Linux has automated test coverage on Ubuntu. Windows and Intel Mac hosts are unverified. See [host verification](KNOWN_LIMITATIONS.md#paseo-hosts) for details. Google Chrome is needed only for browser tests.
+Use Paseo 0.14.x or 0.15.x, Node 24, npm, and Git on the daemon machine. The verified Paseo host is macOS on Apple silicon. Linux has automated test coverage on Ubuntu. Windows and Intel Mac hosts are unverified. See [host verification](KNOWN_LIMITATIONS.md#paseo-hosts) for details. Google Chrome is needed only for browser tests.
 
 ```sh
 git clone https://github.com/mbranicky/jira-dashboard.git

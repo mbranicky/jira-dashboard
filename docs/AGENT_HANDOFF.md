@@ -4,7 +4,7 @@ Updated: 2026-11-06. Current continuation brief; implementation detail lives in 
 
 ## Repository and delivery status
 
-The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. Version 1.0.0 is in preparation. Install from source until the first release.
+The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. See the [release history](https://github.com/mbranicky/jira-dashboard/releases) and [installation guide](GETTING_STARTED.md) for 1.0.0.
 
 Latest fix: MCP transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
