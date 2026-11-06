@@ -30,6 +30,7 @@
     "parse5": "8.1.0"
   },
   "files": [
+    "npm-shrinkwrap.json",
     "paseo-plugin.json",
     "OVERVIEW.md",
     "CHANGELOG.md",
