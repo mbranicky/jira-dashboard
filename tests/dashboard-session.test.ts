@@ -18,3 +18,16 @@ test('selection, width and collapse survive leaving and remounting the dashboard
  sessions.update('host-a',{selected:undefined});
  assert.equal(sessions.read('host-a').selected,undefined);
 });
+
+test('board filters belong to one board on one host',()=>{
+ const sessions=createDashboardSessions();
+ sessions.updateBoard('host-a','board-1',{search:'PDF'});
+ sessions.updateBoard('host-a','board-2',{search:'docs'});
+ sessions.updateBoard('host-a','board-1',{columnKey:'review'});
+ assert.deepEqual(sessions.read('host-a').boardViews,{
+  'board-1':{search:'PDF',columnKey:'review'},'board-2':{search:'docs'},
+ });
+ assert.equal(sessions.read('host-b').boardViews,undefined);
+ sessions.updateBoard('host-a','board-1',{search:''});
+ assert.equal(sessions.read('host-a').boardViews?.['board-1']?.columnKey,'review');
+});

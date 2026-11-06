@@ -1,5 +1,5 @@
 import {useSyncExternalStore,type SetStateAction} from 'react';
-import {createDashboardSessions,type DashboardSession} from '../shared/dashboard-session';
+import {createDashboardSessions,type DashboardSession,type BoardView} from '../shared/dashboard-session';
 const sessions=createDashboardSessions();
 export function useDashboardSession(hostId:string){
  const state=useSyncExternalStore(sessions.subscribe,()=>sessions.read(hostId));
@@ -8,6 +8,7 @@ export function useDashboardSession(hostId:string){
   sessions.update(hostId,{[key]:typeof value==='function'?(value as (previous:DashboardSession[K])=>DashboardSession[K])(current):value});
  }
  return { ...state,
+  updateBoard:(board:string,patch:Partial<BoardView>)=>sessions.updateBoard(hostId,board,patch),
   setSelected:(value:SetStateAction<DashboardSession['selected']>)=>set('selected',value),
   setPanelWidth:(value:SetStateAction<number>)=>set('panelWidth',value),
   setPanelCollapsed:(value:SetStateAction<boolean>)=>set('panelCollapsed',value),

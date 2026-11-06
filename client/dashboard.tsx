@@ -81,12 +81,15 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const preferences=useSettings(dashboardPreferences);
-  const {selected,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
+  const {boardViews,updateBoard,selected,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
   const [availableWidth,setAvailableWidth]=useState(0);
   const settings=useSettings(connection);const projectMappings=useSettings(mappings);const rpc=useRpc(readBoard);
   const [mappingProject,setMappingProject]=useState<string>();
-  const [sprintMenu,setSprintMenu]=useState(false);const [searchFocused,setSearchFocused]=useState(false);const [editing,setEditing]=useState(false);const [search,setSearch]=useState('');const [column,setColumn]=useState(0);const [linkError,setLinkError]=useState<string>();
+  const [sprintMenu,setSprintMenu]=useState(false);const [searchFocused,setSearchFocused]=useState(false);const [editing,setEditing]=useState(false);const [linkError,setLinkError]=useState<string>();
   const sprintKey=settings.status==='ready'?sprintSelectionKey(settings.values.boardUrl):'';
+  const boardView=boardViews?.[sprintKey];
+  const search=boardView?.search??'';
+  const setSearch=(value:string)=>updateBoard(sprintKey,{search:value});
   const sprint=preferences.status==='ready'?preferences.values.sprintByBoard?.[sprintKey]??undefined:undefined;
   const [sprintSaveError,setSprintSaveError]=useState('');
   async function setSprint(value:number|undefined){
@@ -109,7 +112,9 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const filtered=data?.issues.filter(i=>`${i.key} ${i.summary}`.toLowerCase().includes(search.toLowerCase()))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
-  const selectedColumn=Math.min(column,Math.max(0,columns.length-1));
+  // Use configured status IDs so a reordered board still opens the same column.
+  const columnKeys=columns.map((c,index)=>index===data?.columns.length?'unmapped':JSON.stringify([c.name,...c.statusIds.slice().sort()]));
+  const selectedColumn=Math.max(0,columnKeys.findIndex(key=>key===boardView?.columnKey));
   const panel=preferences.status==='ready'&&preferences.values.detailsView==='panel';
   const presentation=detailsPresentation(panel?'panel':'modal',layout.compact,availableWidth);
   const currentIssue=selected&&(data?.selectedSprintId===selected.sprintId?data.issues.find(i=>i.key===selected.issue.key):undefined)||selected?.issue;
@@ -155,7 +160,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     {linkError?<Text accessibilityRole="alert" style={text}>{linkError}</Text>:null}
     {data&&!data.selectedSprintId?<Text style={text}>{data.sprints.filter(s=>s.state==='active').length>1?'Several sprints are active. Select one above.':'No active sprint. Select another sprint above.'}</Text>:null}
     {data?.selectedSprintId && !data.issues.length?<Text style={muted}>No issues in this sprint are assigned to you.</Text>:null}
-    {layout.compact&&!initialLoading?<ScrollView horizontal style={{flexGrow:0,maxHeight:48}} contentContainerStyle={{gap:8}}>{columns.map((c,index)=><Button key={index} theme={theme} label={`${selectedColumn===index?'✓ ':''}${c.name} · ${filtered.filter(i=>c.statusIds.includes(i.statusId)).length}`} onPress={()=>setColumn(index)}/>)}</ScrollView>:null}
+    {layout.compact&&!initialLoading?<ScrollView horizontal style={{flexGrow:0,maxHeight:48}} contentContainerStyle={{gap:8}}>{columns.map((c,index)=><Button key={index} theme={theme} label={`${selectedColumn===index?'✓ ':''}${c.name} · ${filtered.filter(i=>c.statusIds.includes(i.statusId)).length}`} onPress={()=>updateBoard(sprintKey,{columnKey:columnKeys[index]})}/>)}</ScrollView>:null}
     {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves disabled={twgReadOnly} site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
     <ScrollView horizontal={!layout.compact} style={{flex:1,minHeight:0}} contentContainerStyle={{gap:16,...(layout.compact?{}:{alignItems:'stretch' as const})}}>
       {columns.map((c,index)=>{
