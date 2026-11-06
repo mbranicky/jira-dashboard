@@ -13,7 +13,8 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Choose the public display name **Jira Sprint Workspace**, default plugin ID and package name `paseo-jira-sprint-workspace`, and package version `1.0.0`. Document the ID change for development installations.
 - [x] Prepare the 1.0.0 changelog and update installation and setup text for the public repository.
 - [x] Review runtime and development dependencies, scripts and packaged files. Keep publication disabled during preparation.
-- [ ] Resolve the distribution scope for REST token authentication and the Teamwork Graph CLI.
+- [x] Confirm the 1.0.0 connection methods: ship all three — REST API with a scoped token, Teamwork Graph CLI OAuth, and Atlassian MCP OAuth.
+- [ ] Resolve the outstanding distribution questions for REST token authentication and use of the Teamwork Graph CLI before registry submission.
 - [ ] Decide the supported host platforms and how to describe MCP uploads given the outstanding verification below.
 - [ ] Verify the final artifact for the chosen distribution channels. Obtain release authorization before tagging, publishing or submitting a directory listing.
 
@@ -151,7 +152,7 @@ All further automated workflow verification uses synthetic data and mocked Jira/
 ## Alternative Jira connectivity research — 2026-11-03
 
 - [x] Compare public documentation for REST, official MCP v2, TWG CLI, ACLI, third-party wrappers and Forge in `docs/JIRA_CONNECTIVITY_OPTIONS.md`. No credentials read or Jira tenant calls made.
-- [ ] Evaluate MCP v2 and TWG OAuth against the complete dashboard contract using synthetic fixtures; verify supported schemas, credential storage and distribution terms before selecting a replacement. This research does not close the authentication distribution gate.
+- [ ] Evaluate MCP v2 and TWG OAuth against the complete dashboard contract using synthetic fixtures; verify supported schemas, credential storage and distribution terms for the OAuth methods. The 1.0.0 scope decision retains REST alongside both OAuth options.
 ## TWG CLI alternative — read-only preview (2026-11-04)
 
 - [x] Verify TWG 1.4.2 command contracts and authorized read-only desktop OAuth/board observations; see `docs/TWG_IMPLEMENTATION.md`.
