@@ -4,7 +4,7 @@ Status: current implemented design and agreed refinements, 5 November 2026. Prod
 
 ## Identity and visual direction
 
-Use **Jira Sprint Workspace** for the sidebar, screen, plugin display name and Open Jira Sprint Workspace command. Keep the familiar Jira board structure while providing compact Paseo workspace actions. Use theme colors, quiet secondary controls, icons, restrained surfaces and consistent spacing. Do not introduce large full-width card actions.
+Use **Jira Workspace** for the sidebar label and **Jira Sprint Workspace** for the screen, plugin display name and Open Jira Sprint Workspace command. Keep the familiar Jira board structure while providing compact Paseo workspace actions. Use theme colors, quiet secondary controls, icons, restrained surfaces and consistent spacing. Do not introduce large full-width card actions.
 
 ## Dashboard header and controls
 
