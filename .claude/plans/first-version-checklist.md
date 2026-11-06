@@ -15,7 +15,8 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Review runtime and development dependencies, scripts and packaged files. Keep publication disabled during preparation.
 - [x] Confirm the 1.0.0 connection methods: ship all three — REST API with a scoped token, Teamwork Graph CLI OAuth, and Atlassian MCP OAuth.
 - [ ] Resolve the outstanding distribution questions for REST token authentication and use of the Teamwork Graph CLI before registry submission.
-- [ ] Decide the supported host platforms and how to describe MCP uploads given the outstanding verification below.
+- [x] Record 1.0.0 host coverage: macOS on Apple silicon verified, Ubuntu CI coverage only, Windows and Intel Macs unverified.
+- [x] Document verified MCP attachment reads, mock-only upload coverage and how to check an unconfirmed upload in Jira. See [known limitations](../../docs/KNOWN_LIMITATIONS.md#atlassian-mcp).
 - [ ] Verify the final artifact for the chosen distribution channels. Obtain release authorization before tagging, publishing or submitting a directory listing.
 
 ## Before first version
@@ -211,7 +212,7 @@ These are user-performed live observations. Automated tests continue to use mock
 - [x] Integrate the MCP Settings connection and serialize active flows, cancellation, reconnect and disconnect; verify with lifecycle and desktop/mobile RPC mocks.
 - [x] Implement the guarded read-only MCP board adapter and opt-in Settings selection using synthetic contracts; cover pagination, caching, permissions, expired sessions and desktop/mobile restrictions with mocks.
 - [x] User verified MCP OAuth, board/details/comments and attachment reads on the current host.
-- [ ] Verify native-store packaging on other supported hosts and repeat clean production installation for the current dependency set.
+- [ ] Before expanding host claims, verify installation and native credential storage on Linux, Windows and Intel Macs.
 
 - [x] Enable MCP local Start work using the shared mapping, branch/worktree and agent workflow, without Jira writes or REST credentials.
 - [x] Confirm live MCP attachment preview, download and Open in browser with the user.
