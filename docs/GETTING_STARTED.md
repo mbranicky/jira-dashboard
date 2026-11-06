@@ -14,7 +14,7 @@ npm run typecheck
 paseo plugin install "$PWD"
 ```
 
-Enable trusted plugins in Paseo Settings → Plugins if needed. Backend plugins are unsandboxed and can access host files, credentials, processes and the network. Confirm the plugin is running with `paseo plugin ls`. Open **Jira Sprint Workspace** in the sidebar for the same host.
+Enable trusted plugins in Paseo Settings → Plugins if needed. Backend plugins are unsandboxed and can access host files, credentials, processes and the network. Confirm the plugin is running with `paseo plugin ls`. Open **Jira Workspace** in the sidebar for the same host.
 
 ### Updating from the development ID
 

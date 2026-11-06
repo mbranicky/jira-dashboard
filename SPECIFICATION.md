@@ -4,7 +4,7 @@ Status: current product specification and implementation checkpoint, 5 November 
 
 ## Purpose and identity
 
-**Jira Sprint Workspace** is a Paseo plugin for viewing assigned Jira sprint issues and turning them into linked Paseo workspaces and agents. The sidebar entry, screen title, plugin display name and command launcher use this name. The runtime ID is `paseo-jira-sprint-workspace`.
+**Jira Sprint Workspace** is a Paseo plugin for viewing assigned Jira sprint issues and turning them into linked Paseo workspaces and agents. The sidebar entry reads **Jira Workspace**. The screen title, plugin display name and command launcher use the full product name. The runtime ID is `paseo-jira-sprint-workspace`.
 
 The plugin provides board interaction and workspace orchestration. An optional external entry skill is supplied by the user; the plugin neither bundles that skill nor predicts its subsequent behavior.
 
