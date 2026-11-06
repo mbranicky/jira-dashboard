@@ -132,7 +132,7 @@ export default function contribute(server:PluginServerContext){
   });
   server.handle(readBoard,async({sprintId},{paseo})=>{
     const current=await settings.read();
-    if(current.status!=='ready')throw new Error('Connection settings are unavailable. Open Jira Dashboard settings.');
+    if(current.status!=='ready')throw new Error('Connection settings are unavailable. Open Jira Sprint Workspace settings.');
     const board=await (current.values.transport==='mcp'?mcpBoard(current.values,sprintId):current.values.transport==='twg'?twgDashboard.fetchBoard(current.values,sprintId):fetchBoard(current.values,sprintId));
     const savedMappings=await projectMappings.read();
     const workspaceLinks=await boardWorkspaceLinks(paseo,current.values,board.issues.map(issue=>issue.key),savedMappings.status==='ready'?savedMappings.values.items:[]);

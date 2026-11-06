@@ -1,6 +1,6 @@
 # Registry icon
 
-`icon.png` is an original generated mark for Jira Dashboard, declared in the plugin manifest and included in the npm package. It is not the Atlassian Jira logo. Generated using the built-in image-generation tool on 2026-11-03.
+`icon.png` is an original generated mark for Jira Sprint Workspace, declared in the plugin manifest and included in the npm package. It is not the Atlassian Jira logo. Generated using the built-in image-generation tool on 2026-11-03.
 
 Selected design: **C — Linked workspaces**. Two connected blue diamond tiles illustrate a Jira issue linked to a developer workspace.
 

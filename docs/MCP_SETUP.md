@@ -1,10 +1,10 @@
 # Atlassian MCP OAuth setup
 
-MCP is an optional connection for Jira Dashboard. It supports board and issue reads, comments, attachment preview/download and local Start work. Opt-in Jira write adapters are implemented, but name-only transition destinations require an unambiguous status lookup and upload response contracts remain partly unverified. See [known limitations](KNOWN_LIMITATIONS.md#atlassian-mcp).
+MCP is an optional connection for Jira Sprint Workspace. It supports board and issue reads, comments, attachment preview/download and local Start work. Opt-in Jira write adapters are implemented, but name-only transition destinations require an unambiguous status lookup and upload response contracts remain partly unverified. See [known limitations](KNOWN_LIMITATIONS.md#atlassian-mcp).
 
 ## Connect on the Paseo host
 
-1. Open Jira Dashboard → Settings and enter the Jira Cloud board URL.
+1. Open Jira Sprint Workspace → Settings and enter the Jira Cloud board URL.
 2. Choose **Atlassian MCP** in Connection method.
 3. Use the sign-in action, confirm that you are on the Paseo host, then choose **Continue in browser** and complete Atlassian consent there. A phone or remote computer cannot complete the callback to the host's loopback listener.
 4. Check the displayed account/site. Select **Test connection** for the read-only step report, then **Save connection** and **Back to board**.

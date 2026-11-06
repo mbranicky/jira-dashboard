@@ -13,9 +13,9 @@ export default function contribute(client:PluginClientContext){
   client.addSettingsScreen({id:'mappings',title:'Jira project mappings',icon:'Folder',Component:scoped(MappingSettings)});
   client.addScreen({id:'mappings',title:'Jira project mappings',Component:scoped(MappingSettings)});
   client.addCommandCenterItem({id:'mappings',context:'global',title:'Jira project mappings',icon:'Folder',onSelect:({openScreen})=>openScreen({screenId:'mappings'})});
-  client.addScreen({id:'board',title:'Jira Dashboard',Component:(props)=><FocusScope><OpenWorkspaceIssue.Provider value={workspaceId=>client.openPanel('jira-issue',{workspaceId,location:'explorer'})}><Dashboard {...props}/></OpenWorkspaceIssue.Provider></FocusScope>});
-  client.addSidebarHeaderItem({id:'board',title:'Jira Dashboard',Component:scoped(Item)});
+  client.addScreen({id:'board',title:'Jira Sprint Workspace',Component:(props)=><FocusScope><OpenWorkspaceIssue.Provider value={workspaceId=>client.openPanel('jira-issue',{workspaceId,location:'explorer'})}><Dashboard {...props}/></OpenWorkspaceIssue.Provider></FocusScope>});
+  client.addSidebarHeaderItem({id:'board',title:'Jira Sprint Workspace',Component:scoped(Item)});
   client.addSettingsScreen({id:'connection',title:'Jira connection',icon:'Settings',Component:scoped(ConnectionSettings)});
-  client.addCommandCenterItem({id:'open',context:'global',title:'Open Jira Dashboard',icon:'Columns3',onSelect:({openScreen})=>openScreen({screenId:'board'})});
+  client.addCommandCenterItem({id:'open',context:'global',title:'Open Jira Sprint Workspace',icon:'Columns3',onSelect:({openScreen})=>openScreen({screenId:'board'})});
   return ()=>{};
 }

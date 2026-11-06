@@ -1,4 +1,4 @@
-# Jira Dashboard
+# Jira Sprint Workspace
 
 See your assigned Jira Cloud sprint issues in the board's own columns. Search cards, follow the active sprint or choose an active/future sprint, and turn issues into Paseo workspaces with dedicated agents.
 

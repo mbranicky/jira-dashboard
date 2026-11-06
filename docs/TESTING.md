@@ -1,4 +1,4 @@
-# Testing Jira Dashboard
+# Testing Jira Sprint Workspace
 
 ## Full verification checkpoint — 2026-11-05
 

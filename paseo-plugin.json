@@ -1,6 +1,6 @@
 {
-  "id": "jira-dashboard",
-  "name": "Jira Dashboard",
+  "id": "paseo-jira-sprint-workspace",
+  "name": "Jira Sprint Workspace",
   "description": "Your assigned sprint issues in a native Paseo board.",
   "requirements": {
     "paseo": ">=0.14.0"

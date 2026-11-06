@@ -1,6 +1,6 @@
 # Jira connection setup and API token scopes
 
-This is the official connection guide for Jira Dashboard. It covers credentials, required API scopes and token replacement for the supported Jira Cloud REST connection. No hosted authentication service, Atlassian password or MCP connection is required.
+This is the official connection guide for Jira Sprint Workspace. It covers credentials, required API scopes and token replacement for the supported Jira Cloud REST connection. No hosted authentication service, Atlassian password or MCP connection is required.
 
 For the experimental OAuth alternative, use the [TWG setup guide](TWG_SETUP.md). The API token scopes below apply only to REST.
 
@@ -16,7 +16,7 @@ For the experimental OAuth alternative, use the [TWG setup guide](TWG_SETUP.md).
    ```
 
 4. On macOS/Linux, restrict the file to its owner with `chmod 600 /absolute/path/to/jira.env`. On Windows, restrict access through file permissions. Never commit this file or share its contents.
-5. Open Jira Dashboard connection settings. Enter your full Jira Cloud board URL and the **absolute path** to the secret file. Expand `~` to your actual home directory; the plugin requires an absolute path. For remote Paseo hosts, this is a path on the daemon machine, not your phone or desktop client.
+5. Open Jira Sprint Workspace connection settings. Enter your full Jira Cloud board URL and the **absolute path** to the secret file. Expand `~` to your actual home directory; the plugin requires an absolute path. For remote Paseo hosts, this is a path on the daemon machine, not your phone or desktop client.
 6. Use **Test connection** to check the entered values without saving or writing to Jira, then save and refresh the dashboard. The workspace Jira issue tab uses the same connection.
 
 A board URL looks like `https://your-company.atlassian.net/jira/software/c/projects/PROJECT/boards/123`. The plugin supports one Jira Cloud site. The board determines columns and sprints; only issues assigned to the token owner appear on the dashboard. Workspace issue lookup can read other issues visible to that account. Authorized Paseo clients connected to the host share that account's Jira view.

@@ -9,7 +9,7 @@
 - Provider and isolation choices are explicit. Paseo 0.14 does not expose every saved project default through its plugin API.
 - Attachment support has transfer/type/client limits documented in [Jira setup](JIRA_SETUP.md). Local browser preview is for local desktop connections; remote/mobile use in-app preview.
 - Automated browser tests use host adapters and synthetic Jira data. They do not prove real Jira permissions or every host/device behavior. The user completed a mobile review; clean Git installation was also verified. Real Jira write tests are not a release requirement. See [Testing](TESTING.md).
-- The repository is public and includes Atlassian MCP support on `main`. Version 0.1.0 is available from source only. Registry release requirements are tracked in the [checklist](../.claude/plans/first-version-checklist.md).
+- The repository is public and includes Atlassian MCP support on `main`. Version 1.0.0 is in preparation. Install from source until the first release. Registry release requirements are tracked in the [checklist](../.claude/plans/first-version-checklist.md).
 
 ## Teamwork Graph
 

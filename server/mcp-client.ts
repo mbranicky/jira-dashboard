@@ -1,3 +1,4 @@
+import packageInfo from '../package.json' with {type:'json'};
 import {mcpFailure} from './mcp-diagnostics';
 import {McpVerificationError} from './mcp-verification-error';
 import {writeTool,type McpWriteTool,boardTool, type McpBoardTool,type McpContentTool} from './mcp-tools';
@@ -39,7 +40,7 @@ export class JiraMcpConnection {
       this.oauth.restore();
       await this.client?.close();
       if (this.closed) throw new Error('This Atlassian connection is closed.');
-      this.client = new Client({name: 'paseo-jira-dashboard', version: '0.1.0'});
+      this.client = new Client({name: packageInfo.name, version: packageInfo.version});
       this.transport = new StreamableHTTPClientTransport(new URL(MCP_ENDPOINT), {authProvider: this.oauth, fetch: this.fetch});
       await this.client.connect(this.transport);
       if (this.closed) throw new Error('Connection closed.');

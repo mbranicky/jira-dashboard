@@ -6,7 +6,7 @@ Reviewed: 3 November 2026. Status: research complete; public-distribution cleara
 
 Do not treat the current local API-token design as approved for a publicly distributed Jira integration. Atlassian documents tokens for personal scripts, but its integration guidance rejects collecting user tokens and recommends a distributable OAuth app. No explicit exception for a free, open-source, user-hosted Paseo plugin was found in the sources below.
 
-This is a release-risk assessment, not a legal determination or a statement from Atlassian about this particular plugin. Keep the repository private and the registry submission gate open pending written clarification or an authentication design that follows the documented integration model. Private repository visibility alone does not establish compliance.
+This is a release-risk assessment, not a legal determination or a statement from Atlassian about this particular plugin. The source repository is now public. Registry submission remains pending written clarification or an authentication design that follows the documented integration model.
 
 ## What the official sources establish
 

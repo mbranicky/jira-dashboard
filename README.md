@@ -1,12 +1,12 @@
-# Jira Dashboard
+# Jira Sprint Workspace
 
 Turn your assigned Jira sprint issues into Paseo workspaces. Browse your board, read issue details, and start an agent on an issue without leaving Paseo.
 
-![Jira Dashboard showing assigned issues in Open, In Progress and Done columns, with Start work and Open workspace actions](assets/dashboard.png)
+![Jira Sprint Workspace showing assigned issues in Open, In Progress and Done columns, with Start work and Open workspace actions](assets/dashboard.png)
 
 *Browser preview of the plugin's real components using fictional issues. Paseo host controls may differ.*
 
-**Status:** The repository is public. Atlassian MCP support is available on `main` alongside REST and Teamwork Graph CLI. Version 0.1.0 is available from source only.
+**Status:** The repository is public. Atlassian MCP support is available on `main` alongside REST and Teamwork Graph CLI. Version 1.0.0 is in preparation. Install from source until the first release.
 
 ## What you can do
 
@@ -43,7 +43,9 @@ npm run typecheck
 paseo plugin install "$PWD"
 ```
 
-1. Open **Jira Dashboard → Settings**.
+Existing `jira-dashboard` installations should follow the [ID change instructions](docs/GETTING_STARTED.md#updating-from-the-development-id).
+
+1. Open **Jira Sprint Workspace → Settings**.
 2. Enter your Jira board URL and choose a connection:
    - **Teamwork Graph CLI:** sign in with OAuth on the Paseo host using a named profile. Follow the [Teamwork Graph setup guide](docs/TWG_SETUP.md); no API token file is needed. Enable **Allow Jira changes** for moves, comments and uploads.
    - **Atlassian MCP:** complete host-browser sign-in in Settings. For writes, enable **Allow Jira changes through MCP**, reconnect for additional consent, and save. See the [MCP setup guide](docs/MCP_SETUP.md) and its current workflow/upload limitations.

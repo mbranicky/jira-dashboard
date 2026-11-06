@@ -30,7 +30,7 @@ export class McpOAuthSession implements OAuthClientProvider {
     this.redirectUrl = `http://127.0.0.1:${port}/callback`;
     this.expiresAt = now() + 10 * 60_000;
     this.clientMetadata = {
-      client_name: 'Paseo Jira Dashboard', redirect_uris: [this.redirectUrl],
+      client_name: 'Jira Sprint Workspace', redirect_uris: [this.redirectUrl],
       grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'],
       token_endpoint_auth_method: 'none', scope: access.writeAccess ? MCP_WRITE_SCOPE : MCP_READ_SCOPE,
     };
