@@ -1,6 +1,6 @@
 # Atlassian authentication policy review
 
-Reviewed: 3 November 2026. Status: research complete; public-distribution clearance **not established**.
+Reviewed 6 November 2026. Paseo registry submission is pending clarification of local REST token use and shared-host access.
 
 ## Conclusion
 
@@ -13,6 +13,7 @@ This is a release-risk assessment, not a legal determination or a statement from
 | Source | Finding and limits |
 | --- | --- |
 | [Basic authentication guidance](https://developer.atlassian.com/cloud/jira/platform/basic-auth-for-rest-apis/) | Recommends basic authentication for simple scripts/manual calls. Warns that apps collecting API tokens or requiring individual customer-created OAuth apps do not comply with its cloud-app security requirements and acceptable-use policy. Recommends a single distributable 3LO app. |
+| [Teamwork Graph CLI FAQ](https://developer.atlassian.com/cloud/twg-cli/faq/) | Atlassian documents tools invoking the CLI, interactive OAuth login, and delegated OAuth for applications that manage credentials. The FAQ describes access in terms of the authenticated user. It does not address multiple people acting through one Paseo host profile. |
 | [Account API-token guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/) | Documents user-created tokens for scripts, including scopes and expiration. Availability of scoped tokens demonstrates technical support, not blanket permission for third-party distribution. |
 | [Third-party integration guidance, 6 June 2025](https://www.atlassian.com/blog/developers/building-secure-and-scalable-integrations-our-guidance-for-third-party-apps) | Describes token sharing/storage by third-party services as problematic, in part because API traffic cannot be attributed reliably. Recommends Forge or distributable 3LO. States that the standards apply regardless of public availability or Marketplace suitability; its migration deadline was 31 December 2025. Thus a Paseo-only listing is not an established exemption. |
 | [Cloud-app security requirements](https://developer.atlassian.com/platform/marketplace/security-requirements/) | Prohibits covered apps from collecting/storing Atlassian account credentials, including API tokens. Its app categories do not explicitly classify a standalone Paseo plugin. Local file permissions and scopes do not themselves create a policy exception. |
@@ -20,27 +21,34 @@ This is a release-risk assessment, not a legal determination or a statement from
 
 ## How our implementation differs, and what remains uncertain
 
-The user creates and owns `jira.env` on their Paseo host. `server/jira.ts` reads the file and constructs authentication headers for Jira REST requests; comments and attachments use the same host-side credentials. The plugin author operates no credential broker or hosted token database. Remote Paseo clients can use the host's configured Jira connection, so “local” means the user's host, not necessarily the viewing device.
+The user creates and owns `jira.env` on their Paseo host. `server/credentials.ts` reads the file and constructs authentication headers for Jira REST requests; comments and attachments use the same host-side credentials. The plugin author operates no credential broker or hosted token database. Remote Paseo clients can use the host's configured Jira connection, so “local” means the user's host, not necessarily the viewing device.
 
 These are meaningful security differences from sending tokens to a vendor-operated service. However, the distributed plugin still reads a user token and acts through it. The reviewed policies do not define whether that constitutes prohibited collection in this exact deployment. Treating a file-path input as an exemption would be our interpretation, not confirmed permission. MIT licensing, free distribution, scoped tokens and no vendor backend do not settle that question.
 
-Personal API usage is documented. That does not establish that every private integration is exempt, nor that this plugin can be distributed as a supported integration on that basis. Publishing source code and promoting an installable Jira integration are also distinct questions; this review does not conclude that merely sharing source is prohibited.
+For TWG, the user installs Atlassian’s CLI and signs in on the host. The plugin invokes that executable with the selected profile. TWG manages its credentials. The Paseo package contains no TWG binary. Ordinary CLI invocation by a tool is documented in the [TWG FAQ](https://developer.atlassian.com/cloud/twg-cli/faq/).
 
-## Routes to close the release gate
+Both adapters act as the host’s configured Atlassian account. The account owner accessing their own host from a second device and a different person connecting to that host are distinct cases. In the latter case, Jira evaluates reads and attributes writes to the configured account. Paseo client access alone does not establish that person’s Jira permissions.
 
-1. Obtain written Atlassian clarification specifically covering the architecture above and distribution through GitHub/Paseo. Record the response, date, scope and any conditions here before marking the gate complete.
-2. If no exception applies, investigate a single distributable OAuth integration. The [documented 3LO flow](https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/) uses a client secret for token exchange and refresh. Shipping that shared secret in an open-source desktop plugin is not a secure solution. A fully local public-client flow must be confirmed with Atlassian; this review does not establish its availability. Asking every user to register their own OAuth app is specifically discouraged by the integration guidance.
+## Before registry submission
 
-A hosted service has not been authorized. This historical review predates the current MCP/TWG implementations; their availability does not establish public-distribution clearance or unrestricted REST parity. See [current MCP evidence](MCP_IMPLEMENTATION.md) and [TWG evidence](TWG_IMPLEMENTATION.md).
+All three connection methods remain in scope for 1.0.0. Record Atlassian’s written answer here with its date, scope and conditions. If each person needs their own identity, address that requirement before submission. If local REST token use is disallowed, confirm a supported alternative for a user-hosted public client. The [documented Jira OAuth flow](https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/) uses a client secret. An open-source plugin cannot keep a bundled shared secret confidential.
 
-## Questions for Atlassian support
+## Draft support request
 
-Use [Atlassian Developer support](https://developer.atlassian.com/support). No support request has been sent.
+Prepared for [Atlassian Developer Support](https://developer.atlassian.com/support). Unsent.
 
-- Does a free MIT-licensed plugin, executed entirely on a user's own host, reading their user-created scoped Jira token from a private file and sending it only to Atlassian for authentication, count as collecting credentials under the third-party integration rules?
-- May this model be distributed through GitHub and the Paseo registry without a vendor-operated backend? Does sharing the host's Jira view with its authorized remote clients affect the answer?
-- If it is permitted, what attribution, documentation, distribution or storage conditions apply?
-- If it is not permitted, what supported authentication flow is available for a public native client without a distributable client secret or a developer-operated authentication service?
+**Subject:** Jira Cloud authentication for a user-hosted Paseo plugin: local REST tokens and shared host access
+
+Hello Atlassian Developer Support,
+
+I maintain Jira Sprint Workspace, a free, open-source plugin for Paseo. Before submitting version 1.0.0 to the Paseo registry, I’d like to confirm two aspects of our Jira Cloud integration. The plugin runs on the user’s own host. The publisher operates no backend and receives no credentials.
+
+1. **Local REST token.** The user creates a scoped Jira API token and stores it in a private file on their host. The plugin accepts the file path, reads the token locally, and sends it directly to Atlassian to authenticate REST requests. Under your guidance on third-party apps collecting API tokens, may we distribute this design through the Paseo registry? If a different design is required, which supported flow can a user-hosted public client use without distributing a shared client secret or requiring each customer to register an OAuth app?
+2. **Access from connected clients.** In REST mode the host uses the configured token. In Teamwork Graph CLI mode the user separately installs Atlassian’s CLI and signs in with OAuth. Our plugin invokes their named CLI profile without bundling the binary or extracting tokens. For each mode, may the account owner read Jira and initiate writes from both their laptop and phone through that host? If a different person connects to the same host, must they authenticate with their own Atlassian account before viewing Jira data or initiating writes? Today those actions use the host account’s permissions and identity.
+
+Please point us to the applicable guidance and any conditions we need to meet for registry distribution. The [public repository](https://github.com/mbranicky/jira-dashboard) includes the source and setup guides.
+
+Thank you.
 
 ## Verification boundary
 
