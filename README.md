@@ -6,7 +6,7 @@ Turn your assigned Jira sprint issues into Paseo workspaces. Browse your board, 
 
 *Browser preview of the plugin's real components using fictional issues. Paseo host controls may differ.*
 
-**Status:** Preparing the first public release. Version 0.1.0 is a private development checkpoint; no npm package or Paseo registry release is available yet.
+**Status:** The repository is public. Atlassian MCP support is available on `main` alongside REST and Teamwork Graph CLI. Version 0.1.0 is available from source only.
 
 ## What you can do
 
@@ -33,7 +33,7 @@ On narrow screens, details fill the screen with a fixed header and scrollable co
 
 Requires **Paseo 0.14.0 or newer**, Jira Cloud, and a scoped Jira API token, Teamwork Graph CLI OAuth, or Atlassian MCP OAuth. Compatibility has been checked with Paseo 0.14.0 and 0.15.0. Use Node 24 and npm on the daemon host; Git is required for worktree isolation.
 
-Until publication, install from an accessible checkout:
+To install from the public repository, run:
 
 ```sh
 git clone https://github.com/mbranicky/jira-dashboard.git
@@ -42,8 +42,6 @@ npm ci
 npm run typecheck
 paseo plugin install "$PWD"
 ```
-
-The repository is currently private, so cloning requires access. No registry installation command is advertised before the release exists.
 
 1. Open **Jira Dashboard → Settings**.
 2. Enter your Jira board URL and choose a connection:

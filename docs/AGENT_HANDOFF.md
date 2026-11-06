@@ -1,12 +1,10 @@
 # Jira Dashboard — agent handoff
 
-Updated: 2026-11-05. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+Updated: 2026-11-06. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
 
-## Current task and workspace
+## Repository and delivery status
 
-Workspace: `/Users/marek/Projects/paseo/jira-dashboard`, branch `codex/mcp-v2-oauth`, with substantial accumulated tracked and untracked work. Preserve it all. Do not switch branches, discard changes, commit, push, merge, publish or bump versions unless requested. The repository stays private.
-
-Documentation cleanup is complete: setup/current-state docs are reconciled, a dedicated MCP setup guide is added, historical evidence is distinguished from current verification, and local documentation links/whitespace checks pass.
+The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. Version 0.1.0 is available from source only.
 
 Latest fix: MCP transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
@@ -53,13 +51,9 @@ This is a presentation workaround. Before future comment integration changes, re
 
 ## Verification and remaining work
 
-Historical checks are recorded in [Testing](TESTING.md); they do not certify the current accumulated branch. Recent focused mocked checks before documentation cleanup passed:
+Pre-merge verification is summarized below. [Testing](TESTING.md) records the focused regression checks and full suite results.
 
-- Attachment settings: 33 backend and 18 component tests; both typechecks.
-- OAuth scope continuity/workspace discovery recovery: 33 backend and 9 dashboard component tests; both typechecks and whitespace check. Plugin running after reload.
-- Latest transition destination resolution: focused write/privacy tests pass; final broader verification is recorded below.
-
-Remaining: finish documentation reconciliation; establish upload preparation/media output contracts without live test writes; verify native-store packaging on other supported hosts; run full relevant checks/build/package gates before any requested delivery. User-observed live reads and their ordinary submissions are distinct from automated mocks. Full current automated/local verification is recorded below; it does not resolve external contract or distribution gates.
+Remaining work includes verifying the MCP upload preparation and media response formats without live test writes, checking native credential storage on other supported hosts, and resolving [distribution clearance for the local-token approach](ATLASSIAN_AUTH_POLICY.md) before a registry release.
 
 ## Production diagnostics
 
@@ -71,6 +65,6 @@ Final transition-fix verification (2026-11-05): 50 mocked MCP/TWG/shared-move te
 
 ## Full verification completed — 2026-11-05
 
-Locked 0.14 and isolated 0.15 SDK configurations each passed both typechecks, 277 backend tests, 109 browser tests across 13 specs, source audit and 118-file package validation. Gitleaks history/current-source scans passed after narrowly annotating three synthetic curl fixtures; npm audit reported zero vulnerabilities. Clean production installation/native preparation/imports and temporary unconfigured Paseo loading succeeded on macOS; temporary registration removed, original dashboard running. Representative light/mobile and dark/desktop screenshots inspected. No live Jira writes, commit or publication. See [Testing](TESTING.md) for evidence boundaries. Full current automated/local gates are complete; upload response contracts, other OS native-store verification, public-distribution clearance remain separate gates.
+Locked 0.14 and isolated 0.15 SDK configurations each passed both typechecks, 277 backend tests, 109 browser tests across 13 specs, source audit and 118-file package validation. Gitleaks history/current-source scans passed after narrowly annotating three synthetic curl fixtures; npm audit reported zero vulnerabilities. Clean production installation/native preparation/imports and temporary unconfigured Paseo loading succeeded on macOS; temporary registration removed, original dashboard running. Representative light/mobile and dark/desktop screenshots inspected. Verification used mocks for Jira writes. See [Testing](TESTING.md) for evidence boundaries. Full current automated/local gates are complete; upload response contracts, other OS native-store verification, public-distribution clearance remain separate gates.
 
 Diagnostics reduction verified (2026-11-05): `npm run check` passed both typechecks, all 278 backend tests, source audit and 118-file package validation. Added no-log success coverage and replaced shape tests with failure-code/no-payload privacy tests. Browser behavior is unchanged; the preceding 109-test suites were not rerun for this backend logging-only change.
