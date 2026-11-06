@@ -27,6 +27,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
  const c=theme.colors;const read=useRpc(listComments);const post=useRpc(postComment);const cache=useQueryClient();
  const draftKey=`${hostId}/${issueKey}`;
  const [draft,setDraft]=useState<Draft|undefined>(()=>readOnly?undefined:drafts.get(draftKey));const [preview,setPreview]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ const [refreshFeedback,setRefreshFeedback]=useState('');
  const posting=useRef(false);const input=useRef<TextInput>(null);const selection=useRef({start:0,end:0});
  const queryKey=['jira-comments',hostId,connectionRevision,issueKey];
  const query=useInfiniteQuery({queryKey,initialPageParam:0,queryFn:({pageParam})=>read({key:issueKey,startAt:pageParam}),getNextPageParam:last=>last.nextStart??undefined,retry:false});
@@ -39,13 +40,18 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
  }
  async function submit(){
   if(!draft||!draft.text.trim()||posting.current||draft.uncertain)return;
-  posting.current=true;setBusy(true);setError('');const submitted=draft;
+  posting.current=true;setRefreshFeedback('');setBusy(true);setError('');const submitted=draft;
   try{
    await post({key:issueKey,markdown:submitted.text,requestId:submitted.requestId,parentId:submitted.parent?.id});
    update(undefined);setNotice(submitted.parent?'Linked reply posted.':'Comment posted.');
    await cache.invalidateQueries({queryKey}).catch(()=>{});
   }catch(e){setError(message(e));update({...submitted,uncertain:true});}
   finally{posting.current=false;setBusy(false);}
+ }
+ async function refreshForReview(){
+  setRefreshFeedback('');
+  const result=await query.refetch();
+  setRefreshFeedback(result.isError?'Could not refresh comments. Check Jira before retrying.':'Comments refreshed. Review the list before trying again.');
  }
  const iconButton=(label:string,icon:string,onPress:()=>void,disabled=false)=><CommentIcon theme={theme} label={label} icon={icon} onPress={onPress} disabled={disabled}/>;
  const editor=!readOnly&&draft?<View style={{gap:10,minWidth:0}}>
@@ -59,7 +65,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
   </View>
   <Text style={{color:c.foregroundMuted,fontSize:11,lineHeight:17}}>Markdown: **bold**, *italic*, lists, headings, quotes, links and code. Use Preview to check formatting.</Text>
   {error?<Text accessibilityRole="alert" style={{color:c.statusDanger,fontSize:13,lineHeight:19}}>{error}</Text>:null}
-  {draft.uncertain?<><Text style={{color:c.foregroundMuted,fontSize:12,lineHeight:18}}>Check refreshed comments and Jira before trying again, to avoid duplicates. Your draft is retained.</Text><Action theme={theme} label="I checked — enable another attempt" icon="RotateCcw" onPress={()=>{update({...draft,uncertain:false,requestId:newId()});setError('');}}/></>:null}
+  {draft.uncertain?<><Text style={{color:c.foregroundMuted,fontSize:12,lineHeight:18}}>Refresh the comments and compare them with your draft. If you find your comment, discard the draft. If delivery is still unclear, check Jira before trying again.</Text><Action theme={theme} label={query.isFetching?'Refreshing comments…':'Refresh comments'} icon="RefreshCw" disabled={query.isFetching} onPress={()=>void refreshForReview()}/>{refreshFeedback?<Text accessibilityLiveRegion="polite" style={{color:c.foregroundMuted,fontSize:12}}>{refreshFeedback}</Text>:null}<Action theme={theme} label="I checked — enable another attempt" disabled={query.isFetching} icon="RotateCcw" onPress={()=>{update({...draft,uncertain:false,requestId:newId()});setError('');}}/></>:null}
   <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}><Action theme={theme} primary icon="Send" label={busy?'Posting…':draft.parent?'Post linked reply':'Post comment'} onPress={()=>void submit()} disabled={busy||!!draft.uncertain||!draft.text.trim()}/><Action theme={theme} icon="X" label="Discard" onPress={()=>{update(undefined);setError('');}} disabled={busy}/></View>
  </View>:null;
  return <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:14,gap:10,minWidth:0}}>
