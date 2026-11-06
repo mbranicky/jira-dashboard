@@ -4,6 +4,10 @@ import assert from 'node:assert/strict';
 const [pack]=JSON.parse(execFileSync('npm',['pack','--dry-run','--json','--ignore-scripts'],{encoding:'utf8'}));
 const files=pack.files.map(file=>file.path);
 const manifest=JSON.parse(readFileSync('paseo-plugin.json','utf8'));
+// Paseo only loads imported modules within client/, server/ and shared/.
+const clientInfo=JSON.parse(readFileSync('server/mcp-client-info.json','utf8'));
+assert(files.includes('server/mcp-client-info.json'),'Missing MCP handshake metadata');
+assert.deepEqual(clientInfo,{name:pack.name,version:pack.version},'MCP metadata must match the package');
 assert.equal(pack.name,manifest.id,'Package name and default Paseo ID should agree');
 assert(Array.isArray(manifest.media)&&manifest.media.length>0,'Visual plugin requires listing screenshots');
 for(const asset of [manifest.icon,...(manifest.media??[])])assert(files.includes(asset),`Missing manifest asset: ${asset}`);
