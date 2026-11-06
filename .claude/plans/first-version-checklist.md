@@ -20,7 +20,11 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [ ] **Shared host access — awaiting Atlassian’s response.** Confirm the identity requirements for REST and TWG when the account owner uses several devices or a different person connects to the same host. Record the answer and satisfy any conditions before registry submission. See the [authentication policy review](../../docs/ATLASSIAN_AUTH_POLICY.md#submitted-support-request).
 - [x] Record 1.0.0 host coverage: macOS on Apple silicon verified, Ubuntu CI coverage only, Windows and Intel Macs unverified.
 - [x] Document verified MCP attachment reads, mock-only upload coverage and how to check an unconfirmed upload in Jira. See [known limitations](../../docs/KNOWN_LIMITATIONS.md#atlassian-mcp).
-- [ ] Verify the final artifact for the chosen distribution channels. Obtain release authorization before tagging, publishing or submitting a directory listing.
+- [x] Build the 1.0.0 candidate tarball from `8ae5eb1` on Apple silicon and open **Jira Workspace** on an isolated Paseo 0.15.2 host. All mock connection steps passed for REST (8/8), Teamwork Graph CLI (7/7) and Atlassian MCP (7/7). See the [tarball test record](../../docs/TESTING.md#apple-silicon-npm-tarball-test).
+- [ ] Resolve the local-token and shared-host questions above for public npm distribution, or adopt an authentication design that addresses them.
+- [ ] Finalize the npm installation instructions and 1.0.0 changelog, confirm the publisher and first-publish authentication, and remove the `private: true` guard in the reviewed release changes. On 6 November 2026 the public npm registry returned 404 for `paseo-jira-sprint-workspace`. Recheck the name before publishing.
+- [ ] Verify the exact final tarball after release edits. Run CI, review packaged contents and record the final digest before requesting authorization to tag and publish.
+- [ ] After authorized npm publication, install version 1.0.0 by name on a clean host. Submit a Paseo directory listing only with separate authorization.
 
 ## Before first version
 
