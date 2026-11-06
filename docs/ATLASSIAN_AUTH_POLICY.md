@@ -1,6 +1,6 @@
 # Atlassian authentication policy review
 
-Reviewed 6 November 2026. Paseo registry submission is pending clarification of local REST token use and shared-host access.
+Reviewed 6 November 2026. Paseo registry submission is awaiting Atlassian’s written response on local REST token use and shared-host access for REST and Teamwork Graph CLI. Both questions are tracked in [ECOHELP-182681](https://ecosystem.atlassian.net/servicedesk/customer/portal/34/ECOHELP-182681).
 
 ## Conclusion
 
@@ -33,9 +33,9 @@ Both adapters act as the host’s configured Atlassian account. The account owne
 
 All three connection methods remain in scope for 1.0.0. Record Atlassian’s written answer here with its date, scope and conditions. If each person needs their own identity, address that requirement before submission. If local REST token use is disallowed, confirm a supported alternative for a user-hosted public client. The [documented Jira OAuth flow](https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/) uses a client secret. An open-source plugin cannot keep a bundled shared secret confidential.
 
-## Draft support request
+## Submitted support request
 
-Prepared for [Atlassian Developer Support](https://developer.atlassian.com/support). Unsent.
+Submitted to Atlassian Developer Support on 6 November 2026. Awaiting a response to both questions. [ECOHELP-182681](https://ecosystem.atlassian.net/servicedesk/customer/portal/34/ECOHELP-182681).
 
 **Subject:** Jira Cloud authentication for a user-hosted Paseo plugin: local REST tokens and shared host access
 
