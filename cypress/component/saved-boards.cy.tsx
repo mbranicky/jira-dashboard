@@ -17,3 +17,16 @@ it('invalid site and failed persistence → keep current board',()=>{
 it('compact light layout → manage the current board without overflow',()=>{
  cy.viewport(390,844);stubRpc();mount(<Harness light/>);button('Manage boards').click();cy.get('[aria-label="Board name"]').type('Current');button('Save board').click();button('Close saved boards').click();button('Board: Current').should('be.visible').click();cy.contains('Current').should('be.visible');
 });
+
+for(const light of [false,true])it(`wide ${light?'light':'dark'} layout → keep board controls together and vertically aligned`,()=>{
+ cy.viewport(1920,1000);stubRpc();mount(<Harness light={light}/>);
+ cy.get('[data-testid="board-selector"]').should('be.visible').then($selector=>{
+  const selector=$selector[0].getBoundingClientRect();
+  expect(selector.width).to.be.at.most(320);
+  button('Manage boards').should($button=>{
+   const action=$button[0].getBoundingClientRect();
+   expect(action.left-selector.right).to.be.within(0,12);
+   expect(Math.abs((action.top+action.height/2)-(selector.top+selector.height/2))).to.be.lessThan(2);
+  });
+ });
+});
