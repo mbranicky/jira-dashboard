@@ -154,3 +154,9 @@ The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 
 ## Diagnostics reduction follow-up — 2026-11-05
 
 After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.
+
+## Next-version quick filters (7 November 2026)
+
+Shared filtering covers labels, priority, type, parent and fix version, with OR within a field and AND across fields. Saved views include literal key/title search, are stored per board in host settings, and are shared by clients of that host. Tests cover missing values after refresh, defaults for existing settings, all three connection modes, restoration after navigation, deletion, compact light-theme layout and save failure.
+
+Paseo 0.15.3 on macOS arm64 loaded the updated plugin and displayed the new controls. Selecting a label reduced the board from 28 to 1 issue; clearing restored 28. No Jira writes were performed. Cross-transport behavior and save failure were exercised with mocked component RPCs, not live transport switching.

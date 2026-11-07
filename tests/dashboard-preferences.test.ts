@@ -5,7 +5,7 @@ import {dashboardPreferencesSchema} from '../shared/contracts';
 import {clampPanelWidth,detailsPresentation} from '../shared/details-presentation';
 test('existing installations retain modal details and both choices survive settings JSON validation',()=>{
  assert.equal(dashboardPreferencesSchema.parse({}).detailsView,'modal');
- for(const detailsView of ['modal','panel'])assert.deepEqual(z.json().parse(dashboardPreferencesSchema.parse({detailsView})),{detailsView,sprintByBoard:{}});
+ for(const detailsView of ['modal','panel'])assert.deepEqual(z.json().parse(dashboardPreferencesSchema.parse({detailsView})),{detailsView,sprintByBoard:{},viewsByBoard:{}});
  assert.equal(dashboardPreferencesSchema.safeParse({detailsView:'unknown'}).success,false);
 });
 test('details panel fits the dashboard width and falls back to full screen on compact clients',()=>{

@@ -1,8 +1,9 @@
+import {savedViewSchema} from './board-filters';
 import {richBlockSchema} from './comments';
 import { defineRpc, defineSettings } from '@getpaseo/plugin';
 import { z } from 'zod';
 
-export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','panel']).default('modal'),sprintByBoard:z.record(z.string(),z.number().int().positive().nullable()).default({})});
+export const dashboardPreferencesSchema=z.object({viewsByBoard:z.record(z.string(),z.array(savedViewSchema).max(30)).default({}),detailsView:z.enum(['modal','panel']).default('modal'),sprintByBoard:z.record(z.string(),z.number().int().positive().nullable()).default({})});
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
