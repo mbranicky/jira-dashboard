@@ -23,3 +23,9 @@ Verification: both typechecks; Chrome coverage for card selection in light/dark 
 Cards read linked agent metadata, or workspace metadata for manually discovered links, every 15 seconds while the board is visible. At most four metadata reads run concurrently; duplicate links are read once. No timelines or prompts are read. Idle never means finished: only an explicit agent completion signal displays “Agent finished”. Failed, missing, archived or mismatched links display an unavailable state without hiding the issue. Details offer an on-demand activity section, timestamp and navigation.
 
 Verification: two metadata unit tests; 15 mocked Chrome activity/start-work cases, including all three transports; both typechecks. Reloaded in Paseo and verified a real linked card's “Agent idle” badge, then expanded activity details and confirmed its timestamp and Open agent action. No Jira writes or agent actions were executed.
+
+## 3. Attention filters
+
+The existing filter dropdowns now include Activity: Needs my input, Agent finished, Failed, Working, Has workspace and No workspace. Selections combine with Jira filters and search and can be saved in existing views. Older views default to no activity filter. Unavailable activity is excluded from state filters but still matches workspace-presence filters, with a visible explanation.
+
+Verification: six filter/activity unit tests, ten Chrome filter/saved-view tests across all transports, both typechecks. In Paseo, selected Has workspace, confirmed the linked issue remained, and cleared the filter to restore the board. No Jira writes.
