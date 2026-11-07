@@ -3,7 +3,7 @@ import type {Issue} from './contracts';
 export type BoardView = {search:string; filters?:BoardFilters; columnKey?:string};
 export type DashboardSession={
  boardViews?:Record<string,BoardView>;
- selected?:{issue:Issue;sprintId:number;site:string};
+ selected?:{boardKey?:string;issue:Issue;sprintId:number;site:string};
  panelWidth:number;
  panelCollapsed:boolean;
 };
