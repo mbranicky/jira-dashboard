@@ -37,3 +37,5 @@ export async function localPreviewAvailable(baseUrl:string,token:string){
 // Desktop/browser device storage. Native clients keep session drafts until Paseo ships device settings.
 declare const localStorage:import('../shared/comment-drafts').DraftStorage;
 export function localDraftStorage(){if(Platform.OS!=='web')return undefined;try{return localStorage;}catch{return undefined;}}
+
+export const requiresDurableDeliveryMarker=Platform.OS==='web';

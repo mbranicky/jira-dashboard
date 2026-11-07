@@ -162,3 +162,5 @@ Six Node tests verify persistence across fresh stores, reply/uncertainty restora
 The current public Paseo documentation describes device-scoped settings, but the latest published SDK 0.15.3 still declares host-only settings. This implementation uses app/browser local storage with a visible session-only fallback on native clients or storage failure, preserving the current minimum host version. No private draft text is written to host settings. Native mobile persistence awaits a supported stable device-storage API.
 
 The existing component suite passed its 111 non-registry tests with private drafts enabled. Registry preview fixtures needed the new identity-read response; their three tests passed after that fixture update. A fresh focused draft run also passed after preventing cached identity from restoring a draft until reverified.
+
+An additional browser regression fills device storage immediately before submission and proves that no comment POST occurs. Desktop/browser posting requires a durable uncertainty marker; the draft remains available with a recovery message when writing that marker fails. The focused draft suite now has five passing tests.

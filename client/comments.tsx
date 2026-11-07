@@ -1,5 +1,5 @@
 import {createDraftStore,draftStorageKey,readDraftIdentity,type CommentDraft} from '../shared/comment-drafts';
-import {localDraftStorage} from './web';
+import {localDraftStorage,requiresDurableDeliveryMarker} from './web';
 import {Tooltip} from './tooltip';
 import {JiraContent} from './jira-content';
 import {SectionHeading} from './section-heading';
@@ -37,7 +37,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision,draftScope}
  const queryKey=['jira-comments',hostId,connectionRevision,issueKey];
  const query=useInfiniteQuery({queryKey,initialPageParam:0,queryFn:({pageParam})=>read({key:issueKey,startAt:pageParam}),getNextPageParam:last=>last.nextStart??undefined,retry:false});
  const site=query.data?.pages[0]?.site;const comments=linkedReplyThreads(query.data?.pages.flatMap(p=>p.comments)??[],site,issueKey);const rows=commentThreads(comments);
- function update(value:Draft|undefined){setDraft(value);setDurable(drafts.write(draftKey,value));}
+ function update(value:Draft|undefined){setDraft(value);const saved=drafts.write(draftKey,value);setDurable(saved);return saved;}
  function begin(parent?:JiraComment){if(draft)return;update({text:'',parent:parent?{id:parent.id,author:parent.author,restricted:parent.restricted}:undefined,requestId:newId()});setPreview(false);setError('');setNotice('');}
  function insert(before:string,after='',placeholder='text'){
   if(!draft||busy||draft.uncertain)return;const {start,end}=selection.current;const text=draft.text.slice(0,start)+before+(draft.text.slice(start,end)||placeholder)+after+draft.text.slice(end);
@@ -50,7 +50,8 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision,draftScope}
    const identity=await identify({});
    if(draftStorageKey(hostId,identity.site,identity.accountId,issueKey)!==draftKey)throw Error('Jira account changed. Reopen this issue before posting.');
    // Persist uncertainty before sending: a reload during delivery must never enable a blind retry.
-   update({...submitted,uncertain:true});
+   const deliverySaved=update({...submitted,uncertain:true});
+   if(requiresDurableDeliveryMarker&&!deliverySaved)throw Error('Could not save delivery state on this device. Copy your draft and free device storage before posting.');
    await post({key:issueKey,markdown:submitted.text,requestId:submitted.requestId,parentId:submitted.parent?.id});
    update(undefined);setNotice(submitted.parent?'Linked reply posted.':'Comment posted.');
    await cache.invalidateQueries({queryKey}).catch(()=>{});

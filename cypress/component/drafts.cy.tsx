@@ -12,3 +12,9 @@ it('account changes before submission → no comment write',()=>{
  cy.viewport(1440,1000);stubRpc();let calls=0;cy.intercept('POST','/__rpc/comments.draft-identity',req=>req.reply({site,accountId:++calls===1?'first':'second'}));
  cy.intercept('POST','/__rpc/comments.post',()=>{throw Error('Must not post under a changed account');});mount(<Harness/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();button('Add comment').scrollIntoView().click();cy.get('[aria-label="Write a comment in Markdown"]').type('Scoped draft');button('Post comment').click();cy.contains('Jira account changed.').should('be.visible');
 });
+it('device storage fills before submission → block the write and keep the draft',()=>{
+ cy.viewport(1440,1000);stubRpc();cy.intercept('POST','/__rpc/comments.post',()=>{throw Error('Must not post without persisting delivery state');});mount(<Harness/>);
+ cy.get('[aria-label^="Open details for TEST-1:"]').click();button('Add comment').scrollIntoView().click();cy.get('[aria-label="Write a comment in Markdown"]').type('Keep safe');
+ cy.window().then(win=>cy.stub(win.Storage.prototype,'setItem').throws(new Error('Quota exceeded')));
+ button('Post comment').click();cy.contains('Could not save delivery state on this device.').should('be.visible');cy.get('[aria-label="Write a comment in Markdown"]').should('have.value','Keep safe');cy.contains('Draft kept for this session only.').should('be.visible');
+});
