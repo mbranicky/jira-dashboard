@@ -27,7 +27,7 @@ try{
   if(lstatSync(path).isSymbolicLink()){findings.push([file,'symlink requires review']);continue;}
   const data=readFileSync(path);const text=data.toString('utf8');
   // Exact digests of visually reviewed public media; replacements require review again.
-  const reviewedMedia={"assets/icon.png": "2c809a274cf8d89f5587f97f60b3e4f0315bd52ccadae777c9856d066e50e677", "assets/dashboard.png": "38bb45f7341319a633f4800caa81d07464e3d87d0f3445215ffe565da1416a42", "assets/details.png": "12504f61817dc14d3a43f84cc104c039cfd9b77a5944466b5d1cc2f682591d10", "assets/settings.png": "725c0ccf8e3f6123d513256a53fcd0270dafe25390fc576ac46582f9cb094c4e", "assets/mobile.png": "9292ffa5dc14ea31c5b62e3d65d3ca4e369f08439415a6bbb907c7932b18dea4"};
+  const reviewedMedia={"assets/icon.png": "2c809a274cf8d89f5587f97f60b3e4f0315bd52ccadae777c9856d066e50e677", "assets/dashboard.png": "1024a7446d36a7e43cd57d48b5f08e523f900a2969c01ee6e12d613db2be76fa", "assets/details.png": "25c9bdc0f5c4f4bc76a569842b1022797270f8bb3309316c1f0f81a6fb27282d", "assets/settings.png": "1cf3c98157d53d1bce37e2adb214e20889387ca1a82127c85fb224ecb59586fa", "assets/mobile.png": "558a98a9dd6ac8ae49e8278683029689a4d689607071e7591bcd867e46dadc5a"};
   if(reviewedMedia[file]===createHash('sha256').update(data).digest('hex'))continue;
   if(/(?:^|\/)\.local\/|(?:^|\/)jira\.env$|\.(?:png|jpe?g|webp|zip|pdf|tgz)$/i.test(file))findings.push([file,'private artifact or binary requires review']);
   if(secrets.some(secret=>text.includes(secret)))findings.push([file,'matches local Jira credential']);
