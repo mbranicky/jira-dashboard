@@ -1,3 +1,4 @@
+import {IssueRelationships} from './issue-relationships';
 import {IssueFields} from './issue-fields';
 import {JiraContent} from './jira-content';
 import {SectionHeading} from './section-heading';
@@ -56,6 +57,7 @@ export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProp
     <Text selectable style={{color:c.foreground,fontSize:18,lineHeight:25,fontWeight:'600'}}>{data.issue.summary}</Text>
     <View style={{gap:8}}><Text style={{color:c.accent,fontSize:12,fontWeight:'600'}}>{data.issue.status}</Text><Text style={{color:c.foregroundMuted,fontSize:12}}>{data.issue.type} · {data.issue.priority??'No priority'}</Text></View>
     <View style={{gap:10}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:10}}><JiraContent onOpenJira={()=>void openExternal(`${data.site}/browse/${encodeURIComponent(data.issue.key)}`)} blocks={data.details.richDescription??[]} theme={theme}/></View></View>
+    <IssueRelationships value={data.details.relationships} theme={theme}/>
     <View style={{borderTopWidth:1,borderTopColor:c.border,paddingTop:16,gap:16}}><Text style={{color:c.foreground,fontWeight:'600',fontSize:14}}>Jira fields</Text><IssueFields issue={data.issue} details={data.details} theme={theme}/></View>
     {<><IssueAttachments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={revision} issueKey={data.issue.key} hostId={host.id} theme={theme}/></>}
    </>}

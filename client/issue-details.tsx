@@ -1,3 +1,4 @@
+import {IssueRelationships} from './issue-relationships';
 import {DetailsPanel} from './details-panel';
 import {IssueFields} from './issue-fields';
 import {Tooltip} from './tooltip';
@@ -35,7 +36,7 @@ export function IssueDetails({startAvailable=true,contentAvailable=true,readOnly
   <View style={{gap:14,flex:wide?1:undefined,width:wide?undefined:'100%',minWidth:0}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:12}}>
    {query.isPending?<Text style={{color:c.foregroundMuted}}>Loading issue details…</Text>:query.error?<View><Text accessibilityRole="alert" style={{color:c.statusDanger}}>{query.error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,'')}</Text><Action theme={theme} icon="RefreshCw" label="Retry" onPress={()=>void query.refetch()}/></View>:<JiraContent onOpenJira={onOpenJira} blocks={query.data?.richDescription??[]} theme={theme}/>}
 
-   </View>{contentAvailable?<><IssueAttachments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/></>:null}
+   </View>{query.data?<IssueRelationships value={query.data.relationships} theme={theme}/>:null}{contentAvailable?<><IssueAttachments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/></>:null}
   </View>
   <View style={{padding:wide?20:0,paddingTop:wide?20:14,borderRadius:wide?12:0,backgroundColor:wide?c.surface1:'transparent',borderTopWidth:wide?0:1,borderTopColor:c.border,width:wide?300:'100%',gap:20,flexShrink:0}}>
    <Text style={{color:c.foreground,fontSize:16,fontWeight:'600'}}>Jira fields</Text>

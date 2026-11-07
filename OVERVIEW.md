@@ -15,3 +15,5 @@ Open rich issue details in a modal or a resizable, collapsible dashboard panel; 
 Credentials stay on the daemon and are sent to Atlassian for authentication, never to agents by the plugin. Authorized Paseo clients on that host share the configured account's Jira view. Jira data travels between Atlassian, the daemon and connected clients; comments, uploads and workflow moves write to Jira only through their explicit actions. Workspace associations persist on the host. Panel state and comment drafts are session-only and clear on app/plugin restart. Failed writes are not automatically retried.
 
 Direct token entry, in-plugin Paseo project creation, native threaded reply posting and explicit skill rerun controls are not available. The connection test does not verify comment, attachment or transition permissions. Unsupported workflow fields must be completed in Jira.
+
+Issue details and workspace panels show linked issues and subtasks with Jira's relationship labels, status and links back to Jira. When the connection omits relationship fields, the panel explains that the list is incomplete.
