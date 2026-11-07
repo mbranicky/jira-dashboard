@@ -68,6 +68,6 @@ PRs are stacked so each diff contains only its own improvement:
 4. [#34](https://github.com/mbranicky/jira-dashboard/pull/34): card actions, based on #33.
 5. [#35](https://github.com/mbranicky/jira-dashboard/pull/35): detail navigation, based on #34.
 6. [#36](https://github.com/mbranicky/jira-dashboard/pull/36): device display preferences, based on #35.
-7. Mobile navigation and final integration verification, based on #36.
+7. [#37](https://github.com/mbranicky/jira-dashboard/pull/37): mobile navigation and final integration verification, based on #36.
 
 Merge only when separately authorized, in order, retargeting each next PR to main and checking its new merge result. Do not delete a base branch while another open PR depends on it. Version remains 1.1.0; no tag or npm publication accompanies this work.
