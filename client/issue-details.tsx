@@ -1,3 +1,4 @@
+import {useReducedMotion} from './motion';
 import {IssueRelationships} from './issue-relationships';
 import {DetailsPanel} from './details-panel';
 import {IssueFields} from './issue-fields';
@@ -47,9 +48,10 @@ export function IssueDetails({startAvailable=true,contentAvailable=true,readOnly
 }
 
 function DetailsShell({issueKey,theme,onClose,children,presentation,panelWidth,panelCollapsed,onTogglePanel,onResizePanel}:{panelCollapsed:boolean;onTogglePanel:()=>void;onResizePanel:(width:number)=>void;presentation:'modal'|'panel'|'fullscreen';panelWidth:number;issueKey:string;theme:PluginScreenProps['theme'];onClose:()=>void;children:ReactNode}){
+ const reduced=useReducedMotion();
  const {width,height}=useWindowDimensions();const c=theme.colors;
  if(presentation==='panel')return <DetailsPanel theme={theme} issueKey={issueKey} width={panelWidth} collapsed={panelCollapsed} onToggle={onTogglePanel} onResize={onResizePanel}>{children}</DetailsPanel>;
- if(width<760||presentation==='fullscreen')return <NativeModal visible presentationStyle="fullScreen" animationType="slide" onRequestClose={onClose}>
+ if(width<760||presentation==='fullscreen')return <NativeModal visible presentationStyle="fullScreen" animationType={reduced?'none':'slide'} onRequestClose={onClose}>
   <SafeAreaView style={{flex:1,backgroundColor:c.surface0}}>
    <View accessibilityViewIsModal style={{flex:1,minHeight:0}}>
     <View style={{paddingLeft:16,paddingRight:8,paddingVertical:6,flexDirection:'row',alignItems:'center',gap:10,borderBottomWidth:1,borderBottomColor:c.border,flexShrink:0}}><Icon name="FileText" size={18} color={c.accent}/><Text accessibilityRole="header" style={{color:c.foreground,fontSize:15,fontWeight:'600',flex:1}}>{issueKey}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close issue details" onPress={onClose} style={{width:44,height:44,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={20} color={c.foregroundMuted}/></Pressable></View>
@@ -57,7 +59,7 @@ function DetailsShell({issueKey,theme,onClose,children,presentation,panelWidth,p
    </View>
   </SafeAreaView>
  </NativeModal>;
- return <NativeModal visible transparent animationType="fade" onRequestClose={onClose}>
+ return <NativeModal visible transparent animationType={reduced?'none':'fade'} onRequestClose={onClose}>
   <View style={{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(0,0,0,0.6)',padding:24}}>
    <Pressable accessibilityLabel="Dismiss issue details" onPress={onClose} style={{position:'absolute',top:0,right:0,bottom:0,left:0}}/>
    <View accessibilityViewIsModal style={{width:Math.min(1180,width-48),maxHeight:height-48,backgroundColor:c.surface0,borderRadius:16,borderWidth:1,borderColor:c.border,overflow:'hidden'}}>
