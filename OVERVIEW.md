@@ -16,4 +16,5 @@ Credentials stay on the daemon and are sent to Atlassian for authentication, nev
 
 Direct token entry, in-plugin Paseo project creation, native threaded reply posting and explicit skill rerun controls are not available. The connection test does not verify comment, attachment or transition permissions. Unsupported workflow fields must be completed in Jira.
 
+Issue details and workspace panels show linked issues and subtasks with Jira's relationship labels, status and links back to Jira. When the connection omits relationship fields, the panel explains that the list is incomplete.
 Filter the loaded sprint by labels, priority, issue type, parent or fix version. Combine filters with key/title search and save named views for each board. Saved views are shared with other clients connected to the same Paseo host.

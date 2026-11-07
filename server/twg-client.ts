@@ -77,7 +77,7 @@ export class TwgConnection {
     const value=twgTarget.parse(target);
     if(!/^[A-Z][A-Z0-9_]*-[1-9]\d*$/.test(key))throw new Error('Invalid Jira issue key.');
     return this.json(['jira','workitem','get',key,'--strict','--fields',
-      'summary,status,issuetype,priority,project,parent,fixVersions,labels,description,assignee,reporter,duedate,created,updated',
+      'summary,status,issuetype,priority,project,parent,fixVersions,labels,description,assignee,reporter,duedate,created,updated,issuelinks,subtasks',
       '--site',new URL(value.site).hostname,'--profile',value.profile]);
   }
   searchAssignedIssues(target:{site:string;profile:string}){

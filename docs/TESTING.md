@@ -155,6 +155,11 @@ The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 
 
 After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.
 
+## Related issues (7 November 2026)
+
+Four Node regressions verify direction, custom link labels, deduplication, missing/malformed fields and REST/TWG/MCP normalization. Four Chrome component tests exercise the three modes, compact/light rendering, unavailable fields and external navigation failure. Full `npm run check` passes.
+
+Paseo 0.15.3/macOS arm64 loaded the feature and displayed three related issues with their Jira relationship labels and statuses in an issue detail dialog. This was a read-only smoke check; write operations were not performed. Adapter coverage uses mocks. Missing relationship fields produce an explicit incomplete-list message.
 ## Next-version quick filters (7 November 2026)
 
 Shared filtering covers labels, priority, type, parent and fix version, with OR within a field and AND across fields. Saved views include literal key/title search, are stored per board in host settings, and are shared by clients of that host. Tests cover missing values after refresh, defaults for existing settings, all three connection modes, restoration after navigation, deletion, compact light-theme layout and save failure.
