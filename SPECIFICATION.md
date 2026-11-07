@@ -10,7 +10,7 @@ The plugin provides board interaction and workspace orchestration. An optional e
 
 ## Jira connection
 
-Support one Jira Cloud site and one configured board per host configuration. The board URL supplies the site and board ID. The project segment of a board URL does not restrict the board to that project: issues may belong to several Jira projects.
+Support one Jira Cloud site and one selected board per host configuration, with up to 20 named saved boards on that site. Switching preserves credentials, consent and project mappings, and retains per-board sprint and session search state. Selection is shared by connected host clients. The board URL supplies the site and board ID. The project segment of a board URL does not restrict the board to that project: issues may belong to several Jira projects.
 
 Example: `https://example.atlassian.net/jira/software/c/projects/DEMO/boards/51` selects board 51 on the example site.
 
