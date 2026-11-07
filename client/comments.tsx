@@ -23,6 +23,7 @@ export function CommentContent({blocks,theme,onOpenJira}:{blocks:RichBlock[];the
 export function IssueComments({issueKey,hostId,theme,readOnly=false,connectionRevision=''}:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){
  const identify=useRpc(readDraftIdentity);
  const identity=useQuery({queryKey:['jira-draft-identity',hostId,connectionRevision],queryFn:()=>identify({}),enabled:!readOnly,retry:false,staleTime:0,refetchOnWindowFocus:false});
+ if(!readOnly&&(identity.isPending||identity.isFetching||!identity.isFetchedAfterMount&&!identity.isError))return <Text style={{color:theme.colors.foregroundMuted}}>Verifying account for private drafts…</Text>;
  const scope=identity.isSuccess&&identity.isFetchedAfterMount&&!identity.isFetching?draftStorageKey(hostId,identity.data.site,identity.data.accountId,issueKey):undefined;
  return <>{!readOnly&&identity.error?<View><Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>Could not verify the account for private drafts.</Text><Action theme={theme} label="Retry draft identity" icon="RefreshCw" onPress={()=>void identity.refetch()}/></View>:null}<Comments key={`${scope??hostId}/${issueKey}/${connectionRevision}/${readOnly||!scope||!!identity.error}`} draftScope={scope} readOnly={readOnly||!scope||!!identity.error} connectionRevision={connectionRevision} issueKey={issueKey} hostId={hostId} theme={theme}/></>;
 }

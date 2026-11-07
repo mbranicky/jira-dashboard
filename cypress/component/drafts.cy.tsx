@@ -18,3 +18,9 @@ it('device storage fills before submission → block the write and keep the draf
  cy.window().then(win=>cy.stub(win.Storage.prototype,'setItem').throws(new Error('Quota exceeded')));
  button('Post comment').click();cy.contains('Could not save delivery state on this device.').should('be.visible');cy.get('[aria-label="Write a comment in Markdown"]').should('have.value','Keep safe');cy.contains('Draft kept for this session only.').should('be.visible');
 });
+it('delayed identity → show comment controls only after verification settles',()=>{
+ cy.viewport(390,900);stubRpc();const gate:{release?:()=>void}={};
+ cy.intercept('POST','/__rpc/comments.draft-identity',req=>new Promise<void>(resolve=>{gate.release=()=>{req.reply({site,accountId:'test-user'});resolve();};}));
+ mount(<Harness/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();cy.contains('Verifying account for private drafts…').scrollIntoView().should('be.visible');button('Refresh comments').should('not.exist');
+ cy.wrap(gate).should(v=>expect(v.release).to.be.a('function')).then(v=>v.release!());button('Refresh comments').scrollIntoView().click();button('Add comment').should('be.visible');
+});

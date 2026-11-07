@@ -164,3 +164,5 @@ The current public Paseo documentation describes device-scoped settings, but the
 The existing component suite passed its 111 non-registry tests with private drafts enabled. Registry preview fixtures needed the new identity-read response; their three tests passed after that fixture update. A fresh focused draft run also passed after preventing cached identity from restoring a draft until reverified.
 
 An additional browser regression fills device storage immediately before submission and proves that no comment POST occurs. Desktop/browser posting requires a durable uncertainty marker; the draft remains available with a recovery message when writing that marker fails. The focused draft suite now has five passing tests.
+
+CI exposed a delayed-identity remount while clicking Refresh comments on a compact REST fixture. Writable comments now wait for identity verification before rendering controls. A gated identity-response regression covers that boundary; the six draft tests and eight comment-layout tests pass together.
