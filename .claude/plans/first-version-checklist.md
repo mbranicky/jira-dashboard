@@ -8,9 +8,9 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
-## 1.1.0 release preparation (2026-11-07)
+## 1.1.0 release completed (2026-11-07)
 
-This section governs the next release. Older sections below are historical records; unchecked first-release items are not evidence that published 1.0.0 is still pending.
+Version 1.1.0 is published to npm and deployed in the Paseo registry. Older sections below are historical records; unchecked first-release items do not describe the current delivery status. Atlassian policy questions remain unresolved independently of registry acceptance.
 
 - [x] Merge PRs #23–#27 after green checks; reload main (`3956ad8`) and verify the board loads.
 - [x] Set package, shrinkwrap root/package entry and MCP handshake metadata to 1.1.0. Preserve plugin ID and Paseo requirement `>=0.14.0 <0.16.0`.
@@ -19,11 +19,15 @@ This section governs the next release. Older sections below are historical recor
 - [x] Refresh and visually review all four public screenshots using synthetic data; update approved media hashes.
 - [x] Run full Node/browser tests, both typechecks, package validation and source scan on the release candidate. Passed 296 Node tests, 143 Chrome tests and 14 release-script tests; see `docs/TESTING.md`.
 - [x] Pack the final candidate, record SHA-256 outside packaged contents, inspect version/contents and run the manifest build from a clean extraction. Final artifact: `paseo-jira-sprint-workspace-1.1.0.tgz`, 130 files, 1,001,488 bytes; SHA-256 `90b40f0e97dfff51a0238a96aa18975899868457a0b092612a55aa9831f143f5`. Both manifest commands passed on macOS arm64; zero reported production dependency vulnerabilities. This checklist is excluded from the tarball.
-- [ ] Merge the preparation PR after green checks and verify exact merged-main CI before immutable release actions.
-- [ ] Confirm npm trusted publishing configuration before the planned GitHub Actions publication.
-- [ ] Record the npm 1.1.0 decision on unresolved ECOHELP-182681 questions. Existing written acceptance names npm 1.0.0; no new policy clearance is implied.
-- [ ] Obtain explicit authorization before tagging or publishing. No release or directory submission is authorized by preparation.
-- [ ] After publication, install the published package by name on a clean host; verify the directory listing separately if authorized.
+- [x] Merge preparation [PR #28](https://github.com/mbranicky/jira-dashboard/pull/28) and verify all four [main checks](https://github.com/mbranicky/jira-dashboard/actions/runs/42390391099) for release commit `5c738db438238222198927ff7fec6659efa7dd1b`.
+- [x] Configure the explicitly authorized npm trusted publisher: `mbranicky/jira-dashboard`, workflow `publish.yml`, environment `npm`, direct publication allowed, separate dist-tag management disabled. Successful OIDC publication validated the connection.
+- [x] Record the maintainer's explicit instruction to release 1.1.0 with all three connection methods while ECOHELP-182681 remains unresolved. This is release authorization, not new Atlassian policy clearance.
+- [x] Publish the authorized [v1.1.0 tag and GitHub release](https://github.com/mbranicky/jira-dashboard/releases/tag/v1.1.0), including release notes, the exact tarball and checksum. The tag remains pinned to `5c738db`.
+- [x] Publish [npm 1.1.0](https://www.npmjs.com/package/paseo-jira-sprint-workspace/v/1.1.0) as `latest`; [publishing run](https://github.com/mbranicky/jira-dashboard/actions/runs/42391878271) verified registry integrity and byte-identical download against the tested tarball.
+- [x] Install npm 1.1.0 by name on an isolated macOS arm64 Paseo 0.15.3 host. Startup and reload passed; Jira Workspace opened first-run settings with all three connection methods. No Jira credentials or live writes were used. Stop the temporary host and preserve the active installation.
+- [x] Submit the separately authorized registry migration in [#2089](https://github.com/getpaseo/plugins/issues/2089); [PR #2090](https://github.com/getpaseo/plugins/pull/2090) was approved and merged. Verify the [live index](https://plugins.paseo.sh/index.json) now uses npm `paseo-jira-sprint-workspace@1.1.0`, preserving listing ID `mbranicky/jira-dashboard`. [Registry deployment](https://github.com/getpaseo/plugins/actions/runs/42409290244) passed. Future npm releases can receive automatic update PRs; each still needs registry approval and deployment.
+
+Screenshot-only [PR #29](https://github.com/mbranicky/jira-dashboard/pull/29) subsequently merged as `58d404d`. Its refreshed assets are on main, not in the immutable npm 1.1.0 package or tag. The registry uses the media shipped with the reviewed npm package. No new version or publication accompanies this record update.
 
 ## 1.0.0 release preparation (2026-11-06)
 
