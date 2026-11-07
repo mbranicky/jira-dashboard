@@ -8,16 +8,30 @@ for(const transport of ['rest','twg','mcp'] as const)describe(`${transport} quic
   cy.viewport(1440,900);stubRpc();
   cy.intercept('POST','/__rpc/board.read',{...board,issues:[board.issues[0],{...board.issues[1],priority:'High',labels:['urgent']}]});
   mount(<Harness transport={transport}/>);title('TEST-1').should('be.visible');
-  button('Filters').click();button('Priority: High').click();title('TEST-1').should('not.exist');title('TEST-2').should('be.visible');
+  button('Filters').click();button('Filter by Priority').click();cy.get('[role="checkbox"][aria-label="Priority: High"]').click();button('Done').click();title('TEST-1').should('not.exist');title('TEST-2').should('be.visible');
   cy.contains('1 of 2').should('be.visible');
-  cy.get('[aria-label="Saved view name"]').type('Urgent');button('Save view').click();button('View: Urgent').should('be.visible');
-  button('Clear filters').click();title('TEST-1').should('be.visible');button('View: Urgent').click();title('TEST-1').should('not.exist');
-  cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();button('View: Urgent').should('be.visible');title('TEST-1').should('not.exist');
-  button('Filters (1)').click();button('Delete view: Urgent').click();button('View: Urgent').should('not.exist');
+  button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Urgent');button('Save view').click();button('Saved views').should('be.visible');
+  button('Clear filters').click();title('TEST-1').should('be.visible');button('Saved views').click();button('View: Urgent').click();title('TEST-1').should('not.exist');
+  cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();button('Saved views').should('be.visible');title('TEST-1').should('not.exist');
+  button('Saved views').click();button('Delete view: Urgent').click();button('View: Urgent').should('not.exist');
  });
 });
 it('compact light theme and save failure → filters remain usable and failure is visible',()=>{
- cy.viewport(390,844);stubRpc();mount(<Harness light failSave/>);button('Filters').click();button('Label: alpha').click();
- cy.get('[aria-label="Saved view name"]').type('Example');button('Save view').click();cy.contains('Could not save views.').should('be.visible');
+ cy.viewport(390,844);stubRpc();mount(<Harness light failSave/>);button('Filters').click();button('Filter by Label').click();cy.get('[role="checkbox"][aria-label="Label: alpha"]').click();button('Done').click();
+ button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Example');button('Save view').click();cy.contains('Could not save views.').should('be.visible');
  button('View: Example').should('not.exist');button('Remove Label: alpha').click();button('Hide filters').click();title('TEST-1').should('be.visible');
+});
+for(const width of [1440,390,320])it(`searchable multi-select at ${width}px → bounded layout and retained selections`,()=>{
+ cy.viewport(width,900);stubRpc();
+ cy.intercept('POST','/__rpc/board.read',{...board,issues:[{...board.issues[0],labels:Array.from({length:80},(_,i)=>`label-${i}`)},board.issues[1]]});
+ mount(<Harness light={width===390}/>);button('Filters').click();
+ cy.get('[aria-label="Saved view name"]').should('not.exist');
+ cy.get('[data-testid="board-filters"]').should($bar=>expect($bar[0].getBoundingClientRect().height).to.be.lessThan(width===1440?100:240));
+ button('Filter by Label').click();cy.get('[aria-label="Search Label options"]').type('label-79');
+ cy.get('[role="checkbox"]').should('have.length',1).should('have.attr','aria-checked','false').click().should('have.attr','aria-checked','true');
+ cy.get('[aria-label="Search Label options"]').clear().type('no-such-label');cy.contains('No matching options.').should('be.visible');
+ button('Done').click();button('Remove Label: label-79').should('be.visible').should('not.contain.text','Remove');
+ button('Filter by Label').click();cy.get('[aria-label="Label: label-79"]').should('have.attr','aria-checked','true');
+ cy.get('[aria-label="Search Label options"]').should($input=>{const rect=$input[0].getBoundingClientRect();expect(rect.left).to.be.at.least(0);expect(rect.right).to.be.at.most(width);});
+ button('Clear Label').click();button('Done').click();button('Remove Label: label-79').should('not.exist');
 });
