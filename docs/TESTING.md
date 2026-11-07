@@ -154,3 +154,9 @@ The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 
 ## Diagnostics reduction follow-up — 2026-11-05
 
 After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.
+
+## Saved boards (7 November 2026)
+
+Full `npm run check`, four Node regressions and five Chrome component tests pass. The three transport fixtures cover saving/switching boards, per-board search restoration and a return path; additional cases cover cross-site rejection, failed settings persistence and compact/light layout. Credentials/profile/write consent remain intact in all three configuration tests.
+
+Paseo 0.15.3/macOS arm64 displayed the switcher and management form. A temporary bookmark for the current board was saved, visibly selected, then removed. No live Jira writes or live switch to another board was performed; switching and error paths use mocks.

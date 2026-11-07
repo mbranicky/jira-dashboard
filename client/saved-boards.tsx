@@ -1,0 +1,26 @@
+import {useState} from 'react';
+import {Text,TextInput,View} from 'react-native';
+import {useSettings} from '@getpaseo/plugin/client';
+import {connection,type Connection} from '../shared/contracts';
+import {addSavedBoard,canonicalBoardUrl,selectSavedBoard} from '../shared/saved-boards';
+import {Action,type SettingsTheme} from './settings-ui';
+import {ResponsiveSelect} from './responsive-select';
+export function SavedBoards({theme,compact,onSelected}:{theme:SettingsTheme;compact:boolean;onSelected:()=>void}){
+ const settings=useSettings(connection);const [open,setOpen]=useState(false);const [name,setName]=useState('');const [url,setUrl]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const c=theme.colors;
+ if(settings.status!=='ready')return null;
+ const config=settings.values;let current:string;try{current=canonicalBoardUrl(config.boardUrl);}catch{return null;}
+ const boards=config.savedBoards.filter(b=>new URL(b.url).origin===new URL(current).origin);
+ const options=[...boards.map(b=>({label:b.name,value:canonicalBoardUrl(b.url)})),...(!boards.some(b=>canonicalBoardUrl(b.url)===current)?[{label:`Current board · ${current.split('/').pop()}`,value:current}]:[])];
+ async function save(next:()=>Connection,select=false){if(settings.status!=='ready'||busy||settings.saving)return;setBusy(true);setError('');try{const ok=await settings.save(next(),settings.revision);if(!ok)throw Error('Could not save boards. Reload settings and try again.');if(select)onSelected();else{setName('');setUrl('');}}catch(e){setError(e instanceof Error?e.message:'Could not save boards.');}finally{setBusy(false);}}
+ return <View style={{gap:8}}>
+  <View style={{flexDirection:compact?'column':'row',alignItems:compact?'stretch':'center',gap:8}}><View style={{flex:1}}><ResponsiveSelect theme={theme} compact={compact} label="Board" value={current} options={options} disabled={busy||settings.saving} onValueChange={value=>void save(()=>selectSavedBoard(config,value),true)}/></View><Action theme={theme} label={open?'Close saved boards':'Manage boards'} icon="PanelsTopLeft" onPress={()=>setOpen(!open)}/></View>
+  {open?<View style={{gap:8,padding:12,borderRadius:8,backgroundColor:c.surface1}}>
+   <Text style={{color:c.foregroundMuted,fontSize:12}}>Save boards from this Jira site. Board selection is shared on this host; credentials and project mappings stay the same.</Text>
+   <TextInput accessibilityLabel="Board name" value={name} onChangeText={setName} maxLength={80} placeholder="Board name" placeholderTextColor={c.foregroundMuted} style={{color:c.foreground,padding:10,borderWidth:1,borderColor:c.border,borderRadius:6}}/>
+   <TextInput accessibilityLabel="Board URL" value={url} onChangeText={setUrl} autoCapitalize="none" autoCorrect={false} placeholder={current} placeholderTextColor={c.foregroundMuted} style={{color:c.foreground,padding:10,borderWidth:1,borderColor:c.border,borderRadius:6}}/>
+   <Action theme={theme} label="Save board" icon="Save" disabled={busy||settings.saving||!name.trim()} onPress={()=>void save(()=>addSavedBoard(config,name,url||current))}/>
+   {boards.map(board=><Action key={board.url} theme={theme} label={`Remove saved board: ${board.name}`} icon="Trash2" disabled={busy||settings.saving} onPress={()=>void save(()=>({...config,savedBoards:config.savedBoards.filter(b=>b.url!==board.url)}))}/>)}
+  </View>:null}
+  {error?<Text accessibilityRole="alert" style={{color:c.statusDanger}}>{error}</Text>:null}
+ </View>;
+}

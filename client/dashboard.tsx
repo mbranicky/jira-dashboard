@@ -1,3 +1,4 @@
+import {SavedBoards} from './saved-boards';
 import boardIcon from './board-icon.json';
 import {ResponsiveSelect} from './responsive-select';
 import {McpSettings} from './mcp-settings';
@@ -82,13 +83,14 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const preferences=useSettings(dashboardPreferences);
-  const {boardViews,updateBoard,selected,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
+  const {boardViews,updateBoard,selected:savedSelection,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
   const [availableWidth,setAvailableWidth]=useState(0);
   const settings=useSettings(connection);const projectMappings=useSettings(mappings);const rpc=useRpc(readBoard);
   const [mappingProject,setMappingProject]=useState<string>();
   const [sprintMenu,setSprintMenu]=useState(false);const [searchFocused,setSearchFocused]=useState(false);const [editing,setEditing]=useState(false);const [linkError,setLinkError]=useState<string>();
   const sprintKey=settings.status==='ready'?sprintSelectionKey(settings.values.boardUrl):'';
   const boardView=boardViews?.[sprintKey];
+  const selected=savedSelection?.boardKey===sprintKey?savedSelection:undefined;
   const search=boardView?.search??'';
   const setSearch=(value:string)=>updateBoard(sprintKey,{search:value});
   const sprint=preferences.status==='ready'?preferences.values.sprintByBoard?.[sprintKey]??undefined:undefined;
@@ -132,6 +134,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>
       </View>
+      <SavedBoards theme={theme} compact={layout.compact} onSelected={()=>setSelected(undefined)}/>
       {data?.workspaceWarning?<Text accessibilityRole="alert" style={{...muted,fontSize:13}}>{data.workspaceWarning}</Text>:null}
       <View style={{flexDirection:layout.compact?'column':'row',gap:10,alignItems:layout.compact?'stretch':'flex-start'}}>
         {data?<View style={{width:layout.compact?'100%':320,gap:4}}>
@@ -171,7 +174,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.08)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'700',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;

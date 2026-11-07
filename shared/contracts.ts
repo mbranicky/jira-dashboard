@@ -1,3 +1,4 @@
+import {savedBoardSchema} from './saved-boards';
 import {richBlockSchema} from './comments';
 import { defineRpc, defineSettings } from '@getpaseo/plugin';
 import { z } from 'zod';
@@ -6,6 +7,7 @@ export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','p
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
+  savedBoards:z.array(savedBoardSchema).max(20).default([]),
   transport: z.enum(['rest','twg','mcp']).optional(),
   mcpWrites: z.boolean().default(false),
   mcpHostId:z.string().max(256).default(''),
