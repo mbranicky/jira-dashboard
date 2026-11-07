@@ -8,6 +8,23 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.1.0 release preparation (2026-11-07)
+
+This section governs the next release. Older sections below are historical records; unchecked first-release items are not evidence that published 1.0.0 is still pending.
+
+- [x] Merge PRs #23–#27 after green checks; reload main (`3956ad8`) and verify the board loads.
+- [x] Set package, shrinkwrap root/package entry and MCP handshake metadata to 1.1.0. Preserve plugin ID and Paseo requirement `>=0.14.0 <0.16.0`.
+- [x] Keep REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth.
+- [x] Add 1.1.0 changelog and update the handoff. Document native mobile draft fallback and unchanged host/upload limitations.
+- [x] Refresh and visually review all four public screenshots using synthetic data; update approved media hashes.
+- [x] Run full Node/browser tests, both typechecks, package validation and source scan on the release candidate. Passed 296 Node tests, 143 Chrome tests and 14 release-script tests; see `docs/TESTING.md`.
+- [x] Pack the final candidate, record SHA-256 outside packaged contents, inspect version/contents and run the manifest build from a clean extraction. Final artifact: `paseo-jira-sprint-workspace-1.1.0.tgz`, 130 files, 1,001,488 bytes; SHA-256 `90b40f0e97dfff51a0238a96aa18975899868457a0b092612a55aa9831f143f5`. Both manifest commands passed on macOS arm64; zero reported production dependency vulnerabilities. This checklist is excluded from the tarball.
+- [ ] Merge the preparation PR after green checks and verify exact merged-main CI before immutable release actions.
+- [ ] Confirm npm trusted publishing configuration before the planned GitHub Actions publication.
+- [ ] Record the npm 1.1.0 decision on unresolved ECOHELP-182681 questions. Existing written acceptance names npm 1.0.0; no new policy clearance is implied.
+- [ ] Obtain explicit authorization before tagging or publishing. No release or directory submission is authorized by preparation.
+- [ ] After publication, install the published package by name on a clean host; verify the directory listing separately if authorized.
+
 ## 1.0.0 release preparation (2026-11-06)
 
 - [x] Choose the public display name **Jira Sprint Workspace**, default plugin ID and package name `paseo-jira-sprint-workspace`, and package version `1.0.0`. Document the ID change for development installations.
@@ -71,9 +88,9 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 
   Sprint selection is saved per board. PR #10 added per-host, per-board session retention for search and the mobile column; it also added a read-only refresh beside uncertain comment drafts.
 
-- [ ] **Protect unfinished comments:** warn before switching tickets or closing details when a comment draft would be lost.
+- [x] **Protect unfinished comments:** retain drafts across ticket changes and closing details, with explicit storage limitations.
 
-  Code inspection found existing host/issue-scoped comment draft storage. The browser suite verifies retention through collapse, ticket switching, and navigation. Restart still clears session drafts; no explicit unsaved-draft warning exists.
+  Superseded by PR #27: verified-account-scoped device-local drafts survive reloads on desktop/browser clients. Native mobile clients explicitly report session-only retention. Uncertain delivery remains protected, and a missing durable delivery marker blocks web submission. Regression tests cover identity, restoration and failure paths.
 
 - [x] **Clear partial-failure recovery:** if a workspace is created but agent startup fails, offer a retry that reuses the workspace.
 

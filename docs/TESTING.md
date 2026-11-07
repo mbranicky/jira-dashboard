@@ -1,5 +1,17 @@
 # Testing Jira Sprint Workspace
 
+## 1.1.0 candidate verification — 2026-11-07
+
+Prepared on `codex/release-1-1-0` from merged main `3956ad8`, on macOS Apple silicon. Package, shrinkwrap and MCP client metadata all identify version 1.1.0. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included.
+
+- `npm run check`: both typechecks, 296 Node tests, source heuristic audit and package validation passed.
+- `python3 -B scripts/test_npm_release.py`: 14 release-script tests passed.
+- `npm run test:ui`: all 143 Chrome component/capture tests passed, using mocks.
+- The clean extracted npm package completed both manifest build commands: `npm ci --omit=dev --ignore-scripts` and `node scripts/prepare-native.mjs`. Installation reported zero dependency vulnerabilities.
+- Desktop, detail, mobile and settings screenshots were regenerated with synthetic data and visually reviewed. The settings capture remains byte-identical to the previous approved image; the other three show the updated interface.
+
+The final tarball checksum is recorded outside packaged files in the release checklist and beside the retained artifact. This checkpoint does not establish a new isolated-host runtime test, live Jira write coverage, or additional platform support. The earlier 1.0.0 host test below remains historical evidence. No tag or publication was performed; preparation PR checks and final merged-main verification remain release gates.
+
 ## Apple silicon npm tarball test
 
 On 6 November 2026, we packed `paseo-jira-sprint-workspace@1.0.0` from clean `main` at `8ae5eb1`. The candidate tarball had SHA-256 `f69cbb069b35f8e0e74086a15bc527bd2b5be23657f639506a2572bf109ef227`.

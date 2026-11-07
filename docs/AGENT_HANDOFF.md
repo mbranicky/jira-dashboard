@@ -1,12 +1,16 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-06. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+Updated: 2026-11-07. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
 
 ## Repository and delivery status
 
-The repository is public. Atlassian MCP support merged into `main` on 2026-11-05 in [PR #8](https://github.com/mbranicky/jira-dashboard/pull/8) (commit `f5019ca`). All three CI checks passed. The local plugin was reloaded from `main` in `/Users/marek/Projects/paseo/jira-dashboard`. See the [release history](https://github.com/mbranicky/jira-dashboard/releases) and [installation guide](GETTING_STARTED.md) for 1.0.0.
+The repository is public. Version 1.0.0 is published. PRs #23–#27 merged into main at `3956ad8` after all checks passed; the local plugin was reloaded from main and displayed 28 issues. They add quick filters/saved views, related issues, keyboard navigation, saved boards and private drafts, including compact responsive controls and tooltip icons.
 
-Latest fix: MCP transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
+Version 1.1.0 is in preparation on `codex/release-1-1-0`. All three connection methods remain in scope. Do not tag, publish, or submit a directory listing without explicit authorization. See the [release checklist](../.claude/plans/first-version-checklist.md) for candidate verification and remaining gates. Drafts use device-local browser/app storage; native mobile storage is session-only. Host-scoped board bookmarks and saved views are shared, not private drafts.
+
+Candidate verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. Screenshots use reviewed synthetic fixtures. See [testing](TESTING.md#110-candidate-verification--2026-11-07). Final artifact checksum is kept outside packaged files; preparation changes still need their PR and merged-main checks.
+
+Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
 No live move was tested or submitted by the agent. The fix is covered by mocked response/ambiguity/change/readback regression tests; live successful transition remains unverified. No user diagnostic reply is pending.
 
@@ -53,7 +57,7 @@ This is a presentation workaround. Before future comment integration changes, re
 
 Pre-merge verification is summarized below. [Testing](TESTING.md) records the focused regression checks and full suite results.
 
-Remaining work includes verifying the MCP upload preparation and media response formats without live test writes, checking native credential storage on other supported hosts, and resolving [distribution clearance for the local-token approach](ATLASSIAN_AUTH_POLICY.md) before a registry release.
+Remaining work includes verifying the MCP upload preparation and media response formats without live test writes, checking native credential storage on other supported hosts, and resolving [distribution clearance for the local-token approach](ATLASSIAN_AUTH_POLICY.md) before a Paseo directory submission. The recorded risk acceptance covered npm 1.0.0; record the next-release decision before npm publication.
 
 ## Production diagnostics
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0
+
+- Filter sprint issues by label, priority, issue type, parent and fix version with searchable multi-select menus. Save named filter/search views per board.
+- Save and switch between boards on the same Jira site while retaining connection settings, project mappings and per-board sprint/search state.
+- Show related issues and subtasks with relationship labels, statuses and compact Jira links.
+- Navigate the desktop board with J/K, focus search with /, and open the focused issue with Enter. Shortcuts do not intercept editors or dialogs.
+- Retain private comment and linked-reply drafts on this device, scoped to the host, Jira site, verified account and issue. Desktop/browser storage survives reloads; native mobile clients retain drafts only for the session. Uncertain delivery stays protected against accidental reposting.
+- Refresh plugin and board-header icons; add section icons and accessible action tooltips. Compact controls and removable filter chips reduce header height, with responsive toolbar wrapping on smaller screens.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain supported. Host coverage and MCP upload limitations are unchanged: macOS Apple silicon is verified, Ubuntu has automated coverage, other hosts remain unverified, and MCP uploads have mock-only verification.
+
 ## 1.0.0
 
 First release under the display name **Jira Sprint Workspace**. The Paseo installation ID and npm package name are both `paseo-jira-sprint-workspace`. Existing development installations used `jira-dashboard`. See the [upgrade instructions](docs/GETTING_STARTED.md#updating-from-the-development-id).
