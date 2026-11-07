@@ -1,9 +1,11 @@
 import {savedBoardSchema} from './saved-boards';
+import {relationshipsSchema} from './relationships';
+import {savedViewSchema} from './board-filters';
 import {richBlockSchema} from './comments';
 import { defineRpc, defineSettings } from '@getpaseo/plugin';
 import { z } from 'zod';
 
-export const dashboardPreferencesSchema=z.object({detailsView:z.enum(['modal','panel']).default('modal'),sprintByBoard:z.record(z.string(),z.number().int().positive().nullable()).default({})});
+export const dashboardPreferencesSchema=z.object({viewsByBoard:z.record(z.string(),z.array(savedViewSchema).max(30)).default({}),detailsView:z.enum(['modal','panel']).default('modal'),sprintByBoard:z.record(z.string(),z.number().int().positive().nullable()).default({})});
 export const dashboardPreferences=defineSettings({id:'dashboard',scope:'host',version:1,schema:dashboardPreferencesSchema});
 
 export const connectionSchema = z.object({
@@ -82,7 +84,7 @@ export const mappingFormSchema = mappingsSchema.superRefine(({items},ctx)=>{
   });
 });
 
-export const issueDetailsSchema=z.object({richDescription:z.array(richBlockSchema).optional(),description:z.array(z.object({text:z.string(),kind:z.enum(['paragraph','heading','code'])})),assignee:z.string().nullable(),reporter:z.string().nullable(),dueDate:z.string().nullable(),created:z.string().nullable(),updated:z.string().nullable()});
+export const issueDetailsSchema=z.object({relationships:relationshipsSchema.optional(),richDescription:z.array(richBlockSchema).optional(),description:z.array(z.object({text:z.string(),kind:z.enum(['paragraph','heading','code'])})),assignee:z.string().nullable(),reporter:z.string().nullable(),dueDate:z.string().nullable(),created:z.string().nullable(),updated:z.string().nullable()});
 export const readIssueDetails=defineRpc({name:'issue.details',input:workInput,output:issueDetailsSchema});
 
 export const workspaceIssueLink=defineRpc({name:'workspace.issue-link',input:z.object({workspaceId:z.string().min(1),candidates:z.array(workInput.shape.key).max(200)}),output:z.array(workInput.shape.key)});

@@ -1,5 +1,6 @@
+import type {BoardFilters} from './board-filters';
 import type {Issue} from './contracts';
-export type BoardView = {search:string; columnKey?:string};
+export type BoardView = {search:string; filters?:BoardFilters; columnKey?:string};
 export type DashboardSession={
  boardViews?:Record<string,BoardView>;
  selected?:{boardKey?:string;issue:Issue;sprintId:number;site:string};
