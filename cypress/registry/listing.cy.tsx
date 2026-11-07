@@ -7,8 +7,9 @@ const detail=()=>cy.get('[aria-label^="Open details for DEMO-123:"]');
 describe('Registry previews',()=>{
  beforeEach(()=>registryRpc());
  it('desktop board and details → readable public listing screenshots',()=>{
-  cy.viewport(1000,880);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
+  cy.viewport(1100,900);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
   detail().should('be.visible');button('Start work DEMO-124').should('be.visible');
+  button('Filters').click();
   cy.get('[data-cy-root]').screenshot('registry-dashboard');
   cy.viewport(1500,880);detail().click();cy.contains('What success looks like').should('be.visible');
   cy.get('[data-testid="details-panel"]').should('contain.text','DEMO-123');
@@ -35,6 +36,7 @@ describe('Registry previews',()=>{
   button('Close issue details').should('be.visible');cy.contains('What success looks like').should('be.visible');
   cy.contains('[role="button"]','Attachments (0)').click({scrollBehavior:false});
   cy.contains('The updated flow is ready for review.',{matchCase:false}).should('exist');
+  button('Description').click({scrollBehavior:false});
   cy.get('[data-cy-root]').screenshot('registry-mobile');
  });
 });

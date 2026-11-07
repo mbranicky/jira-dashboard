@@ -11,7 +11,7 @@ export const registryBoard={...board,name:'Product team',user:{displayName:'Alex
  ticket('DEMO-115','Add a welcome checklist for new team members','3'),
  ticket('DEMO-112','Remember the last selected workspace','3'),
 ]};
-export const registryDetails={description:[],richDescription:[
+export const registryDetails={relationships:{complete:true,items:[{key:"DEMO-119",summary:"Improve keyboard navigation in the project picker",status:"In progress",relationship:"relates to"}]},description:[],richDescription:[
  {kind:'paragraph',runs:[{text:'Help new team members create their first project with clear steps, useful defaults and helpful feedback.'}]},
  {kind:'heading',level:2,runs:[{text:'What success looks like'}]},
  {kind:'paragraph',prefix:'• ',runs:[{text:'Keep the setup focused on the essential choices.'}]},
