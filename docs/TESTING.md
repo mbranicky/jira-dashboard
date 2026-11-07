@@ -160,3 +160,13 @@ After removing OAuth progress, response-shape and tool-catalogue logs, `npm run 
 Full `npm run check` passes. Four Chrome component tests cover REST/TWG/MCP with mocked RPCs, navigation through filtered cards, search focus, Enter opening details, typing shortcut characters in a comment editor, and an open sprint menu. The initially read-only TWG/MCP fixtures were corrected to enable their mock comment editors.
 
 Paseo 0.15.3/macOS arm64 loaded the feature. With focus on a board control, J focused an issue title and / focused the search input. Shortcuts are board-local and desktop/web-only; native clients retain normal touch navigation. No live Jira writes.
+## Related issues (7 November 2026)
+
+Four Node regressions verify direction, custom link labels, deduplication, missing/malformed fields and REST/TWG/MCP normalization. Four Chrome component tests exercise the three modes, compact/light rendering, unavailable fields and external navigation failure. Full `npm run check` passes.
+
+Paseo 0.15.3/macOS arm64 loaded the feature and displayed three related issues with their Jira relationship labels and statuses in an issue detail dialog. This was a read-only smoke check; write operations were not performed. Adapter coverage uses mocks. Missing relationship fields produce an explicit incomplete-list message.
+## Next-version quick filters (7 November 2026)
+
+Shared filtering covers labels, priority, type, parent and fix version, with OR within a field and AND across fields. Saved views include literal key/title search, are stored per board in host settings, and are shared by clients of that host. Tests cover missing values after refresh, defaults for existing settings, all three connection modes, restoration after navigation, deletion, compact light-theme layout and save failure.
+
+Paseo 0.15.3 on macOS arm64 loaded the updated plugin and displayed the new controls. Selecting a label reduced the board from 28 to 1 issue; clearing restored 28. No Jira writes were performed. Cross-transport behavior and save failure were exercised with mocked component RPCs, not live transport switching.
