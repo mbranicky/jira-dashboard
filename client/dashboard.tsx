@@ -1,7 +1,8 @@
+import {issueNavigation} from '../shared/issue-navigation';
 import {useWorkspaceActivity} from './workspace-activity';
 import {activityKey} from '../shared/workspace-activity';
 import {SavedBoards} from './saved-boards';
-import {bindBoardKeyboard} from './web';
+import {bindBoardKeyboard,focusIssueCard} from './web';
 import {useEffect,useRef} from 'react';
 import {BoardFilterBar} from './board-filters';
 import {emptyFilters,matchesBoardView} from '../shared/board-filters';
@@ -99,6 +100,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const sprintKey=settings.status==='ready'?sprintSelectionKey(settings.values.boardUrl):'';
   const boardView=boardViews?.[sprintKey];
   const selected=savedSelection?.boardKey===sprintKey?savedSelection:undefined;
+  const lastSelected=useRef<string|undefined>(undefined);
+  useEffect(()=>{if(selected)lastSelected.current=selected.issue.key;else if(lastSelected.current){focusIssueCard(keyboardRoot.current,lastSelected.current);lastSelected.current=undefined;}},[selected]);
   const search=boardView?.search??'';
   const filters=boardView?.filters??emptyFilters();
   const setSearch=(value:string)=>updateBoard(sprintKey,{search:value});
@@ -131,6 +134,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const panel=preferences.status==='ready'&&preferences.values.detailsView==='panel';
   const presentation=detailsPresentation(panel?'panel':'modal',layout.compact,availableWidth);
   const currentIssue=selected&&(data?.selectedSprintId===selected.sprintId?data.issues.find(i=>i.key===selected.issue.key):undefined)||selected?.issue;
+  const detailNav=issueNavigation(filtered,columns,currentIssue?.key??'');
+  const goToIssue=(issue:typeof currentIssue)=>{if(issue&&data?.selectedSprintId){setPanelCollapsed(false);if(layout.compact){const index=columns.findIndex(column=>column.statusIds.includes(issue.statusId));if(index>=0)updateBoard(sprintKey,{columnKey:columnKeys[index]});}setSelected({boardKey:sprintKey,issue,sprintId:data.selectedSprintId,site:data.site});}};
   return <View onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',backgroundColor:theme.colors.surface0}}>
   <View ref={keyboardRoot} style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
     <View style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
@@ -195,6 +200,6 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     </ScrollView>
     </BoardMoves>}
   </View>
-  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails startAvailable={true} readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
+  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails issueNavigation={{position:detailNav.index+1,total:detailNav.total,onPrevious:detailNav.previous?()=>goToIssue(detailNav.previous):undefined,onNext:detailNav.next?()=>goToIssue(detailNav.next):undefined}} startAvailable={true} readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
   </View>;
 }
