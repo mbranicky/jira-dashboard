@@ -1,3 +1,4 @@
+import {CardActions} from './card-actions';
 import {ActivityBadge} from './workspace-activity';
 import type {WorkspaceActivity} from '../shared/workspace-activity';
 import {issueSearchHighlights} from '../shared/search-highlights';
@@ -10,8 +11,8 @@ import {useState} from 'react';
 import type {Issue} from '../shared/contracts';
 import {StartWork} from './start-work';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {activity?:WorkspaceActivity;selected?:boolean;search?:string;startAvailable?:boolean;detailsAvailable?:boolean;readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
-export function IssueCard({activity,selected=false,search='',startAvailable=true,detailsAvailable=true,readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {jiraUrl?:string;activity?:WorkspaceActivity;selected?:boolean;search?:string;startAvailable?:boolean;detailsAvailable?:boolean;readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
+export function IssueCard({jiraUrl,activity,selected=false,search='',startAvailable=true,detailsAvailable=true,readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
  const [expanded,setExpanded]=useState(false);const [focused,setFocused]=useState(false);
  const colors=theme.colors;
  const matches=issueSearchHighlights(issue,search);
@@ -41,6 +42,7 @@ export function IssueCard({activity,selected=false,search='',startAvailable=true
      <View style={{flex:1,flexDirection:'row',alignItems:'center',gap:5}}>
        <Pressable accessibilityRole="link" accessibilityLabel={`${issue.type} ${issue.key}. Open in Jira`} onPress={onOpenJira} style={{minHeight:44,flexDirection:'row',alignItems:'center',gap:6,flexShrink:1}}><Icon name={typeIcon} size={14} color={typeColor}/><Text style={{color:colors.foregroundMuted,fontSize:11,fontWeight:'600'}}><SearchHighlight text={issue.key} ranges={matches.key} theme={theme}/></Text><Icon name="ExternalLink" size={10} color={colors.foregroundMuted}/></Pressable>
        {issue.priority?<View accessibilityLabel={`Priority: ${issue.priority}`} style={{flexDirection:'row',alignItems:'center',gap:2,marginLeft:'auto',flexShrink:1}}><Icon name={priorityIcon} size={14} color={important?colors.statusWarning:colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:10,flexShrink:1}}>{issue.priority}</Text></View>:null}
+       <CardActions theme={theme} issueKey={issue.key} jiraUrl={jiraUrl} onOpenJira={onOpenJira} onOpenWorkspace={issue.linkedWorkspace&&navigation?()=>navigation.openWorkspace({workspaceId:issue.linkedWorkspace!.workspaceId}):undefined}/>
      </View>
    }/>
  </View>;

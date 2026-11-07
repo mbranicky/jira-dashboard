@@ -29,3 +29,9 @@ Verification: two metadata unit tests; 15 mocked Chrome activity/start-work case
 The existing filter dropdowns now include Activity: Needs my input, Agent finished, Failed, Working, Has workspace and No workspace. Selections combine with Jira filters and search and can be saved in existing views. Older views default to no activity filter. Unavailable activity is excluded from state filters but still matches workspace-presence filters, with a visible explanation.
 
 Verification: six filter/activity unit tests, ten Chrome filter/saved-view tests across all transports, both typechecks. In Paseo, selected Has workspace, confirmed the linked issue remained, and cleared the filter to restore the board. No Jira writes.
+
+## 4. Card actions
+
+A tooltip-labelled overflow button shares the existing card footer, without adding a new row. It offers Copy issue key, Copy Jira link, Open in Jira and (when linked) Open workspace. The primary Start/Open action remains visible. Copy success or failure stays inside the menu.
+
+Verification: both typechecks and four mocked Chrome cases covering all transports, exact clipboard values, workspace navigation, tooltip, mobile error/retry and dismissal. Reloaded in Paseo, opened the linked card menu, copied its issue key and observed success feedback. No Jira writes.
