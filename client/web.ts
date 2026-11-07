@@ -33,3 +33,7 @@ export async function localPreviewAvailable(baseUrl:string,token:string){
  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),2000);
  try{const response=await fetch(`${baseUrl}/${token}/probe`,{signal:controller.signal});return response.ok&&await response.text()===token;}catch{return false;}finally{clearTimeout(timeout);}
 }
+
+// Desktop/browser device storage. Native clients keep session drafts until Paseo ships device settings.
+declare const localStorage:import('../shared/comment-drafts').DraftStorage;
+export function localDraftStorage(){if(Platform.OS!=='web')return undefined;try{return localStorage;}catch{return undefined;}}

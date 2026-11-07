@@ -154,3 +154,11 @@ The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 
 ## Diagnostics reduction follow-up — 2026-11-05
 
 After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.
+
+## Private comment drafts (7 November 2026)
+
+Six Node tests verify persistence across fresh stores, reply/uncertainty restoration, host/site/account/issue isolation, failed storage and authenticated identity lookup through REST/TWG/MCP. Four browser tests cover all three transports, durable-storage content, uncertain delivery after reopening and account-change rejection without posting. Paseo 0.15.3/macOS arm64 restored an unsent synthetic draft after a plugin reload; the draft was then discarded without posting.
+
+The current public Paseo documentation describes device-scoped settings, but the latest published SDK 0.15.3 still declares host-only settings. This implementation uses app/browser local storage with a visible session-only fallback on native clients or storage failure, preserving the current minimum host version. No private draft text is written to host settings. Native mobile persistence awaits a supported stable device-storage API.
+
+The existing component suite passed its 111 non-registry tests with private drafts enabled. Registry preview fixtures needed the new identity-read response; their three tests passed after that fixture update. A fresh focused draft run also passed after preventing cached identity from restoring a draft until reverified.

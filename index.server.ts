@@ -1,3 +1,5 @@
+import {draftIdentity} from './server/draft-identity';
+import {readDraftIdentity} from './shared/comment-drafts';
 import {publicAttachmentSettings} from './server/attachment-settings';
 import {checkMcpConnection} from './server/mcp-connection-check';
 import {mcpWrites,assertMcpWrites} from './server/mcp-writes';
@@ -116,6 +118,10 @@ export default function contribute(server:PluginServerContext){
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');
     if(current.values.transport==='mcp'){const site=parseBoardUrl(current.values.boardUrl).site;return readMcpIssue(await mcp.ensureConnection({hostId:current.values.mcpHostId,site}),site,key);}
     return current.values.transport==='twg'?twgDashboard.issue(current.values,key):fetchWorkspaceIssue(current.values,key);
+  });
+  server.handle(readDraftIdentity,async()=>{
+    const current=await settings.read();if(current.status!=='ready')throw Error('Configure the Jira connection first.');
+    return draftIdentity(current.values,async()=>{const reader=await mcp.ensureConnection({hostId:current.values.mcpHostId,site:parseBoardUrl(current.values.boardUrl).site});return reader.verifiedBinding();});
   });
   server.handle(listComments,async({key,startAt})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure the Jira connection first.');

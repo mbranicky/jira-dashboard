@@ -1,47 +1,56 @@
+import {createDraftStore,draftStorageKey,readDraftIdentity,type CommentDraft} from '../shared/comment-drafts';
+import {localDraftStorage} from './web';
 import {Tooltip} from './tooltip';
 import {JiraContent} from './jira-content';
 import {SectionHeading} from './section-heading';
 import {useRef,useState} from 'react';
 import {useRpc} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
-import {useInfiniteQuery,useQueryClient} from '@tanstack/react-query';
+import {useInfiniteQuery,useQuery,useQueryClient} from '@tanstack/react-query';
 import {Pressable,Text,TextInput,View} from 'react-native';
 import {linkedReplyThreads,commentThreads,listComments,postComment,markdownToAdf,richBlocks,safeLink,type JiraComment,type RichBlock} from '../shared/comments';
 import {openExternal} from './web';
 import {Action} from './settings-ui';
 
 type Theme=Parameters<typeof Action>[0]['theme'];
-type Draft={text:string;parent?:JiraComment;requestId:string;uncertain?:boolean};
-// Retain drafts when a details modal closes or a workspace tab unmounts, within this client session.
-const drafts=new Map<string,Draft>();
+type Draft=CommentDraft;
+const drafts=createDraftStore(localDraftStorage);
 const newId=()=> 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.floor(Math.random()*16);return (c==='x'?r:(r&3)|8).toString(16);});
 const message=(error:unknown)=>error instanceof Error?error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,''):'Could not load comments.';
 export function CommentContent({blocks,theme,onOpenJira}:{blocks:RichBlock[];theme:Theme;onOpenJira?:()=>void}){
  return <JiraContent onOpenJira={onOpenJira} blocks={blocks} theme={theme} empty="Empty comment."/>;
 }
 export function IssueComments({issueKey,hostId,theme,readOnly=false,connectionRevision=''}:{issueKey:string;hostId:string;theme:Theme;readOnly?:boolean;connectionRevision?:string}){
- return <Comments key={`${hostId}/${issueKey}/${connectionRevision}/${readOnly}`} readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issueKey} hostId={hostId} theme={theme}/>;
+ const identify=useRpc(readDraftIdentity);
+ const identity=useQuery({queryKey:['jira-draft-identity',hostId,connectionRevision],queryFn:()=>identify({}),enabled:!readOnly,retry:false,staleTime:0,refetchOnWindowFocus:false});
+ const scope=identity.isSuccess&&identity.isFetchedAfterMount&&!identity.isFetching?draftStorageKey(hostId,identity.data.site,identity.data.accountId,issueKey):undefined;
+ return <>{!readOnly&&identity.error?<View><Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>Could not verify the account for private drafts.</Text><Action theme={theme} label="Retry draft identity" icon="RefreshCw" onPress={()=>void identity.refetch()}/></View>:null}<Comments key={`${scope??hostId}/${issueKey}/${connectionRevision}/${readOnly||!scope||!!identity.error}`} draftScope={scope} readOnly={readOnly||!scope||!!identity.error} connectionRevision={connectionRevision} issueKey={issueKey} hostId={hostId} theme={theme}/></>;
 }
-function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:string;hostId:string;theme:Theme;readOnly:boolean;connectionRevision:string}){
+function Comments({issueKey,hostId,theme,readOnly,connectionRevision,draftScope}:{issueKey:string;hostId:string;theme:Theme;readOnly:boolean;connectionRevision:string;draftScope?:string}){
  const [expanded,setExpanded]=useState(true);
  const c=theme.colors;const read=useRpc(listComments);const post=useRpc(postComment);const cache=useQueryClient();
- const draftKey=`${hostId}/${issueKey}`;
- const [draft,setDraft]=useState<Draft|undefined>(()=>readOnly?undefined:drafts.get(draftKey));const [preview,setPreview]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ const draftKey=draftScope??'';const identify=useRpc(readDraftIdentity);
+ const [draft,setDraft]=useState<Draft|undefined>(()=>readOnly?undefined:drafts.read(draftKey));const [preview,setPreview]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ const [durable,setDurable]=useState(()=>drafts.isDurable(draftKey));
  const [refreshFeedback,setRefreshFeedback]=useState('');
  const posting=useRef(false);const input=useRef<TextInput>(null);const selection=useRef({start:0,end:0});
  const queryKey=['jira-comments',hostId,connectionRevision,issueKey];
  const query=useInfiniteQuery({queryKey,initialPageParam:0,queryFn:({pageParam})=>read({key:issueKey,startAt:pageParam}),getNextPageParam:last=>last.nextStart??undefined,retry:false});
  const site=query.data?.pages[0]?.site;const comments=linkedReplyThreads(query.data?.pages.flatMap(p=>p.comments)??[],site,issueKey);const rows=commentThreads(comments);
- function update(value:Draft|undefined){setDraft(value);if(value)drafts.set(draftKey,value);else drafts.delete(draftKey);}
- function begin(parent?:JiraComment){if(draft)return;update({text:'',parent,requestId:newId()});setPreview(false);setError('');setNotice('');}
+ function update(value:Draft|undefined){setDraft(value);setDurable(drafts.write(draftKey,value));}
+ function begin(parent?:JiraComment){if(draft)return;update({text:'',parent:parent?{id:parent.id,author:parent.author,restricted:parent.restricted}:undefined,requestId:newId()});setPreview(false);setError('');setNotice('');}
  function insert(before:string,after='',placeholder='text'){
   if(!draft||busy||draft.uncertain)return;const {start,end}=selection.current;const text=draft.text.slice(0,start)+before+(draft.text.slice(start,end)||placeholder)+after+draft.text.slice(end);
   update({...draft,text});input.current?.focus();
  }
  async function submit(){
-  if(!draft||!draft.text.trim()||posting.current||draft.uncertain)return;
+  if(readOnly||!draft||!draft.text.trim()||posting.current||draft.uncertain)return;
   posting.current=true;setRefreshFeedback('');setBusy(true);setError('');const submitted=draft;
   try{
+   const identity=await identify({});
+   if(draftStorageKey(hostId,identity.site,identity.accountId,issueKey)!==draftKey)throw Error('Jira account changed. Reopen this issue before posting.');
+   // Persist uncertainty before sending: a reload during delivery must never enable a blind retry.
+   update({...submitted,uncertain:true});
    await post({key:issueKey,markdown:submitted.text,requestId:submitted.requestId,parentId:submitted.parent?.id});
    update(undefined);setNotice(submitted.parent?'Linked reply posted.':'Comment posted.');
    await cache.invalidateQueries({queryKey}).catch(()=>{});
@@ -55,6 +64,7 @@ function Comments({issueKey,hostId,theme,readOnly,connectionRevision}:{issueKey:
  }
  const iconButton=(label:string,icon:string,onPress:()=>void,disabled=false)=><CommentIcon theme={theme} label={label} icon={icon} onPress={onPress} disabled={disabled}/>;
  const editor=!readOnly&&draft?<View style={{gap:10,minWidth:0}}>
+  <Text style={{color:c.foregroundMuted,fontSize:12}}>{durable?'Draft saved on this device.':'Draft kept for this session only. Copy it before restarting or reloading.'}</Text>
   {draft.parent?<View style={{flexDirection:'row',gap:6,alignItems:'center'}}><Icon name="Reply" size={14} color={c.accent}/><Text style={{color:c.foregroundMuted,fontSize:12,flex:1}}>Linked reply to {draft.parent.author}</Text></View>:null}
   {draft.parent?<Text style={{color:c.foregroundMuted,fontSize:12,lineHeight:18}}>Posts a new top-level comment with a link to the original.{draft.parent.restricted?' Keeps the original visibility restriction.':''}</Text>:null}
   <View style={{borderWidth:1,borderColor:error?c.statusDanger:c.border,borderRadius:10,overflow:'hidden'}}>

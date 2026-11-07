@@ -22,7 +22,8 @@ export const registryDetails={description:[],richDescription:[
 export function registryRpc(){
  cy.intercept('POST','/__rpc/*',request=>{
  const name=request.url.split('/').pop()!;
- const responses:Record<string,unknown>={'board.read':registryBoard,'issue.details':registryDetails,'attachments.list':{site,files:[]},'attachments.settings':{enabled:true,uploadLimit:25000000},'comments.list':{site,comments:[{id:'1',parentId:null,author:'Sam Taylor',created:'2026-11-03T09:30:00Z',updated:null,restricted:false,blocks:[{kind:'paragraph',runs:[{text:'The updated flow is ready for review. Keyboard navigation and the mobile layout are covered.'}]}]}],nextStart:null,total:1},'project.statuses':[]};
+ const responses:Record<string,unknown>={'board.read':registryBoard,'issue.details':registryDetails,'attachments.list':{site,files:[]},'attachments.settings':{enabled:true,uploadLimit:25000000},'comments.draft-identity':{site:'https://example.atlassian.net',accountId:'demo-account-01'},
+    'comments.list':{site,comments:[{id:'1',parentId:null,author:'Sam Taylor',created:'2026-11-03T09:30:00Z',updated:null,restricted:false,blocks:[{kind:'paragraph',runs:[{text:'The updated flow is ready for review. Keyboard navigation and the mobile layout are covered.'}]}]}],nextStart:null,total:1},'project.statuses':[]};
  if(!(name in responses))throw Error(`Unexpected preview RPC: ${name}`);
  request.reply({body:responses[name]});
  }).as('previewRpc');
