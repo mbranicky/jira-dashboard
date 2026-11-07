@@ -25,7 +25,7 @@ for(const light of [false,true])it(`wide ${light?'light':'dark'} layout → keep
   expect(selector.width).to.be.at.most(320);
   button('Manage boards').should($button=>{
    const action=$button[0].getBoundingClientRect();
-   expect(action.left-selector.right).to.be.within(0,12);
+   expect(selector.left-action.right).to.be.within(0,12);
    expect(Math.abs((action.top+action.height/2)-(selector.top+selector.height/2))).to.be.lessThan(2);
   });
  });
@@ -43,4 +43,10 @@ for(const width of [1920,768,390,320])it(`toolbar at ${width}px → shares a row
    if(width<=390)expect(bounds[3].top).to.be.greaterThan(bounds[0].bottom);
   });
  });
+});
+
+it('manage boards icon → first toolbar action with keyboard tooltip',()=>{
+ cy.viewport(1440,1000);stubRpc();mount(<Harness/>);
+ cy.get('[data-testid="board-toolbar"] [role="button"]').first().should('have.attr','aria-label','Manage boards').should('have.text','').focus();
+ cy.contains('Manage boards').should('be.visible');button('Manage boards').click();cy.get('[aria-label="Board name"]').should('be.visible');
 });
