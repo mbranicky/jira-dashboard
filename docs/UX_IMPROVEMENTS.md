@@ -17,3 +17,9 @@ Each step has its own PR, regression tests and a Paseo verification record. PRs 
 Titles have stronger weight; parent metadata loses its competing outline. Cards and lanes use nested radii and subtle card depth. The open issue has an accent outline and an accessible expanded state. Shared actions, menus and mobile detail presentation honor the device's reduced-motion preference, including changes while mounted. Board refreshes do not animate cards.
 
 Verification: both typechecks; Chrome coverage for card selection in light/dark themes across REST/TWG/MCP, mobile reduced-motion details, and existing keyboard navigation. Reloaded the local plugin successfully and opened the Runtime board and an issue in Paseo, read-only. Compact/light layouts are covered in the browser harness; no physical mobile client was used.
+
+## 2. Linked activity
+
+Cards read linked agent metadata, or workspace metadata for manually discovered links, every 15 seconds while the board is visible. At most four metadata reads run concurrently; duplicate links are read once. No timelines or prompts are read. Idle never means finished: only an explicit agent completion signal displays “Agent finished”. Failed, missing, archived or mismatched links display an unavailable state without hiding the issue. Details offer an on-demand activity section, timestamp and navigation.
+
+Verification: two metadata unit tests; 15 mocked Chrome activity/start-work cases, including all three transports; both typechecks. Reloaded in Paseo and verified a real linked card's “Agent idle” badge, then expanded activity details and confirmed its timestamp and Open agent action. No Jira writes or agent actions were executed.

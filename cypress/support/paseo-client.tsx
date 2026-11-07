@@ -22,7 +22,8 @@ export function useRpc(contract:any){return useCallback(async(input:any)=>{
  if(!response.ok)throw Error((await response.json()).error);
  return contract.output.parse(await response.json());
 },[contract]);}
-const paseo={projects:{list:async()=>({projects:[{projectId:'project-1',projectDisplayName:'Example project',cwd:'/example'}]})},providers:{
+async function activitySnapshot(kind:string,id:string){const response=await fetch(`/__paseo/${kind}/${encodeURIComponent(id)}`);if(!response.ok)throw Error('Unavailable');return response.json();}
+const paseo={agents:{ref:(id:string)=>({refresh:()=>activitySnapshot('agents',id)})},workspaces:{ref:(id:string)=>({refresh:()=>activitySnapshot('workspaces',id)})},projects:{list:async()=>({projects:[{projectId:'project-1',projectDisplayName:'Example project',cwd:'/example'}]})},providers:{
  listAvailable:async()=>({providers:[{provider:'claude',available:true},{provider:'codex',available:true}]}),
  listModels:async(provider:string)=>({models:[{id:`${provider}-model`,label:`${provider} model`,isSelectable:true}]}),
  listModes:async()=>({modes:[{id:'auto',label:'Auto mode'}]}),
