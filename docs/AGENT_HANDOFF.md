@@ -4,11 +4,17 @@ Updated: 2026-11-07. Current continuation brief; implementation detail lives in 
 
 ## Repository and delivery status
 
-The repository is public. Version 1.0.0 is published. PRs #23–#27 merged into main at `3956ad8` after all checks passed; the local plugin was reloaded from main and displayed 28 issues. They add quick filters/saved views, related issues, keyboard navigation, saved boards and private drafts, including compact responsive controls and tooltip icons.
+The repository is public. **Version 1.1.0 is published** as npm `latest`, with [GitHub release/tag v1.1.0](https://github.com/mbranicky/jira-dashboard/releases/tag/v1.1.0) pinned to `5c738db438238222198927ff7fec6659efa7dd1b`. Preparation PR #28 and all four [exact-main checks](https://github.com/mbranicky/jira-dashboard/actions/runs/42390391099) passed before publication. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth all remain included.
 
-Version 1.1.0 is in preparation on `codex/release-1-1-0`. All three connection methods remain in scope. Do not tag, publish, or submit a directory listing without explicit authorization. See the [release checklist](../.claude/plans/first-version-checklist.md) for candidate verification and remaining gates. Drafts use device-local browser/app storage; native mobile storage is session-only. Host-scoped board bookmarks and saved views are shared, not private drafts.
+[npm publication](https://github.com/mbranicky/jira-dashboard/actions/runs/42391878271) used the approved GitHub OIDC trusted publisher (`mbranicky/jira-dashboard`, `publish.yml`, environment `npm`) and verified the registry download against the tested tarball. A fresh npm installation on an isolated macOS arm64 Paseo 0.15.3 host started, reloaded and opened first-run settings with all three methods. The test host was stopped; the user's active installation and settings were preserved. The local main installation had also loaded Runtime 225 with 28 issues.
 
-Candidate verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. Screenshots use reviewed synthetic fixtures. See [testing](TESTING.md#110-candidate-verification--2026-11-07). Final artifact checksum is kept outside packaged files; preparation changes still need their PR and merged-main checks.
+**The live Paseo registry now uses npm 1.1.0**, preserving listing ID `mbranicky/jira-dashboard`. Migration [issue #2089](https://github.com/getpaseo/plugins/issues/2089) led to approved and merged [PR #2090](https://github.com/getpaseo/plugins/pull/2090). The [deployment](https://github.com/getpaseo/plugins/actions/runs/42409290244) passed and the npm artifact was verified in the [live index](https://plugins.paseo.sh/index.json). Future npm releases can receive automatic update PRs; a PR alone does not establish registry approval or live deployment.
+
+PRs #23–#27 supplied quick filters/saved views, related issues, keyboard navigation, saved boards and private drafts, with compact responsive controls and tooltip icons. Drafts use device-local browser/app storage; native mobile storage is session-only. Host-scoped board bookmarks and saved views are shared, not private drafts.
+
+Release verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. See [testing](TESTING.md#110-candidate-verification--2026-11-07) and the [release checklist](../.claude/plans/first-version-checklist.md). Screenshot-only PR #29 subsequently merged as `58d404d`; those refreshed assets are on main but are not in the immutable npm 1.1.0 artifact or tag. The registry uses the media shipped with npm 1.1.0.
+
+No new version, tag or publication is authorized by this documentation update. Never move the existing release tag or replace published package bytes.
 
 Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
@@ -57,7 +63,7 @@ This is a presentation workaround. Before future comment integration changes, re
 
 Pre-merge verification is summarized below. [Testing](TESTING.md) records the focused regression checks and full suite results.
 
-Remaining work includes verifying the MCP upload preparation and media response formats without live test writes, checking native credential storage on other supported hosts, and resolving [distribution clearance for the local-token approach](ATLASSIAN_AUTH_POLICY.md) before a Paseo directory submission. The recorded risk acceptance covered npm 1.0.0; record the next-release decision before npm publication.
+Remaining work includes verifying the MCP upload preparation and media response formats without live test writes, checking native credential storage on other hosts, and tracking the unresolved [Atlassian authentication policy questions](ATLASSIAN_AUTH_POLICY.md) in ECOHELP-182681. The maintainer authorized npm 1.1.0 with all three methods and separately authorized the registry migration. Registry acceptance does not establish Atlassian policy clearance.
 
 ## Production diagnostics
 
