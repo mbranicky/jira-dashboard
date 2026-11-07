@@ -1,3 +1,8 @@
+import {SavedBoards} from './saved-boards';
+import {bindBoardKeyboard} from './web';
+import {useEffect,useRef} from 'react';
+import {BoardFilterBar} from './board-filters';
+import {emptyFilters,matchesBoardView} from '../shared/board-filters';
 import boardIcon from './board-icon.json';
 import {ResponsiveSelect} from './responsive-select';
 import {McpSettings} from './mcp-settings';
@@ -81,15 +86,19 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
   </View>;
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
+  const keyboardRoot=useRef<View>(null);
+  useEffect(()=>bindBoardKeyboard(keyboardRoot.current));
   const preferences=useSettings(dashboardPreferences);
-  const {boardViews,updateBoard,selected,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
+  const {boardViews,updateBoard,selected:savedSelection,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
   const [availableWidth,setAvailableWidth]=useState(0);
   const settings=useSettings(connection);const projectMappings=useSettings(mappings);const rpc=useRpc(readBoard);
   const [mappingProject,setMappingProject]=useState<string>();
   const [sprintMenu,setSprintMenu]=useState(false);const [searchFocused,setSearchFocused]=useState(false);const [editing,setEditing]=useState(false);const [linkError,setLinkError]=useState<string>();
   const sprintKey=settings.status==='ready'?sprintSelectionKey(settings.values.boardUrl):'';
   const boardView=boardViews?.[sprintKey];
+  const selected=savedSelection?.boardKey===sprintKey?savedSelection:undefined;
   const search=boardView?.search??'';
+  const filters=boardView?.filters??emptyFilters();
   const setSearch=(value:string)=>updateBoard(sprintKey,{search:value});
   const sprint=preferences.status==='ready'?preferences.values.sprintByBoard?.[sprintKey]??undefined:undefined;
   const [sprintSaveError,setSprintSaveError]=useState('');
@@ -110,7 +119,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
   if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
-  const filtered=data?.issues.filter(i=>`${i.key} ${i.summary}`.toLowerCase().includes(search.toLowerCase()))??[];
+  const filtered=data?.issues.filter(i=>matchesBoardView(i,search,filters))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
   // Use configured status IDs so a reordered board still opens the same column.
@@ -120,7 +129,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const presentation=detailsPresentation(panel?'panel':'modal',layout.compact,availableWidth);
   const currentIssue=selected&&(data?.selectedSprintId===selected.sprintId?data.issues.find(i=>i.key===selected.issue.key):undefined)||selected?.issue;
   return <View onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',backgroundColor:theme.colors.surface0}}>
-  <View style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
+  <View ref={keyboardRoot} style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
     <View style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
       <View style={{flexDirection:layout.compact?'column':'row',justifyContent:'space-between',alignItems:layout.compact?'stretch':'center',gap:8}}>
         <View style={{flexDirection:'row',alignItems:'center',gap:12,flexShrink:1}}>
@@ -132,26 +141,28 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>
       </View>
+      {!layout.compact?<Text style={{...muted,fontSize:11}}>Keyboard: / search · J next issue · K previous issue · Enter open focused issue</Text>:null}
       {data?.workspaceWarning?<Text accessibilityRole="alert" style={{...muted,fontSize:13}}>{data.workspaceWarning}</Text>:null}
-      <View style={{flexDirection:layout.compact?'column':'row',gap:10,alignItems:layout.compact?'stretch':'flex-start'}}>
-        {data?<View style={{width:layout.compact?'100%':320,gap:4}}>
-          <OverlayMenu open={sprintMenu} onOpenChange={setSprintMenu} theme={theme} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel="Select sprint" accessibilityState={{expanded:sprintMenu}} onPress={toggle} style={({pressed})=>({minHeight:44,flexDirection:'row',alignItems:'center',gap:9,paddingHorizontal:12,borderRadius:8,borderWidth:1,borderColor:theme.colors.border,backgroundColor:pressed?theme.colors.surface2:theme.colors.surface1})}>
+      <SavedBoards theme={theme} compact={layout.compact} onSelected={()=>setSelected(undefined)}>
+        {data?<View style={{width:260,maxWidth:'100%',flexGrow:layout.compact?1:0,gap:4}}>
+          <OverlayMenu open={sprintMenu} onOpenChange={setSprintMenu} theme={theme} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel="Select sprint" accessibilityState={{expanded:sprintMenu}} onPress={toggle} style={({pressed})=>({minHeight:34,flexDirection:'row',alignItems:'center',gap:9,paddingHorizontal:12,borderRadius:8,borderWidth:1,borderColor:theme.colors.border,backgroundColor:pressed?theme.colors.surface2:theme.colors.surface1})}>
             <Icon name="CalendarDays" size={16} color={theme.colors.accent}/>
             <Text numberOfLines={1} style={{...text,fontSize:13,flex:1}}>{data.sprints.find(s=>s.id===data.selectedSprintId)?.name??'Select sprint'}</Text>
             {sprint===undefined?<Text style={{color:theme.colors.accent,fontSize:11,fontWeight:'600'}}>Auto</Text>:null}
             <Icon name={sprintMenu?'ChevronUp':'ChevronDown'} size={15} color={theme.colors.foregroundMuted}/>
           </Pressable>}>
           <ScrollView nestedScrollEnabled style={{maxHeight:220,padding:4,backgroundColor:theme.colors.surface1}}>
-            {[{label:'Follow active sprint',value:'auto'},...data.sprints.filter(s=>s.state==='active'||s.state==='future').sort((a,b)=>Number(b.state==='active')-Number(a.state==='active')||b.id-a.id).map(s=>({label:`${s.name} · ${s.state}`,value:String(s.id)}))].map(option=><Pressable key={option.value} accessibilityRole="button" accessibilityState={{selected:option.value===(sprint===undefined?'auto':String(sprint))}} disabled={preferences.status!=='ready'||preferences.saving} onPress={()=>{void setSprint(option.value==='auto'?undefined:Number(option.value));setSprintMenu(false);}} style={({pressed})=>({minHeight:44,paddingHorizontal:8,flexDirection:'row',alignItems:'center',gap:8,borderRadius:5,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><View style={{width:16}}>{option.value===(sprint===undefined?'auto':String(sprint))?<Icon name="Check" size={15} color={theme.colors.accent}/>:null}</View><Text style={{...text,fontSize:13,flex:1}}>{option.label}</Text></Pressable>)}
+            {[{label:'Follow active sprint',value:'auto'},...data.sprints.filter(s=>s.state==='active'||s.state==='future').sort((a,b)=>Number(b.state==='active')-Number(a.state==='active')||b.id-a.id).map(s=>({label:`${s.name} · ${s.state}`,value:String(s.id)}))].map(option=><Pressable key={option.value} accessibilityRole="button" accessibilityState={{selected:option.value===(sprint===undefined?'auto':String(sprint))}} disabled={preferences.status!=='ready'||preferences.saving} onPress={()=>{void setSprint(option.value==='auto'?undefined:Number(option.value));setSprintMenu(false);}} style={({pressed})=>({minHeight:34,paddingHorizontal:8,flexDirection:'row',alignItems:'center',gap:8,borderRadius:5,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><View style={{width:16}}>{option.value===(sprint===undefined?'auto':String(sprint))?<Icon name="Check" size={15} color={theme.colors.accent}/>:null}</View><Text style={{...text,fontSize:13,flex:1}}>{option.label}</Text></Pressable>)}
           </ScrollView></OverlayMenu>
         </View>:null}
-        <View style={{flex:layout.compact?undefined:1,minWidth:0,minHeight:44,flexDirection:'row',alignItems:'center',gap:8,paddingLeft:12,borderRadius:8,borderWidth:1,borderColor:searchFocused?theme.colors.accent:theme.colors.border,backgroundColor:theme.colors.surface1}}>
+        <View style={{flexGrow:1,flexBasis:280,minWidth:0,maxWidth:'100%',minHeight:34,flexDirection:'row',alignItems:'center',gap:8,paddingLeft:12,borderRadius:8,borderWidth:1,borderColor:searchFocused?theme.colors.accent:theme.colors.border,backgroundColor:theme.colors.surface1}}>
           <Icon name="Search" size={16} color={theme.colors.foregroundMuted}/>
-          <TextInput accessibilityLabel="Search issues" value={search} onChangeText={setSearch} onFocus={()=>setSearchFocused(true)} onBlur={()=>setSearchFocused(false)} autoCapitalize="none" autoCorrect={false} placeholder="Search issue key or title…" placeholderTextColor={theme.colors.foregroundMuted} style={{...text,flex:1,minWidth:0,minHeight:44,fontSize:13,paddingVertical:10,paddingRight:12}}/>
-          {search?<Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={()=>setSearch('')} style={{width:44,height:44,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>:null}
+          <TextInput accessibilityLabel="Search issues" value={search} onChangeText={setSearch} onFocus={()=>setSearchFocused(true)} onBlur={()=>setSearchFocused(false)} autoCapitalize="none" autoCorrect={false} placeholder="Search issue key or title…" placeholderTextColor={theme.colors.foregroundMuted} style={{...text,flex:1,minWidth:0,minHeight:34,fontSize:13,paddingVertical:6,paddingRight:12}}/>
+          {search?<Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={()=>setSearch('')} style={{width:34,height:34,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>:null}
         </View>
-      </View>
-      {data?<View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:12}}><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>{search?`${filtered.length} of ${data.issues.length}`:data.issues.length} issues</Text><View style={{flexDirection:'row',alignItems:'center',gap:5}}><View style={{width:12,height:12,flexShrink:0,alignItems:'center',justifyContent:'center'}}>{board.isFetching?<ActivityIndicator size={12} color={theme.colors.accent}/>:<Icon name="Clock3" size={12} color={theme.colors.foregroundMuted}/>}</View><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>Updated {new Date(data.checkedAt).toLocaleTimeString()}</Text></View></View>:null}
+      </SavedBoards>
+      {data?<BoardFilterBar key={sprintKey} theme={theme} issues={data.issues} filters={filters} search={search} onChange={(filters,search)=>updateBoard(sprintKey,{filters,search})} views={preferences.status==='ready'?preferences.values.viewsByBoard[sprintKey]??[]:[]} disabled={preferences.status!=='ready'||preferences.saving} onSave={async views=>preferences.status==='ready'&&await preferences.save({...preferences.values,viewsByBoard:{...preferences.values.viewsByBoard,[sprintKey]:views}},preferences.revision)}/>:null}
+      {data?<View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:12}}><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>{`${filtered.length} of ${data.issues.length}`} issues</Text><View style={{flexDirection:'row',alignItems:'center',gap:5}}><View style={{width:12,height:12,flexShrink:0,alignItems:'center',justifyContent:'center'}}>{board.isFetching?<ActivityIndicator size={12} color={theme.colors.accent}/>:<Icon name="Clock3" size={12} color={theme.colors.foregroundMuted}/>}</View><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>Updated {new Date(data.checkedAt).toLocaleTimeString()}</Text></View></View>:null}
     </View>
     {settings.status==='error'||settings.status==='invalid'?<Text accessibilityRole="alert" style={text}>Connection settings could not be loaded. Open Settings to retry.</Text>:null}
     {board.error?<View style={{padding:14,backgroundColor:theme.colors.surface1,borderRadius:8,gap:8}}><Text accessibilityRole="alert" style={text}>{board.error.message}</Text>{data?<Text style={muted}>Showing the last successful snapshot. It may be out of date.</Text>:null}</View>:null}
@@ -171,7 +182,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.08)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'700',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;

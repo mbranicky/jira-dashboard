@@ -39,3 +39,20 @@ declare const localStorage:import('../shared/comment-drafts').DraftStorage;
 export function localDraftStorage(){if(Platform.OS!=='web')return undefined;try{return localStorage;}catch{return undefined;}}
 
 export const requiresDurableDeliveryMarker=Platform.OS==='web';
+// Board-local shortcuts: do not capture the app shell, editors, dialogs or open menus.
+type KeyboardNode={tagName?:string;isContentEditable?:boolean;closest(selector:string):KeyboardNode|null;querySelector(selector:string):KeyboardNode|null;querySelectorAll(selector:string):ArrayLike<KeyboardNode>;getClientRects():{length:number};focus():void;scrollIntoView(options:{block:string;inline:string}):void;addEventListener(name:string,listener:(event:BoardKeyEvent)=>void):void;removeEventListener(name:string,listener:(event:BoardKeyEvent)=>void):void};
+type BoardKeyEvent={key:string;altKey:boolean;ctrlKey:boolean;metaKey:boolean;shiftKey:boolean;defaultPrevented:boolean;isComposing?:boolean;target:KeyboardNode;preventDefault():void;stopPropagation():void};
+export function bindBoardKeyboard(node:unknown){
+ if(Platform.OS!=='web'||!node)return ()=>{};
+ const root=node as KeyboardNode;
+ const handler=(event:BoardKeyEvent)=>{
+  if(event.defaultPrevented||event.isComposing||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!['/','j','k'].includes(event.key))return;
+  if(event.target.closest('input,textarea,select,[contenteditable="true"],[role="dialog"],[role="menu"],[role="listbox"]')||root.querySelector('[aria-label="Select sprint"][aria-expanded="true"]'))return;
+  const search=root.querySelector('[aria-label="Search issues"]');
+  const cards=Array.from(root.querySelectorAll('[data-testid="keyboard-issue-title"]')).filter(card=>card.getClientRects().length);
+  const current=cards.indexOf(event.target);
+  const next=event.key==='/'?search:cards[current<0?(event.key==='j'?0:cards.length-1):Math.max(0,Math.min(cards.length-1,current+(event.key==='j'?1:-1)))];
+  if(!next)return;event.preventDefault();event.stopPropagation();next.focus();next.scrollIntoView({block:'nearest',inline:'nearest'});
+ };
+ root.addEventListener('keydown',handler);return ()=>root.removeEventListener('keydown',handler);
+}

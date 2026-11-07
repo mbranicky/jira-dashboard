@@ -166,3 +166,23 @@ The existing component suite passed its 111 non-registry tests with private draf
 An additional browser regression fills device storage immediately before submission and proves that no comment POST occurs. Desktop/browser posting requires a durable uncertainty marker; the draft remains available with a recovery message when writing that marker fails. The focused draft suite now has five passing tests.
 
 CI exposed a delayed-identity remount while clicking Refresh comments on a compact REST fixture. Writable comments now wait for identity verification before rendering controls. A gated identity-response regression covers that boundary; the six draft tests and eight comment-layout tests pass together.
+## Saved boards (7 November 2026)
+
+Full `npm run check`, four Node regressions and five Chrome component tests pass. The three transport fixtures cover saving/switching boards, per-board search restoration and a return path; additional cases cover cross-site rejection, failed settings persistence and compact/light layout. Credentials/profile/write consent remain intact in all three configuration tests.
+
+Paseo 0.15.3/macOS arm64 displayed the switcher and management form. A temporary bookmark for the current board was saved, visibly selected, then removed. No live Jira writes or live switch to another board was performed; switching and error paths use mocks.
+## Board keyboard navigation (7 November 2026)
+
+Full `npm run check` passes. Four Chrome component tests cover REST/TWG/MCP with mocked RPCs, navigation through filtered cards, search focus, Enter opening details, typing shortcut characters in a comment editor, and an open sprint menu. The initially read-only TWG/MCP fixtures were corrected to enable their mock comment editors.
+
+Paseo 0.15.3/macOS arm64 loaded the feature. With focus on a board control, J focused an issue title and / focused the search input. Shortcuts are board-local and desktop/web-only; native clients retain normal touch navigation. No live Jira writes.
+## Related issues (7 November 2026)
+
+Four Node regressions verify direction, custom link labels, deduplication, missing/malformed fields and REST/TWG/MCP normalization. Four Chrome component tests exercise the three modes, compact/light rendering, unavailable fields and external navigation failure. Full `npm run check` passes.
+
+Paseo 0.15.3/macOS arm64 loaded the feature and displayed three related issues with their Jira relationship labels and statuses in an issue detail dialog. This was a read-only smoke check; write operations were not performed. Adapter coverage uses mocks. Missing relationship fields produce an explicit incomplete-list message.
+## Next-version quick filters (7 November 2026)
+
+Shared filtering covers labels, priority, type, parent and fix version, with OR within a field and AND across fields. Saved views include literal key/title search, are stored per board in host settings, and are shared by clients of that host. Tests cover missing values after refresh, defaults for existing settings, all three connection modes, restoration after navigation, deletion, compact light-theme layout and save failure.
+
+Paseo 0.15.3 on macOS arm64 loaded the updated plugin and displayed the new controls. Selecting a label reduced the board from 28 to 1 issue; clearing restored 28. No Jira writes were performed. Cross-transport behavior and save failure were exercised with mocked component RPCs, not live transport switching.

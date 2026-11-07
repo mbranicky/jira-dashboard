@@ -10,7 +10,7 @@ import {StartWork} from './start-work';
 
 type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {search?:string;startAvailable?:boolean;detailsAvailable?:boolean;readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
 export function IssueCard({search='',startAvailable=true,detailsAvailable=true,readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
- const [expanded,setExpanded]=useState(false);
+ const [expanded,setExpanded]=useState(false);const [focused,setFocused]=useState(false);
  const colors=theme.colors;
  const matches=issueSearchHighlights(issue,search);
  const kind=issue.type.toLowerCase();
@@ -20,7 +20,7 @@ export function IssueCard({search='',startAvailable=true,detailsAvailable=true,r
  const priorityIcon=important?'ChevronUp':/low/i.test(issue.priority??'')?'ChevronDown':'Equal';
  const chip=(name:string,icon:string,key:string)=><View key={key} style={{flexDirection:'row',alignItems:'center',gap:5,maxWidth:'100%',paddingHorizontal:6,paddingVertical:3,borderRadius:4,backgroundColor:colors.surface2}}><Icon name={icon} size={11} color={colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:11,flexShrink:1}}>{name}</Text></View>;
  return <View style={{backgroundColor:colors.surface0,borderWidth:1,borderColor:colors.border,borderRadius:9,borderLeftWidth:3,borderLeftColor:important?colors.statusWarning:colors.border,paddingHorizontal:11,paddingTop:11,paddingBottom:4,gap:6}}>
-   <Pressable disabled={!detailsAvailable} accessibilityRole={detailsAvailable?"button":undefined} accessibilityLabel={detailsAvailable?`Open details for ${issue.key}: ${issue.summary}`:issue.summary} onPress={onOpenDetails} style={{minHeight:44,justifyContent:'center'}}>
+   <Pressable testID="keyboard-issue-title" onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} disabled={!detailsAvailable} accessibilityRole={detailsAvailable?"button":undefined} accessibilityLabel={detailsAvailable?`Open details for ${issue.key}: ${issue.summary}`:issue.summary} onPress={onOpenDetails} style={{minHeight:44,justifyContent:'center',borderRadius:4,backgroundColor:focused?colors.surface2:'transparent',borderWidth:1,borderColor:focused?colors.accent:'transparent'}}>
      <Text style={{color:colors.foreground,fontSize:14,lineHeight:20,fontWeight:'500'}}><SearchHighlight text={issue.summary} ranges={matches.summary} theme={theme}/></Text>
    </Pressable>
    {issue.parent||issue.fixVersions.length||issue.labels.length?<Pressable accessibilityRole="button" accessibilityLabel={`${expanded?'Collapse':'Expand'} parent and tags for ${issue.key}`} accessibilityState={{expanded}} onPress={()=>setExpanded(!expanded)} style={{minHeight:44,gap:6,justifyContent:'center'}}>
