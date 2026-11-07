@@ -1,3 +1,5 @@
+import {BoardFilterBar} from './board-filters';
+import {emptyFilters,matchesBoardView} from '../shared/board-filters';
 import boardIcon from './board-icon.json';
 import {ResponsiveSelect} from './responsive-select';
 import {McpSettings} from './mcp-settings';
@@ -90,6 +92,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const sprintKey=settings.status==='ready'?sprintSelectionKey(settings.values.boardUrl):'';
   const boardView=boardViews?.[sprintKey];
   const search=boardView?.search??'';
+  const filters=boardView?.filters??emptyFilters();
   const setSearch=(value:string)=>updateBoard(sprintKey,{search:value});
   const sprint=preferences.status==='ready'?preferences.values.sprintByBoard?.[sprintKey]??undefined:undefined;
   const [sprintSaveError,setSprintSaveError]=useState('');
@@ -110,7 +113,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
   if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
-  const filtered=data?.issues.filter(i=>`${i.key} ${i.summary}`.toLowerCase().includes(search.toLowerCase()))??[];
+  const filtered=data?.issues.filter(i=>matchesBoardView(i,search,filters))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
   // Use configured status IDs so a reordered board still opens the same column.
@@ -151,7 +154,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           {search?<Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={()=>setSearch('')} style={{width:44,height:44,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>:null}
         </View>
       </View>
-      {data?<View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:12}}><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>{search?`${filtered.length} of ${data.issues.length}`:data.issues.length} issues</Text><View style={{flexDirection:'row',alignItems:'center',gap:5}}><View style={{width:12,height:12,flexShrink:0,alignItems:'center',justifyContent:'center'}}>{board.isFetching?<ActivityIndicator size={12} color={theme.colors.accent}/>:<Icon name="Clock3" size={12} color={theme.colors.foregroundMuted}/>}</View><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>Updated {new Date(data.checkedAt).toLocaleTimeString()}</Text></View></View>:null}
+      {data?<BoardFilterBar key={sprintKey} theme={theme} issues={data.issues} filters={filters} search={search} onChange={(filters,search)=>updateBoard(sprintKey,{filters,search})} views={preferences.status==='ready'?preferences.values.viewsByBoard[sprintKey]??[]:[]} disabled={preferences.status!=='ready'||preferences.saving} onSave={async views=>preferences.status==='ready'&&await preferences.save({...preferences.values,viewsByBoard:{...preferences.values.viewsByBoard,[sprintKey]:views}},preferences.revision)}/>:null}
+      {data?<View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:12}}><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>{`${filtered.length} of ${data.issues.length}`} issues</Text><View style={{flexDirection:'row',alignItems:'center',gap:5}}><View style={{width:12,height:12,flexShrink:0,alignItems:'center',justifyContent:'center'}}>{board.isFetching?<ActivityIndicator size={12} color={theme.colors.accent}/>:<Icon name="Clock3" size={12} color={theme.colors.foregroundMuted}/>}</View><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>Updated {new Date(data.checkedAt).toLocaleTimeString()}</Text></View></View>:null}
     </View>
     {settings.status==='error'||settings.status==='invalid'?<Text accessibilityRole="alert" style={text}>Connection settings could not be loaded. Open Settings to retry.</Text>:null}
     {board.error?<View style={{padding:14,backgroundColor:theme.colors.surface1,borderRadius:8,gap:8}}><Text accessibilityRole="alert" style={text}>{board.error.message}</Text>{data?<Text style={muted}>Showing the last successful snapshot. It may be out of date.</Text>:null}</View>:null}
