@@ -16,7 +16,7 @@ export function stubRpc(options:{error?:boolean;many?:boolean}={}){
    if(options.error)return request.reply({statusCode:403,body:{error:'Jira denied board access.'}});
    return request.reply({body:data});
   }
-  const responses:Record<string,unknown>={'mcp.status':{state:'idle',message:'Sign in or check a saved MCP connection.'},'issue.details':details,'attachments.list':{site,files:[]},'attachments.settings':{enabled:true,uploadLimit:25000000},'comments.list':{site,comments:[],nextStart:null,total:0},'project.statuses':[]};
+  const responses:Record<string,unknown>={'comments.draft-identity':{site,accountId:'test-user'},'mcp.status':{state:'idle',message:'Sign in or check a saved MCP connection.'},'issue.details':details,'attachments.list':{site,files:[]},'attachments.settings':{enabled:true,uploadLimit:25000000},'comments.list':{site,comments:[],nextStart:null,total:0},'project.statuses':[]};
   if(!(name! in responses))throw Error(`Unexpected RPC ${name}`);
   request.reply({body:responses[name!]});
  }).as('rpc');

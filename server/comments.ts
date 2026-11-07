@@ -17,7 +17,7 @@ export async function commentsSession(config:Connection,fetcher:typeof fetch=met
  let cloudId:string;
  try{const response=await fetcher(`${site}/_edge/tenant_info`,{redirect:'error',signal:timeoutSignal(15000)});if(!response.ok)throw new Error();cloudId=z.object({cloudId:z.string().uuid()}).parse(await response.json()).cloudId;}catch{throw new Error('Cannot resolve Jira. Check the connection settings.');}
  const request:CommentsTransport=async(path,body)=>{
-  if(!/^\/rest\/api\/3\/issue\/[A-Z][A-Z0-9_]*-[1-9]\d*\/comment(?:\/\d+|\?startAt=\d+&maxResults=50&orderBy=-created)?$/.test(path))throw new Error('Unsupported comment endpoint.');
+  if(path!=='/rest/api/3/myself'&&!/^\/rest\/api\/3\/issue\/[A-Z][A-Z0-9_]*-[1-9]\d*\/comment(?:\/\d+|\?startAt=\d+&maxResults=50&orderBy=-created)?$/.test(path))throw new Error('Unsupported comment endpoint.');
   if(body!==undefined&&!/\/comment$/.test(path))throw new Error('Unsupported comment write.');
   const auth=await loadCredentials(config.envPath);
   let response:Response;

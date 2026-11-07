@@ -34,6 +34,11 @@ export async function localPreviewAvailable(baseUrl:string,token:string){
  try{const response=await fetch(`${baseUrl}/${token}/probe`,{signal:controller.signal});return response.ok&&await response.text()===token;}catch{return false;}finally{clearTimeout(timeout);}
 }
 
+// Desktop/browser device storage. Native clients keep session drafts until Paseo ships device settings.
+declare const localStorage:import('../shared/comment-drafts').DraftStorage;
+export function localDraftStorage(){if(Platform.OS!=='web')return undefined;try{return localStorage;}catch{return undefined;}}
+
+export const requiresDurableDeliveryMarker=Platform.OS==='web';
 // Board-local shortcuts: do not capture the app shell, editors, dialogs or open menus.
 type KeyboardNode={tagName?:string;isContentEditable?:boolean;closest(selector:string):KeyboardNode|null;querySelector(selector:string):KeyboardNode|null;querySelectorAll(selector:string):ArrayLike<KeyboardNode>;getClientRects():{length:number};focus():void;scrollIntoView(options:{block:string;inline:string}):void;addEventListener(name:string,listener:(event:BoardKeyEvent)=>void):void;removeEventListener(name:string,listener:(event:BoardKeyEvent)=>void):void};
 type BoardKeyEvent={key:string;altKey:boolean;ctrlKey:boolean;metaKey:boolean;shiftKey:boolean;defaultPrevented:boolean;isComposing?:boolean;target:KeyboardNode;preventDefault():void;stopPropagation():void};
