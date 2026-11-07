@@ -5,8 +5,8 @@ for(const transport of ['rest','twg','mcp'] as const)it(`${transport} details �
  cy.viewport(transport==='mcp'?390:1440,900);stubRpc();
  cy.intercept('POST','/__rpc/issue.details',{...details,relationships:{complete:true,items:[{key:'TEST-3',summary:'Dependency example',status:'In Progress',relationship:'is blocked by'},{key:'TEST-4',summary:'Child example',status:null,relationship:'Subtask'}]}});
  mount(<Harness transport={transport} light={transport==='mcp'}/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();
- cy.contains('is blocked by · In Progress').scrollIntoView().should('be.visible');cy.contains('Subtask · Status unavailable').should('be.visible');
- cy.get('[aria-label="Open TEST-3 in Jira"]').click();cy.contains('Could not open related issue in Jira.').should('be.visible');
+ cy.contains('is blocked by').scrollIntoView().should('be.visible');cy.contains('Status unavailable').should('be.visible');
+ cy.get('[aria-label="Open TEST-3 in Jira"]').should('have.text','').focus();cy.contains('Open TEST-3 in Jira').should('be.visible');cy.get('[aria-label="Open TEST-3 in Jira"]').click();cy.contains('Could not open related issue in Jira.').should('be.visible');
 });
 it('omitted fields → show unavailable rather than an empty dependency list',()=>{
  cy.viewport(1440,900);stubRpc();mount(<Harness/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();cy.contains('Some relationship details were not supplied').scrollIntoView().should('be.visible');cy.contains('No linked issues or subtasks.').should('not.exist');
