@@ -41,3 +41,11 @@ Verification: both typechecks and four mocked Chrome cases covering all transpor
 Previous/Next follows filtered column order, deduplicates repeated statuses and disables at boundaries. Removed/filtered-out selections do not jump to an unrelated issue. Closing details restores card focus without scrolling the lane. Mobile navigation selects the destination column. Existing private drafts remain scoped to each issue.
 
 Verification: ordering/boundary unit test, six navigation Chrome cases and six existing draft cases; both typechecks. Direct regressions cover draft retention across Next/Previous and lane scroll preservation. In Paseo, advanced from issue 3 to 4 of 28, closed details and verified focus returned to the new issue's card. No Jira writes.
+
+## 6. Device-local display preferences
+
+The toolbar's Display preferences menu adjusts compact/comfortable spacing, desktop column width and parent/tag visibility, with a synthetic issue preview using the real card component. Priority sits beside status to keep footer keys/actions readable in narrow columns. Defaults retain compact spacing. Preferences are isolated by device and host, never written to shared host settings.
+
+Published SDK 0.15.3 still restricts settings scope to `host` (verified against its npm declarations and runtime), despite newer online reference text mentioning device scope. This implementation uses the existing browser/app local-storage boundary. Native clients or unavailable/full storage retain preferences for the session with an explicit notice. No dependency/minimum-version change is needed; migrate to supported durable native device settings when published.
+
+Verification: two storage unit tests, eight Chrome display/card-action tests across all transports plus compact light layout/storage failure, both typechecks. Reloaded in Paseo, changed spacing, inspected the real preview and restored Compact. No Jira writes.

@@ -1,3 +1,4 @@
+import {DisplayPreferencesMenu,useDisplayPreferences} from './display-preferences';
 import {issueNavigation} from '../shared/issue-navigation';
 import {useWorkspaceActivity} from './workspace-activity';
 import {activityKey} from '../shared/workspace-activity';
@@ -89,6 +90,7 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
   </View>;
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
+  const display=useDisplayPreferences(host.id);
   const keyboardRoot=useRef<View>(null);
   useEffect(()=>bindBoardKeyboard(keyboardRoot.current));
   const preferences=useSettings(dashboardPreferences);
@@ -145,6 +147,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <View style={{gap:4,flexShrink:1}}><Text style={{...text,fontSize:22,fontWeight:'700'}}>{data?.name??'Jira Sprint Workspace'}</Text><Text style={{...muted,fontSize:12}}>{data?`${data.user.displayName} · Assigned to me`:'Your assigned sprint issues'}</Text></View>
         </View>
         <View style={{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-end'}}>
+          <DisplayPreferencesMenu hostId={host.id} theme={theme}/>
           <Action theme={theme} icon="RefreshCw" label={board.isFetching?'Refreshing…':'Refresh'} disabled={board.isFetching||!configured} onPress={()=>void board.refetch()}/>
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>
@@ -188,11 +191,11 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
       {columns.map((c,index)=>{
         if(layout.compact&&index!==selectedColumn)return null;
         const issues=filtered.filter(i=>c.statusIds.includes(i.statusId));
-        return <DropColumn key={index} statusIds={c.statusIds} compact={layout.compact}>{hovered=><View style={{width:layout.compact?'100%':300,...(layout.compact?{}:{flex:1,minHeight:0}),backgroundColor:theme.colors.surface1,borderRadius:16,padding:12,gap:12}}>
+        return <DropColumn key={index} statusIds={c.statusIds} compact={layout.compact}>{hovered=><View style={{width:layout.compact?'100%':display.values.columnWidth,...(layout.compact?{}:{flex:1,minHeight:0}),backgroundColor:theme.colors.surface1,borderRadius:16,padding:12,gap:12}}>
           {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:12,backgroundColor:'rgba(0,0,0,0.08)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'700',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard jiraUrl={`${data!.site}/browse/${encodeURIComponent(i.key)}`} activity={i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined} selected={selected?.issue.key===i.key} search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard display={display.values} jiraUrl={`${data!.site}/browse/${encodeURIComponent(i.key)}`} activity={i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined} selected={selected?.issue.key===i.key} search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;
