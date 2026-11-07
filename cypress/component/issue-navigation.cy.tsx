@@ -5,7 +5,7 @@ for(const transport of ['rest','twg','mcp'] as const)it(`${transport} next/previ
  cy.viewport(1440,900);stubRpc();cy.intercept('POST','/__rpc/board.read',{...board,issues:[{...issue('TEST-2'),statusId:'2'},issue('TEST-1'),issue('TEST-3')]});
  mount(<Harness transport={transport}/>);cy.get('[data-testid="issue-card-TEST-1"] [data-testid="keyboard-issue-title"]').click();
  cy.get('[aria-label="Previous issue"]').should('be.disabled');cy.contains('1 of 3').should('be.visible');
- cy.get('[aria-label="Next issue"]').click();cy.contains('2 of 3').should('be.visible');
+ cy.get('[aria-label="Next issue"]').click();cy.contains('2 of 3').should('be.visible');cy.get('[aria-label="Next issue"]').should('be.focused');
  cy.get('[aria-label="Next issue"]').click();cy.contains('3 of 3').should('be.visible');cy.get('[aria-label="Next issue"]').should('be.disabled');
  cy.get('[aria-label="Previous issue"]').click();cy.contains('2 of 3').should('be.visible');
  cy.get('[aria-label="Close issue details"]').click();cy.get('[data-testid="issue-card-TEST-3"] [data-testid="keyboard-issue-title"]').should('be.focused');

@@ -49,3 +49,25 @@ The toolbar's Display preferences menu adjusts compact/comfortable spacing, desk
 Published SDK 0.15.3 still restricts settings scope to `host` (verified against its npm declarations and runtime), despite newer online reference text mentioning device scope. This implementation uses the existing browser/app local-storage boundary. Native clients or unavailable/full storage retain preferences for the session with an explicit notice. No dependency/minimum-version change is needed; migrate to supported durable native device settings when published.
 
 Verification: two storage unit tests, eight Chrome display/card-action tests across all transports plus compact light layout/storage failure, both typechecks. Reloaded in Paseo, changed spacing, inspected the real preview and restored Compact. No Jira writes.
+
+## 7. Mobile navigation and touch targets
+
+Compact layouts use a column picker with counts and Previous/Next controls instead of a horizontally scrolling button strip. Changing columns resets the lane to its top; detail navigation selects the destination column. Mobile buttons/filter options use 44-pixel targets and removable filter chips use 40 pixels, while desktop controls stay compact. Details remain full-screen on mobile to preserve established scrolling and keyboard behavior. Navigating between issues also restores focus to an available navigation control.
+
+Verification: 21 focused mobile/dashboard/display Chrome cases, then 13 navigation/mobile cases after adding keyboard focus coverage. Light and dark mobile screenshots were inspected. Full local checks passed 302 Node tests, both typechecks, source audit and 140-file package validation. The full browser run passed 178/179 cases; the sole failure was the old mobile-column selector in the listing preview. After updating that selector, all three listing-preview cases passed. All 179 browser cases are covered by the full run and focused reruns. No Jira writes.
+
+Paseo desktop was reloaded throughout and the final board remained readable with 28 issues. A compact native/mobile Paseo client was not available for direct verification; compact behavior, all three transport modes and error cases were exercised in the mocked browser harness. No physical-phone or native durable-storage claim is made.
+
+## Review order
+
+PRs are stacked so each diff contains only its own improvement:
+
+1. [#31](https://github.com/mbranicky/jira-dashboard/pull/31): card hierarchy and reduced motion, based on main.
+2. [#32](https://github.com/mbranicky/jira-dashboard/pull/32): linked activity, based on #31.
+3. [#33](https://github.com/mbranicky/jira-dashboard/pull/33): attention filters, based on #32.
+4. [#34](https://github.com/mbranicky/jira-dashboard/pull/34): card actions, based on #33.
+5. [#35](https://github.com/mbranicky/jira-dashboard/pull/35): detail navigation, based on #34.
+6. [#36](https://github.com/mbranicky/jira-dashboard/pull/36): device display preferences, based on #35.
+7. Mobile navigation and final integration verification, based on #36.
+
+Merge only when separately authorized, in order, retargeting each next PR to main and checking its new merge result. Do not delete a base branch while another open PR depends on it. Version remains 1.1.0; no tag or npm publication accompanies this work.
