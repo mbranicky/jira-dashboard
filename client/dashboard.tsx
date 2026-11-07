@@ -1,3 +1,4 @@
+import boardIcon from './board-icon.json';
 import {ResponsiveSelect} from './responsive-select';
 import {McpSettings} from './mcp-settings';
 import {sprintSelectionKey} from '../shared/sprint-selection';
@@ -17,7 +18,7 @@ import { Icon } from '@getpaseo/plugin/client/ui';
 import { useRpc, useSettings, type PluginScreenProps, type PluginSurfaceProps } from '@getpaseo/plugin/client';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { connection, dashboardPreferences, mappings, readBoard, type Connection } from '../shared/contracts';
 import { openExternal } from './web';
 
@@ -123,7 +124,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     <View style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
       <View style={{flexDirection:layout.compact?'column':'row',justifyContent:'space-between',alignItems:layout.compact?'stretch':'center',gap:8}}>
         <View style={{flexDirection:'row',alignItems:'center',gap:12,flexShrink:1}}>
-          <View style={{width:40,height:40,borderRadius:10,backgroundColor:theme.colors.surface2,alignItems:'center',justifyContent:'center'}}><Icon name="Columns3" size={20} color={theme.colors.accent}/></View>
+          <Image accessible={false} source={boardIcon} resizeMode="contain" style={{width:40,height:40,flexShrink:0}}/>
           <View style={{gap:4,flexShrink:1}}><Text style={{...text,fontSize:22,fontWeight:'700'}}>{data?.name??'Jira Sprint Workspace'}</Text><Text style={{...muted,fontSize:12}}>{data?`${data.user.displayName} · Assigned to me`:'Your assigned sprint issues'}</Text></View>
         </View>
         <View style={{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-end'}}>
