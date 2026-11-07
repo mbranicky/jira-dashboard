@@ -155,6 +155,11 @@ The 2026-11-03 credential audit added six tests, bringing that checkpoint to 89 
 
 After removing OAuth progress, response-shape and tool-catalogue logs, `npm run check` passed both typechecks, 278 backend tests, source audit and package validation. Only fixed, runtime-allowlisted failure codes can be logged; no payload is accepted. Regression coverage verifies quiet successful connection/catalogue discovery and rejects arbitrary events/payloads. Browser code did not change, so the 109-test browser results above remain the prior UI verification rather than a newly repeated run.
 
+## Board keyboard navigation (7 November 2026)
+
+Full `npm run check` passes. Four Chrome component tests cover REST/TWG/MCP with mocked RPCs, navigation through filtered cards, search focus, Enter opening details, typing shortcut characters in a comment editor, and an open sprint menu. The initially read-only TWG/MCP fixtures were corrected to enable their mock comment editors.
+
+Paseo 0.15.3/macOS arm64 loaded the feature. With focus on a board control, J focused an issue title and / focused the search input. Shortcuts are board-local and desktop/web-only; native clients retain normal touch navigation. No live Jira writes.
 ## Related issues (7 November 2026)
 
 Four Node regressions verify direction, custom link labels, deduplication, missing/malformed fields and REST/TWG/MCP normalization. Four Chrome component tests exercise the three modes, compact/light rendering, unavailable fields and external navigation failure. Full `npm run check` passes.
