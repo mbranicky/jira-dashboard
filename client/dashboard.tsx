@@ -1,3 +1,5 @@
+import {bindBoardKeyboard} from './web';
+import {useEffect,useRef} from 'react';
 import boardIcon from './board-icon.json';
 import {ResponsiveSelect} from './responsive-select';
 import {McpSettings} from './mcp-settings';
@@ -81,6 +83,8 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
   </View>;
 }
 export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
+  const keyboardRoot=useRef<View>(null);
+  useEffect(()=>bindBoardKeyboard(keyboardRoot.current));
   const preferences=useSettings(dashboardPreferences);
   const {boardViews,updateBoard,selected,setSelected,panelWidth,setPanelWidth,panelCollapsed,setPanelCollapsed}=useDashboardSession(host.id);
   const [availableWidth,setAvailableWidth]=useState(0);
@@ -120,7 +124,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const presentation=detailsPresentation(panel?'panel':'modal',layout.compact,availableWidth);
   const currentIssue=selected&&(data?.selectedSprintId===selected.sprintId?data.issues.find(i=>i.key===selected.issue.key):undefined)||selected?.issue;
   return <View onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',backgroundColor:theme.colors.surface0}}>
-  <View style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
+  <View ref={keyboardRoot} style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
     <View style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
       <View style={{flexDirection:layout.compact?'column':'row',justifyContent:'space-between',alignItems:layout.compact?'stretch':'center',gap:8}}>
         <View style={{flexDirection:'row',alignItems:'center',gap:12,flexShrink:1}}>
@@ -132,6 +136,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>
       </View>
+      {!layout.compact?<Text style={{...muted,fontSize:11}}>Keyboard: / search · J next issue · K previous issue · Enter open focused issue</Text>:null}
       {data?.workspaceWarning?<Text accessibilityRole="alert" style={{...muted,fontSize:13}}>{data.workspaceWarning}</Text>:null}
       <View style={{flexDirection:layout.compact?'column':'row',gap:10,alignItems:layout.compact?'stretch':'flex-start'}}>
         {data?<View style={{width:layout.compact?'100%':320,gap:4}}>
