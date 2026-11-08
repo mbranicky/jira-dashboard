@@ -1,3 +1,4 @@
+import {PriorityBadge,priorityStyle} from './priority-badge';
 import {defaultDisplayPreferences,type DisplayPreferences} from '../shared/display-preferences';
 import {CardActions} from './card-actions';
 import {ActivityBadge} from './workspace-activity';
@@ -20,10 +21,8 @@ export function IssueCard({preview=false,display=defaultDisplayPreferences,jiraU
  const kind=issue.type.toLowerCase();
  const typeIcon=kind==='bug'?'Bug':kind==='story'?'Bookmark':kind==='task'?'SquareCheck':'CircleDot';
  const typeColor=kind==='bug'?colors.statusDanger:kind==='story'?colors.statusSuccess:colors.accent;
- const important=/highest|high|critical|blocker/i.test(issue.priority??'');
- const priorityIcon=important?'ChevronUp':/low/i.test(issue.priority??'')?'ChevronDown':'Equal';
  const chip=(name:string,icon:string,key:string)=><View key={key} style={{flexDirection:'row',alignItems:'center',gap:5,maxWidth:'100%',paddingHorizontal:6,paddingVertical:3,borderRadius:4,backgroundColor:colors.surface2}}><Icon name={icon} size={11} color={colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:11,flexShrink:1}}>{name}</Text></View>;
- return <View testID={`issue-card-${issue.key}`} style={{backgroundColor:colors.surface0,borderWidth:1,borderColor:selected?colors.accent:colors.border,borderRadius:12,borderLeftWidth:3,borderLeftColor:selected?colors.accent:important?colors.statusWarning:colors.border,boxShadow:'0 1px 2px rgba(0,0,0,0.08)',paddingHorizontal:display.density==='compact'?11:15,paddingTop:display.density==='compact'?11:15,paddingBottom:display.density==='compact'?4:8,gap:display.density==='compact'?6:10}}>
+ return <View testID={`issue-card-${issue.key}`} style={{backgroundColor:colors.surface0,borderWidth:1,borderColor:selected?colors.accent:colors.border,borderRadius:12,borderLeftWidth:2,borderLeftColor:issue.priority?priorityStyle(issue.priority).color:colors.border,boxShadow:'0 1px 2px rgba(0,0,0,0.08)',paddingHorizontal:display.density==='compact'?11:15,paddingTop:display.density==='compact'?11:15,paddingBottom:display.density==='compact'?4:8,gap:display.density==='compact'?6:10}}>
    <Pressable testID="keyboard-issue-title" onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} disabled={!detailsAvailable} accessibilityRole={detailsAvailable?"button":undefined} aria-expanded={selected} accessibilityLabel={detailsAvailable?`Open details for ${issue.key}: ${issue.summary}`:issue.summary} onPress={onOpenDetails} style={{minHeight:44,justifyContent:'center',borderRadius:4,backgroundColor:focused?colors.surface2:'transparent',borderWidth:1,borderColor:focused?colors.accent:'transparent'}}>
      <Text style={{color:colors.foreground,fontSize:14,lineHeight:21,fontWeight:'600'}}><SearchHighlight text={issue.summary} ranges={matches.summary} theme={theme}/></Text>
    </Pressable>
@@ -37,7 +36,7 @@ export function IssueCard({preview=false,display=defaultDisplayPreferences,jiraU
      {!expanded&&issue.fixVersions.length+issue.labels.length>Math.min(2,issue.fixVersions.length)+Math.min(1,issue.labels.length)?<Text style={{color:colors.foregroundMuted,fontSize:11}}>+{issue.fixVersions.length+issue.labels.length-Math.min(2,issue.fixVersions.length)-Math.min(1,issue.labels.length)}</Text>:null}
    </View>:null}
    </Pressable>:null}
-   <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Text style={{color:colors.foregroundMuted,fontSize:12,lineHeight:17,flex:1}}>{issue.status}</Text>{issue.priority?<View accessibilityLabel={`Priority: ${issue.priority}`} style={{flexDirection:'row',alignItems:'center',gap:2,marginLeft:'auto',flexShrink:1}}><Icon name={priorityIcon} size={14} color={important?colors.statusWarning:colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:10,flexShrink:1}}>{issue.priority}</Text></View>:null}</View>
+   <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Text style={{color:colors.foregroundMuted,fontSize:12,lineHeight:17,flex:1}}>{issue.status}</Text>{issue.priority?<PriorityBadge priority={issue.priority}/>:null}</View>
    <ActivityBadge value={activity} theme={theme}/>
    <StartWork linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
      <View style={{flex:1,flexDirection:'row',alignItems:'center',gap:5,justifyContent:'space-between'}}>

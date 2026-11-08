@@ -6,7 +6,7 @@ for(const transport of ['rest','twg','mcp'] as const)it(`${transport} attention 
  cy.intercept('GET','/__paseo/agents/a',{agent:{id:'a',workspaceId:'w',status:'running',pendingPermissions:[{}],updatedAt:'2026-11-07T10:00:00Z'}});
  mount(<Harness transport={transport}/>);cy.contains('Agent needs input').should('be.visible');
  cy.get('[aria-label="Filters"]').click();cy.get('[aria-label="Filter by Activity"]').click();
- cy.get('[aria-label="Activity: Needs my input"]').click();cy.get('[aria-label="Done"]').click();
+ cy.get('[aria-label="Activity: Needs my input"]').click();cy.get('[aria-label="Close dropdown"]').click('topLeft');
  cy.get('[data-testid="issue-card-TEST-1"]').should('exist');cy.get('[data-testid="issue-card-TEST-2"]').should('not.exist');
  cy.get('[aria-label="Save as view"]').click();cy.get('[aria-label="Saved view name"]').type('Needs attention');cy.get('[aria-label="Save view"]').click();
  cy.get('[aria-label="Clear filters"]').click();cy.get('[data-testid="issue-card-TEST-2"]').should('exist');
