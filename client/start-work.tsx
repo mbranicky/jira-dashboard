@@ -5,11 +5,12 @@ import {OpenWorkspaceIssue} from './workspace-issue';
 import {useRpc, type PluginScreenProps} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
 import {useState,useContext,useEffect,type ReactNode} from 'react';
-import {Modal,ScrollView,ActivityIndicator,Pressable,Text,View} from 'react-native';
+import {Modal,ScrollView,ActivityIndicator,Pressable,Text,View,useWindowDimensions} from 'react-native';
 import {prepareBranches,startWork} from '../shared/contracts';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode};
-export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode;showLabel?:boolean};
+export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer,showLabel=false}:Props){
+  const compact=useWindowDimensions().width<760;
   const openIssue=useContext(OpenWorkspaceIssue);
   const start=useRpc(startWork);const prepare=useRpc(prepareBranches);
   const [choices,setChoices]=useState<{id:string;branch:string;path?:string}[]>([]);
@@ -38,10 +39,10 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
     }catch(e){setError(errorText(e));setBusy(false);}
   }
   return <View style={{gap:8}}>
-    <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
+    <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:0}}>
       {footer}
       {(canStart||result)?<View style={{position:'relative'}}>
-        {tip?<Tooltip theme={theme} text={configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}/>:null}
+        {tip&&!showLabel?<Tooltip theme={theme} text={configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}/>:null}
         <Pressable accessibilityRole="button" accessibilityLabel={`${configure?'Configure mapping for':result?'Open workspace':busy?'Starting':'Start work'} ${issueKey}`} accessibilityHint={configure?'Set up the Jira project mapping before starting work':result?'Open the linked agent':'Create or reuse a workspace and agent for this issue'} accessibilityState={{disabled:busy||(!configure&&!navigation)||(!result&&!mappingReady),busy}} disabled={busy||(!configure&&!navigation)||(!result&&!mappingReady)}
           onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onLongPress={()=>setTip(true)}
           onPress={()=>{
@@ -50,8 +51,9 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
             if(result){navigation?.openWorkspace({workspaceId:result.workspaceId});openIssue(result.workspaceId);return;}
             void prepareWork();
           }}
-          style={({pressed})=>({width:44,height:44,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
-          <View style={{width:30,height:30,borderRadius:8,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
+          style={({pressed})=>({width:showLabel?undefined:44,minHeight:showLabel&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
+          <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:8,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
+          {showLabel?<Text style={{color:theme.colors.accentForeground,fontSize:14}}>{configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}</Text>:null}
         </Pressable>
       </View>:null}
     </View>

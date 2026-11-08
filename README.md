@@ -2,7 +2,7 @@
 
 Turn your assigned Jira sprint issues into Paseo workspaces. Browse your board, read issue details, and start an agent on an issue without leaving Paseo.
 
-![Jira Sprint Workspace showing assigned issues in Open, In Progress and Done columns, with Start work and Open workspace actions](https://raw.githubusercontent.com/mbranicky/jira-dashboard/v1.0.0/assets/dashboard.png)
+![Jira Sprint Workspace showing assigned issues in Open, In Progress and Done columns, with Start work and Open workspace actions](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/dashboard.png)
 
 *Browser preview of the plugin's real components using fictional issues. Paseo host controls may differ.*
 
@@ -29,11 +29,11 @@ For an existing npm installation, run `paseo plugin update paseo-jira-sprint-wor
 
 The dashboard details panel stays beside the board and remembers its selection, width and collapsed state during the client session.
 
-![Jira issue description in the resizable dashboard side panel](https://raw.githubusercontent.com/mbranicky/jira-dashboard/v1.0.0/assets/details.png)
+![Jira issue description in the resizable dashboard side panel](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/details.png)
 
 On narrow screens, details fill the screen with a fixed header and scrollable content. Description, attachments and comments collapse independently.
 
-[View the mobile preview](https://raw.githubusercontent.com/mbranicky/jira-dashboard/v1.0.0/assets/mobile.png) · [View settings](https://raw.githubusercontent.com/mbranicky/jira-dashboard/v1.0.0/assets/settings.png)
+[View the mobile preview](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/mobile.png) · [View settings](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/settings.png) · [View appearance controls](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/appearance.png)
 
 ## Get started
 

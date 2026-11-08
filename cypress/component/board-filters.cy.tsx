@@ -10,10 +10,10 @@ for(const transport of ['rest','twg','mcp'] as const)describe(`${transport} quic
   mount(<Harness transport={transport}/>);title('TEST-1').should('be.visible');
   button('Filters').click();button('Filter by Priority').click();cy.get('[role="checkbox"][aria-label="Priority: High"]').click();button('Close dropdown').click('topLeft');title('TEST-1').should('not.exist');title('TEST-2').should('be.visible');
   cy.contains('1 of 2').should('be.visible');
-  button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Urgent');button('Save view').click();button('Saved views').should('be.visible');
-  button('Clear filters').click();title('TEST-1').should('be.visible');button('Saved views').click();button('View: Urgent').click();title('TEST-1').should('not.exist');
-  cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();button('Saved views').should('be.visible');title('TEST-1').should('not.exist');
-  button('Saved views').click();button('Delete view: Urgent').click();button('View: Urgent').should('not.exist');
+  button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Urgent');button('Save view').click();button('Views').should('be.visible');
+  button('Clear filters').click();title('TEST-1').should('be.visible');button('Views').click();button('View: Urgent').click();title('TEST-1').should('not.exist');
+  cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();button('Views').should('be.visible');title('TEST-1').should('not.exist');
+  button('Views').click();button('Delete view: Urgent').click();button('View: Urgent').should('not.exist');
  });
 });
 it('compact light theme and save failure → filters remain usable and failure is visible',()=>{
@@ -26,7 +26,7 @@ for(const width of [1440,390,320])it(`searchable multi-select at ${width}px → 
  cy.intercept('POST','/__rpc/board.read',{...board,issues:[{...board.issues[0],labels:Array.from({length:80},(_,i)=>`label-${i}`)},board.issues[1]]});
  mount(<Harness light={width===390}/>);button('Filters').click();
  cy.get('[aria-label="Saved view name"]').should('not.exist');
- cy.get('[data-testid="board-filters"]').should($bar=>expect($bar[0].getBoundingClientRect().height).to.be.lessThan(width===1440?100:240));
+ cy.get('[data-testid="filter-options"]').should($bar=>expect($bar[0].getBoundingClientRect().height).to.be.lessThan(width===1440?100:240));
  button('Filter by Label').click();cy.get('[aria-label="Search Label options"]').type('label-79');
  cy.get('[role="checkbox"]').should('have.length',1).should('have.attr','aria-checked','false').click().should('have.attr','aria-checked','true');
  cy.get('[aria-label="Search Label options"]').clear().type('no-such-label');cy.contains('No matching options.').should('be.visible');
@@ -50,4 +50,23 @@ for(const width of [1440,320])it(`all filters at ${width}px → immediate checkb
   button('Close dropdown').click('topLeft');
   cy.get(`[aria-label="Search ${label} options"]`).should('not.exist');
  }
+});
+
+it('desktop toolbar → search followed by Filters and Views, options aligned right',()=>{
+ cy.viewport(1600,1000);stubRpc();mount(<Harness/>);
+ button('Filters').click();button('Save as view').click();
+ cy.get('[aria-label="Saved view name"]').type('My view');button('Save view').click();
+ cy.get('[data-testid="board-toolbar"]').within(()=>{
+  cy.get('[aria-label="Search issues"]').should('be.visible');
+  button('Hide filters').should('be.visible');
+  button('Views').should('be.visible').then($views=>{
+   const views=$views[0].getBoundingClientRect();
+   cy.get('[aria-label="Search issues"]').then($search=>{
+    const search=$search[0].getBoundingClientRect();
+    expect(views.left).greaterThan(search.right);
+    expect(Math.abs(views.top-search.top)).lessThan(8);
+   });
+  });
+ });
+ cy.get('[data-testid="filter-options"]').should('have.css','justify-content','flex-end');
 });

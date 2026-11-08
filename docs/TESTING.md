@@ -129,7 +129,7 @@ The isolated target-SDK copy also loaded as a temporary plugin on the 0.15.0 dae
 
 ## Release preview and start recovery coverage
 
-Three registry capture tests render synthetic dashboard, details, settings and mobile views. Reviewed public copies live in assets/ and are packaged via manifest media. Replacements require visual review and an updated exact digest in the secret audit. They are not pixel-diff baselines.
+Four registry capture tests render synthetic dashboard, details, settings, appearance and mobile views. Reviewed public copies live in assets/ and are packaged via manifest media. Replacements require visual review and an updated exact digest in the secret audit. They are not pixel-diff baselines.
 
 Three additional browser tests cover branch selection in a separate modal, retry after agent-start failure, and uncertain prompt delivery without offering an unsafe retry. Backend tests independently verify workspace reuse and no duplicate prompt. That 33-test checkpoint used mocked service boundaries; no live workspace is created.
 
@@ -198,3 +198,5 @@ Paseo 0.15.3/macOS arm64 loaded the feature and displayed three related issues w
 Shared filtering covers labels, priority, type, parent and fix version, with OR within a field and AND across fields. Saved views include literal key/title search, are stored per board in host settings, and are shared by clients of that host. Tests cover missing values after refresh, defaults for existing settings, all three connection modes, restoration after navigation, deletion, compact light-theme layout and save failure.
 
 Paseo 0.15.3 on macOS arm64 loaded the updated plugin and displayed the new controls. Selecting a label reduced the board from 28 to 1 issue; clearing restored 28. No Jira writes were performed. Cross-transport behavior and save failure were exercised with mocked component RPCs, not live transport switching.
+
+Screenshot refresh (2026-11-08): all four capture tests passed. Five PNGs were visually reviewed and copied into assets, including the new appearance settings preview. README, package media and reviewed digests reference the refreshed images. All data is synthetic; no live Jira writes or publication.
