@@ -7,12 +7,12 @@ import {useState} from 'react';
 import type {SettingsTheme} from './settings-ui';
 
 // Portaled overlay: never participates in the page's layout or gets clipped by a ScrollView.
-export function OverlayMenu({open,onOpenChange,theme,trigger,children,maxHeight=260}:{open:boolean;onOpenChange:(open:boolean)=>void;theme:SettingsTheme;trigger:(toggle:()=>void)=>ReactNode;children:ReactNode;maxHeight?:number}){
+export function OverlayMenu({open,onOpenChange,theme,trigger,children,maxHeight=260,preferredWidth}:{open:boolean;onOpenChange:(open:boolean)=>void;theme:SettingsTheme;trigger:(toggle:()=>void)=>ReactNode;children:ReactNode;maxHeight?:number;preferredWidth?:number}){
  const reduced=useReducedMotion();
  const anchor=useRef<View>(null),viewport=useWindowDimensions();
  const [rect,setRect]=useState({x:12,y:12,width:240,height:44});
  function show(){if(open){onOpenChange(false);return;}anchor.current?.measureInWindow((x,y,width,height)=>{setRect({x,y,width,height});onOpenChange(true);});}
- const position=menuPosition(rect,viewport,maxHeight);
+ const position=menuPosition({...rect,width:preferredWidth??rect.width},viewport,maxHeight);
  return <View ref={anchor} collapsable={false}>
   {trigger(show)}
   {open?<Modal visible transparent animationType={reduced?'none':'fade'} onRequestClose={()=>onOpenChange(false)}>
