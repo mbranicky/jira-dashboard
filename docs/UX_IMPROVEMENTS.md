@@ -10,11 +10,11 @@ Sequential review plan inspired by Better Paseo's interaction principles. No cop
 6. Device-local display preferences with a synthetic preview.
 7. Mobile column navigation and touch refinements.
 
-Each step has its own PR, regression tests and a Paseo verification record. PRs are left open for review; dependent PRs identify their base.
+Each step has its own PR, regression tests and a Paseo verification record. PRs #31–#37 are merged, followed by UI refinements in #38 and #39. They are included in the 1.2.0 candidate.
 
 ## 1. Visual hierarchy and feedback
 
-Titles have stronger weight; parent metadata loses its competing outline. Cards and lanes use nested radii and subtle card depth. The open issue has an accent outline and an accessible expanded state. Shared actions, menus and mobile detail presentation honor the device's reduced-motion preference, including changes while mounted. Board refreshes do not animate cards.
+Dashboard titles and column labels now use normal weight; parent metadata loses its competing outline. Cards and lanes use nested radii and subtle card depth. The open issue has an accent outline and an accessible expanded state. Shared actions, menus and mobile detail presentation honor the device's reduced-motion preference, including changes while mounted. Board refreshes do not animate cards.
 
 Verification: both typechecks; Chrome coverage for card selection in light/dark themes across REST/TWG/MCP, mobile reduced-motion details, and existing keyboard navigation. Reloaded the local plugin successfully and opened the Runtime board and an issue in Paseo, read-only. Compact/light layouts are covered in the browser harness; no physical mobile client was used.
 

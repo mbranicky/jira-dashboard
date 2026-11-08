@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0
+
+- Show read-only linked workspace and agent activity on cards and in issue details, with attention filters for work needing input, running, finished or failed. Save these filters in board views.
+- Add card actions for copying issue keys and Jira links, opening Jira, and navigating to linked workspaces.
+- Browse previous/next issues in filtered board order, retaining issue-specific drafts and restoring focus. Mobile navigation uses a column picker with counts and previous/next controls.
+- Combine display controls in Settings → Dashboard appearance: card spacing, desktop column width, parent/tag visibility and a live preview. Device-local preferences apply immediately, with an explicit session-only fallback when durable storage is unavailable.
+- Simplify the toolbar with tooltip-labeled Filters and Views beside search, right-aligned filter options, and immediate checkbox selection.
+- Add priority-colored pills, matching icons and slim card borders. Use lighter dashboard typography, compact action buttons, labeled Start work in details and reduced-motion-aware feedback.
+- Refresh dashboard, detail, mobile and connection screenshots and add an appearance settings preview.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Paseo requirements remain `>=0.14.0 <0.16.0`. Host support and MCP upload limitations are unchanged; no live Jira write testing was performed.
+
 ## 1.1.0
 
 - Filter sprint issues by label, priority, issue type, parent and fix version with searchable multi-select menus. Save named filter/search views per board.

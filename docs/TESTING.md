@@ -200,3 +200,12 @@ Shared filtering covers labels, priority, type, parent and fix version, with OR 
 Paseo 0.15.3 on macOS arm64 loaded the updated plugin and displayed the new controls. Selecting a label reduced the board from 28 to 1 issue; clearing restored 28. No Jira writes were performed. Cross-transport behavior and save failure were exercised with mocked component RPCs, not live transport switching.
 
 Screenshot refresh (2026-11-08): all four capture tests passed. Five PNGs were visually reviewed and copied into assets, including the new appearance settings preview. README, package media and reviewed digests reference the refreshed images. All data is synthetic; no live Jira writes or publication.
+
+## 1.2.0 candidate verification — 2026-11-08
+
+Prepared after UI/media PR #39 merged with all four checks green. Package, shrinkwrap root and MCP handshake report 1.2.0. All three connection methods and Paseo requirements are unchanged.
+
+- Both typechecks, 302 Node tests, all 189 Chrome tests across 26 specs, source secret audit and 142-file package validation passed.
+- The candidate tarball was extracted into a clean temporary directory on macOS Apple silicon. Both packaged manifest build commands passed; production installation reported zero vulnerabilities.
+- Five synthetic screenshots were reviewed during PR #39. Browser workflows use mocks; no live Jira writes, physical mobile verification, or new host support claims.
+- Release execution requires green PR and exact-main checks. Publication evidence belongs in the GitHub release and workflow logs. The exact tarball digest is recorded in the release checklist outside package contents; any subsequent packaged change requires rebuilding it.

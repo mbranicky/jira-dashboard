@@ -2,13 +2,15 @@
 
 Updated: 2026-11-08. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
 
-## Active improvement stack
+## 1.2.0 preparation
 
-The Better Paseo-inspired board improvements are implemented in seven sequential, stacked PRs, beginning with [#31](https://github.com/mbranicky/jira-dashboard/pull/31). They are **not merged or released**. See [UX improvements](UX_IMPROVEMENTS.md) for review order, behavior and verification evidence. Local checkout/plugin currently includes the whole stack on `codex/mobile-board-navigation`; main and version 1.1.0 remain unchanged.
+PRs #31–#37, #38 and #39 are merged. PR #39 passed all four checks before merging to main at `2b3c6c8`; local main was pulled and Jira Sprint Workspace reloaded successfully.
 
-The changes cover visual hierarchy/reduced motion, read-only linked activity, attention filters, card actions, Previous/Next details, device-local display preferences and mobile column navigation. All three transports remain. No live Jira writes were performed. Device display preferences persist on desktop/web; native or unavailable storage is explicitly session-only because published SDK 0.15.3 still accepts host settings only. Do not adopt unreleased device settings based solely on newer online docs.
+The user authorized the full 1.2.0 release on 2026-11-08: PR, green checks, merge, tag, GitHub release notes and npm publication. Preparation is on `codex/prepare-1.2.0`. Package, shrinkwrap and MCP handshake versions are 1.2.0. The changelog covers activity/attention filters, card actions, issue/mobile navigation, appearance preferences, priority styling and toolbar refinements. Five reviewed synthetic screenshots are included.
 
-The user authorized separate PRs and verification, not merging, versioning or publication. Merge the stack in order only after further authorization; retarget dependent PRs and verify their resulting checks before merging.
+Candidate verification passed both typechecks, 302 Node tests, 189 Chrome tests, source audit and package checks. A clean extracted manifest build passed on macOS Apple silicon. The checklist records the tarball digest.
+
+All three connection methods remain. No live Jira writes. Device preferences persist on desktop/web and fall back to session-only where storage is unavailable; SDK and host support requirements are unchanged. Before release, commit/review/merge the preparation, require green CI, verify the exact final artifact then execute the authorized tag/npm/GitHub release workflow. Never replace an existing published version.
 
 ## Repository and delivery status
 
@@ -22,7 +24,7 @@ PRs #23–#27 supplied quick filters/saved views, related issues, keyboard navig
 
 Release verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. See [testing](TESTING.md#110-candidate-verification--2026-11-07) and the [release checklist](../.claude/plans/first-version-checklist.md). Screenshot-only PR #29 subsequently merged as `58d404d`; those refreshed assets are on main but are not in the immutable npm 1.1.0 artifact or tag. The registry uses the media shipped with npm 1.1.0.
 
-No new version, tag or publication is authorized by this documentation update. Never move the existing release tag or replace published package bytes.
+Version 1.2.0 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
 
 Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 
