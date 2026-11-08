@@ -8,6 +8,19 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.2.0 candidate preparation (2026-11-08)
+
+- [x] Merge UI/media PR #39 only after all four checks pass; reload from updated main.
+- [x] Keep REST, Teamwork Graph CLI and Atlassian MCP, the plugin ID, and existing Paseo requirements.
+- [x] Set package, shrinkwrap root/package and MCP handshake metadata to 1.2.0.
+- [x] Prepare changelog and handoff; include five reviewed synthetic screenshots.
+- [x] Verify both typechecks, 302 Node tests, 189 Chrome tests, source audit and package contents. Clean extracted manifest build passed on macOS arm64. Candidate: `/tmp/jira-1.2.0-candidate/paseo-jira-sprint-workspace-1.2.0.tgz`, 142 files, 1064597 bytes; SHA-256 `c6ab666641c9c1d11ea340c2615b673d32b46d5222534c7df5902798b77fb5c9`. Rebuild after any packaged changes.
+- [ ] Commit/review/merge preparation and require green exact-main checks.
+- [x] Explicit authorization received on 2026-11-08 to merge after green checks, tag, create release notes and publish 1.2.0.
+- [ ] Publish the verified immutable artifact and GitHub release, then separately verify registry update PR/deployment.
+
+Policy ticket ECOHELP-182681 remains unresolved. Existing host coverage and mock-only MCP upload verification remain unchanged. No live Jira writes are authorized.
+
 ## 1.1.0 release completed (2026-11-07)
 
 Version 1.1.0 is published to npm and deployed in the Paseo registry. Older sections below are historical records; unchecked first-release items do not describe the current delivery status. Atlassian policy questions remain unresolved independently of registry acceptance.
