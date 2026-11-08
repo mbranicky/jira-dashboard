@@ -3,8 +3,8 @@ import {board,issue,site} from './harness';
 export const registryMappings=[{name:'Product application',jiraProjectKey:'DEMO',paseoProjectId:'project-1',entrySkill:'init-issue',provider:'claude',model:'',modeId:'auto',isolation:'worktree',startWorkColumn:'IN PROGRESS'}];
 const ticket=(key:string,summary:string,statusId:string,type='Story',labels=['experience'])=>({...issue(key,summary),projectKey:'DEMO',type,labels,statusId,status:statusId==='1'?'Ready for development':statusId==='2'?'In progress':'Done',statusCategory:statusId==='1'?'new':statusId==='2'?'indeterminate':'done',parent:{key:'DEMO-100',summary:'A smoother onboarding experience'},fixVersions:['1.2']});
 export const registryBoard={...board,name:'Product team',user:{displayName:'Alex Morgan'},sprints:[{id:1,name:'Sprint 12',state:'active'}],issues:[
- ticket('DEMO-124','Keep search filters when returning to the dashboard','1'),
- ticket('DEMO-128','Show a helpful empty state for new projects','1'),
+ {...ticket('DEMO-124','Keep search filters when returning to the dashboard','1'),priority:'High'},
+ {...ticket('DEMO-128','Show a helpful empty state for new projects','1'),priority:'Low'},
  ticket('DEMO-131','Prevent duplicate invitations on slow connections','1','Bug',['reliability']),
  {...ticket('DEMO-123','Make project setup feel effortless','2'),linkedWorkspace:{workspaceId:'workspace-demo',agentId:'agent-demo'}},
  ticket('DEMO-119','Improve keyboard navigation in the project picker','2','Bug',['accessibility']),

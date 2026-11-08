@@ -7,13 +7,14 @@ const detail=()=>cy.get('[aria-label^="Open details for DEMO-123:"]');
 describe('Registry previews',()=>{
  beforeEach(()=>registryRpc());
  it('desktop board and details → readable public listing screenshots',()=>{
-  cy.viewport(1200,900);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
+  cy.viewport(1440,1000);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
   detail().should('be.visible');button('Start work DEMO-124').should('be.visible');
   button('Filters').click();button('Filter by Label').click();
   cy.get('[role="checkbox"][aria-label="Label: experience"]').click();button('Close dropdown').click('topLeft');
   button('Remove Label: experience').should('be.visible');
   button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Onboarding');button('Save view').click();
-  button('Saved views').should('be.visible');
+  button('Views').should('be.visible');
+  cy.get('[aria-label="Search issues"]').focus();
   cy.get('[data-cy-root]').screenshot('registry-dashboard');
   cy.viewport(1500,880);detail().click();cy.contains('What success looks like').should('be.visible');
   cy.get('[data-testid="details-panel"]').should('contain.text','DEMO-123');
@@ -33,6 +34,13 @@ describe('Registry previews',()=>{
   button('Reconnect MCP').should('exist');button('Test connection').click();
   cy.contains('Read connection verified').should('be.visible');
   cy.get('[aria-label="Atlassian MCP connection"]').parent().scrollIntoView().screenshot('registry-settings');
+ });
+ it('appearance settings → compact controls and live priority preview',()=>{
+  cy.viewport(1100,900);mount(<Harness preview light mappingItems={registryMappings}/>);
+  button('Settings').click();
+  cy.get('[data-testid="dashboard-appearance"]').should('contain.text','Board and cards');
+  cy.get('[data-testid="appearance-preview"]').should('be.visible');
+  cy.get('[data-testid="dashboard-appearance"]').screenshot('registry-appearance');
  });
  it('mobile details → full-screen readable issue',()=>{
   cy.viewport(430,900);mount(<Harness preview light mode="panel" mappingItems={registryMappings}/>);

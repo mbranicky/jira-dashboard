@@ -10,6 +10,6 @@ for(const transport of ['rest','twg','mcp'] as const)it(`${transport} attention 
  cy.get('[data-testid="issue-card-TEST-1"]').should('exist');cy.get('[data-testid="issue-card-TEST-2"]').should('not.exist');
  cy.get('[aria-label="Save as view"]').click();cy.get('[aria-label="Saved view name"]').type('Needs attention');cy.get('[aria-label="Save view"]').click();
  cy.get('[aria-label="Clear filters"]').click();cy.get('[data-testid="issue-card-TEST-2"]').should('exist');
- cy.get('[aria-label="Saved views"]').click();cy.get('[aria-label="View: Needs attention"]').click();cy.get('[data-testid="issue-card-TEST-2"]').should('not.exist');
+ cy.get('[aria-label="Views"]').click();cy.get('[aria-label="View: Needs attention"]').click();cy.get('[data-testid="issue-card-TEST-2"]').should('not.exist');
  cy.get('[aria-label="Remove Activity: Needs my input"]').click();cy.get('[data-testid="issue-card-TEST-2"]').should('exist');
 });

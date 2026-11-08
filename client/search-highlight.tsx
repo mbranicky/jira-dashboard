@@ -6,7 +6,7 @@ export function SearchHighlight({text,ranges,theme}:{text:string;ranges:MatchRan
  let end=0;
  const parts=ranges.flatMap(range=>{
   const plain=text.slice(end,range.start);end=range.end;
-  return [plain,<Text key={range.start} testID="search-match" style={{backgroundColor:theme.colors.accent,color:theme.colors.accentForeground,fontWeight:'700'}}>{text.slice(range.start,range.end)}</Text>];
+  return [plain,<Text key={range.start} testID="search-match" style={{backgroundColor:theme.colors.accent,color:theme.colors.accentForeground,fontWeight:'400'}}>{text.slice(range.start,range.end)}</Text>];
  });
  return <>{parts}{text.slice(end)}</>;
 }

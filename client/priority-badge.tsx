@@ -19,6 +19,6 @@ export function PriorityBadge({priority}:{priority:string}){
  const {color,backgroundColor,icon}=priorityStyle(priority);
  return <View accessibilityLabel={`Priority: ${priority}`} style={{flexDirection:'row',alignItems:'center',gap:5,paddingHorizontal:8,paddingVertical:4,borderRadius:999,backgroundColor,maxWidth:'100%',flexShrink:1}}>
   <Icon name={icon} size={15} color={color}/>
-  <Text style={{color,fontSize:12,fontWeight:'600',flexShrink:1}}>{priority}</Text>
+  <Text style={{color,fontSize:12,fontWeight:'400',flexShrink:1}}>{priority}</Text>
  </View>;
 }

@@ -8,7 +8,7 @@ import {SectionTitle,Action} from './settings-ui';
 
 export function DashboardPreferences({hostId,theme,layout}:Pick<PluginSurfaceProps,'theme'|'layout'>&{hostId:string}){
  const settings=useSettings(dashboardPreferences);const c=theme.colors;
- return <View style={{padding:layout.compact?16:24,gap:16,maxWidth:960,width:'100%',alignSelf:'center'}}>
+ return <View testID="dashboard-appearance" style={{padding:layout.compact?16:24,gap:16,maxWidth:960,width:'100%',alignSelf:'center'}}>
   <SectionTitle theme={theme} icon="PanelsTopLeft" title="Dashboard appearance" description="Make the board comfortable to browse. Changes apply automatically."/>
   <View style={{padding:16,borderRadius:16,backgroundColor:c.surface1,gap:16}}>
   <DisplayPreferencesControls hostId={hostId} theme={theme}/>

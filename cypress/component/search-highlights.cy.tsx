@@ -13,7 +13,7 @@ for(const width of [1440,390])for(const light of [false,true])describe(`Search h
   cy.get('[data-testid="search-match"]').should('have.length',4).each($match=>{
    expect($match).to.have.css('background-color',light?'rgb(39, 91, 168)':'rgb(138, 180, 255)');
    expect($match).to.have.css('color',light?'rgb(255, 255, 255)':'rgb(20, 35, 58)');
-   expect($match).to.have.css('font-weight','700');
+   expect($match).to.have.css('font-weight','400');
   });
   title().should('have.text','PDF export and pdf import [PDF]');
   cy.screenshot(`search-highlights-${width}-${light?'light':'dark'}`,{capture:'viewport'});

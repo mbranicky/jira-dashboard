@@ -1,5 +1,5 @@
 import {IconAction} from './icon-action';
-import {useState} from 'react';
+import {useState,useEffect,type ReactNode} from 'react';
 import {Pressable,ScrollView,Text,TextInput,View,useWindowDimensions} from 'react-native';
 import {Icon} from '@getpaseo/plugin/client/ui';
 import type {Issue} from '../shared/contracts';
@@ -11,7 +11,7 @@ function FilterMenu({theme,label,options,selected,onChange}:{theme:SettingsTheme
  const compact=useWindowDimensions().width<760;
  const [open,setOpen]=useState(false),[query,setQuery]=useState('');const c=theme.colors;
  const matches=options.filter(value=>value.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
- return <OverlayMenu theme={theme} open={open} onOpenChange={value=>{setOpen(value);if(!value)setQuery('');}} maxHeight={340} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel={`Filter by ${label}`} accessibilityState={{expanded:open}} onPress={toggle} style={({pressed})=>({minHeight:compact?44:34,paddingHorizontal:12,flexDirection:'row',alignItems:'center',gap:8,borderRadius:8,borderWidth:1,borderColor:selected.length?c.accent:c.border,backgroundColor:pressed?c.surface2:c.surface1})}><Text style={{color:c.foreground,fontSize:13}}>{label}</Text>{selected.length?<Text style={{color:c.accent,fontSize:12,fontWeight:'600'}}>{selected.length}</Text>:null}<Icon name="ChevronDown" size={14} color={c.foregroundMuted}/></Pressable>}>
+ return <OverlayMenu theme={theme} open={open} onOpenChange={value=>{setOpen(value);if(!value)setQuery('');}} maxHeight={340} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel={`Filter by ${label}`} accessibilityState={{expanded:open}} onPress={toggle} style={({pressed})=>({minHeight:compact?44:34,paddingHorizontal:12,flexDirection:'row',alignItems:'center',gap:8,borderRadius:8,borderWidth:1,borderColor:selected.length?c.accent:c.border,backgroundColor:pressed?c.surface2:c.surface1})}><Text style={{color:c.foreground,fontSize:13}}>{label}</Text>{selected.length?<Text style={{color:c.accent,fontSize:12,fontWeight:'400'}}>{selected.length}</Text>:null}<Icon name="ChevronDown" size={14} color={c.foregroundMuted}/></Pressable>}>
   <View style={{padding:8,gap:6}}>
    <TextInput accessibilityLabel={`Search ${label} options`} value={query} onChangeText={setQuery} placeholder={`Search ${label.toLowerCase()}…`} placeholderTextColor={c.foregroundMuted} autoCapitalize="none" autoCorrect={false} style={{minHeight:compact?44:34,paddingHorizontal:10,borderRadius:6,backgroundColor:c.surface0,color:c.foreground,fontSize:13}}/>
    <Text style={{color:c.foregroundMuted,fontSize:11,paddingHorizontal:4}}>Select one or more · matches any</Text>
@@ -22,22 +22,27 @@ function FilterMenu({theme,label,options,selected,onChange}:{theme:SettingsTheme
   </ScrollView>
  </OverlayMenu>;
 }
-export function BoardFilterBar({theme,issues,filters,search,onChange,views,onSave,disabled}:{theme:SettingsTheme;issues:Issue[];filters:BoardFilters;search:string;onChange:(filters:BoardFilters,search:string)=>void;views:SavedView[];onSave:(views:SavedView[])=>Promise<boolean>;disabled:boolean}){
+export function BoardFilterBar({theme,issues,filters,search,onChange,views,onSave,disabled,renderToolbar,resetKey}:{theme:SettingsTheme;issues:Issue[];filters:BoardFilters;search:string;onChange:(filters:BoardFilters,search:string)=>void;views:SavedView[];onSave:(views:SavedView[])=>Promise<boolean>;disabled:boolean;resetKey?:string;renderToolbar?:(actions:ReactNode)=>ReactNode}){
  const compact=useWindowDimensions().width<760;
  const [open,setOpen]=useState(false),[saving,setSaving]=useState(false),[viewsOpen,setViewsOpen]=useState(false);const [name,setName]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const c=theme.colors;
+ useEffect(()=>{setOpen(false);setSaving(false);setViewsOpen(false);setName('');setError('');},[resetKey]);
  const count=filterFields.reduce((n,f)=>n+(filters[f]?.length??0),0);
  async function save(next:SavedView[]){if(disabled||busy)return;setBusy(true);setError('');try{if(await onSave(next)){setName('');setSaving(false);}else setError('Could not save views. Retry after refreshing settings.');}catch{setError('Could not save views. Retry after refreshing settings.');}finally{setBusy(false);}}
+ const actions=<View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+   <IconAction dense theme={theme} label={open?'Hide filters':`Filters${count?` (${count})`:''}`} icon="Filter" onPress={()=>setOpen(!open)}/>
+   {views.length?<OverlayMenu theme={theme} open={viewsOpen} onOpenChange={setViewsOpen} trigger={toggle=><IconAction dense theme={theme} label="Views" icon="Bookmark" onPress={toggle}/>}><ScrollView style={{maxHeight:240}}>{views.map(view=><View key={view.name} style={{padding:4,flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderBottomColor:c.border}}><View style={{flex:1,minWidth:0}}><Action dense theme={theme} label={`View: ${view.name}`} icon="Bookmark" onPress={()=>{onChange(view.filters,view.search);setViewsOpen(false);}}/></View><IconAction dense theme={theme} label={`Delete view: ${view.name}`} icon="Trash2" onPress={()=>{if(!disabled&&!busy)void save(views.filter(v=>v.name!==view.name));}}/></View>)}</ScrollView></OverlayMenu>:null}
+ </View>;
  return <View testID="board-filters" style={{gap:8}}>
-  <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:6}}>
-   <Action dense paddingLeft={8.5} theme={theme} label={open?'Hide filters':`Filters${count?` (${count})`:''}`} icon="Filter" onPress={()=>setOpen(!open)}/>
+  {renderToolbar?renderToolbar(actions):actions}
+  <View testID="filter-options" style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'flex-end',gap:6}}>
    {open?filterFields.map(field=><FilterMenu key={field} theme={theme} label={labels[field]} options={filterOptions(issues,field,filters[field]??[])} selected={filters[field]??[]} onChange={values=>onChange({...filters,[field]:values},search)}/>):null}
-   {views.length?<OverlayMenu theme={theme} open={viewsOpen} onOpenChange={setViewsOpen} trigger={toggle=><Action dense theme={theme} label="Saved views" icon="Bookmark" onPress={toggle}/>}><ScrollView style={{maxHeight:240}}>{views.map(view=><View key={view.name} style={{padding:4,flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderBottomColor:c.border}}><View style={{flex:1,minWidth:0}}><Action dense theme={theme} label={`View: ${view.name}`} icon="Bookmark" onPress={()=>{onChange(view.filters,view.search);setViewsOpen(false);}}/></View><IconAction dense theme={theme} label={`Delete view: ${view.name}`} icon="Trash2" onPress={()=>{if(!disabled&&!busy)void save(views.filter(v=>v.name!==view.name));}}/></View>)}</ScrollView></OverlayMenu>:null}
+
    {count||search?<Action dense theme={theme} label="Clear filters" icon="X" onPress={()=>onChange(emptyFilters(),'')}/>:null}
    {open||count||search?<Action dense theme={theme} label="Save as view" icon="Save" disabled={disabled||busy} onPress={()=>{setSaving(!saving);setError('');}}/>:null}
   </View>
   {count?<View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{filterFields.flatMap(field=>(filters[field]??[]).map(value=><Pressable key={`${field}/${value}`} accessibilityRole="button" accessibilityLabel={`Remove ${labels[field]}: ${value}`} onPress={()=>onChange({...filters,[field]:filters[field].filter(v=>v!==value)},search)} style={({pressed})=>({maxWidth:'100%',minHeight:compact?40:28,paddingHorizontal:10,paddingVertical:4,borderRadius:6,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:pressed?c.surface1:c.surface2})}><Text style={{color:c.foregroundMuted,fontSize:12}}>{labels[field]}</Text><Text style={{color:c.foreground,fontSize:12,flexShrink:1}}>{value}</Text><Icon name="X" size={13} color={c.foregroundMuted}/></Pressable>))}</View>:null}
   {saving?<View style={{gap:8,padding:12,borderRadius:10,backgroundColor:c.surface1}}>
-   <Text style={{color:c.foreground,fontSize:13,fontWeight:'600'}}>Save current filters and search</Text>
+   <Text style={{color:c.foreground,fontSize:13,fontWeight:'400'}}>Save current filters and search</Text>
    <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:8}}><TextInput accessibilityLabel="Saved view name" value={name} onChangeText={setName} maxLength={60} placeholder="View name" placeholderTextColor={c.foregroundMuted} style={{flexGrow:1,flexBasis:180,minWidth:0,minHeight:compact?44:34,color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:6,padding:10}}/><Action dense theme={theme} label="Save view" icon="Check" primary disabled={disabled||busy||!name.trim()||views.length>=30||views.some(v=>v.name.toLowerCase()===name.trim().toLowerCase())} onPress={()=>void save([...views,{name:name.trim(),filters,search}])}/><Action dense theme={theme} label="Cancel" icon="X" onPress={()=>{setSaving(false);setName('');setError('');}}/></View>
    <Text style={{color:c.foregroundMuted,fontSize:12}}>Available to everyone using this board on this host.</Text>
    {views.some(v=>v.name.toLowerCase()===name.trim().toLowerCase())?<Text style={{color:c.foregroundMuted}}>Choose a different view name.</Text>:null}
