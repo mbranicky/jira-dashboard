@@ -1,3 +1,4 @@
+import {IssueNavigation,type IssueNavigationProps} from './issue-navigation';
 import {WorkspaceActivityDetails} from './workspace-activity';
 import {useReducedMotion} from './motion';
 import {IssueRelationships} from './issue-relationships';
@@ -18,7 +19,7 @@ import {Modal as NativeModal,SafeAreaView,KeyboardAvoidingView,Platform,Pressabl
 import type {ReactNode} from 'react';
 import {readIssueDetails,type Issue} from '../shared/contracts';
 import {Action} from './settings-ui';
-export function IssueDetails({startAvailable=true,contentAvailable=true,readOnly=false,connectionRevision='',issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{startAvailable?:boolean;contentAvailable?:boolean;readOnly?:boolean;connectionRevision?:string;presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
+export function IssueDetails({issueNavigation,startAvailable=true,contentAvailable=true,readOnly=false,connectionRevision='',issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{issueNavigation?:IssueNavigationProps;startAvailable?:boolean;contentAvailable?:boolean;readOnly?:boolean;connectionRevision?:string;presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const [jiraTip,setJiraTip]=useState(false);
  const read=useRpc(readIssueDetails);
@@ -26,6 +27,7 @@ export function IssueDetails({startAvailable=true,contentAvailable=true,readOnly
  const c=theme.colors;
  const {width}=useWindowDimensions();const wide=presentation==='modal'&&width>=760;
  return <DetailsShell panelCollapsed={panelCollapsed} onTogglePanel={onTogglePanel} onResizePanel={onResizePanel} presentation={presentation} panelWidth={panelWidth} issueKey={issue.key} theme={theme} onClose={onClose}>
+  {issueNavigation?<IssueNavigation {...issueNavigation} theme={theme}/>:null}
   <Text selectable style={{color:c.foreground,fontSize:22,lineHeight:29,fontWeight:'700'}}>{issue.summary}</Text>
   <StartWork linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
    <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:8,flex:1,minWidth:0}}><View style={{paddingHorizontal:10,paddingVertical:6,borderRadius:6,backgroundColor:c.surface2}}><Text style={{color:c.foreground,fontSize:13}}>{issue.status}</Text></View><Text style={{color:c.foregroundMuted,fontSize:13}}>{issue.type} · {issue.priority??'No priority'}</Text><View style={{position:'relative'}}>

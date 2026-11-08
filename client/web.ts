@@ -56,3 +56,10 @@ export function bindBoardKeyboard(node:unknown){
  };
  root.addEventListener('keydown',handler);return ()=>root.removeEventListener('keydown',handler);
 }
+
+export function focusIssueCard(node:unknown,key:string){
+ if(Platform.OS!=='web'||!node)return;
+ const root=node as {querySelectorAll(selector:string):ArrayLike<{getAttribute(name:string):string|null;querySelector(selector:string):{focus(options:{preventScroll:boolean}):void}|null}>};
+ const card=Array.from(root.querySelectorAll('[data-testid]')).find(value=>value.getAttribute('data-testid')===`issue-card-${key}`);
+ card?.querySelector('[data-testid="keyboard-issue-title"]')?.focus({preventScroll:true});
+}

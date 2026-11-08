@@ -35,3 +35,9 @@ Verification: six filter/activity unit tests, ten Chrome filter/saved-view tests
 A tooltip-labelled overflow button shares the existing card footer, without adding a new row. It offers Copy issue key, Copy Jira link, Open in Jira and (when linked) Open workspace. The primary Start/Open action remains visible. Copy success or failure stays inside the menu.
 
 Verification: both typechecks and four mocked Chrome cases covering all transports, exact clipboard values, workspace navigation, tooltip, mobile error/retry and dismissal. Reloaded in Paseo, opened the linked card menu, copied its issue key and observed success feedback. No Jira writes.
+
+## 5. Issue navigation
+
+Previous/Next follows filtered column order, deduplicates repeated statuses and disables at boundaries. Removed/filtered-out selections do not jump to an unrelated issue. Closing details restores card focus without scrolling the lane. Mobile navigation selects the destination column. Existing private drafts remain scoped to each issue.
+
+Verification: ordering/boundary unit test, six navigation Chrome cases and six existing draft cases; both typechecks. Direct regressions cover draft retention across Next/Previous and lane scroll preservation. In Paseo, advanced from issue 3 to 4 of 28, closed details and verified focus returned to the new issue's card. No Jira writes.
