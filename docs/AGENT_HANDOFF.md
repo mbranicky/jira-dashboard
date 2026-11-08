@@ -1,6 +1,14 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-07. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+Updated: 2026-11-08. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+
+## Active improvement stack
+
+The Better Paseo-inspired board improvements are implemented in seven sequential, stacked PRs, beginning with [#31](https://github.com/mbranicky/jira-dashboard/pull/31). They are **not merged or released**. See [UX improvements](UX_IMPROVEMENTS.md) for review order, behavior and verification evidence. Local checkout/plugin currently includes the whole stack on `codex/mobile-board-navigation`; main and version 1.1.0 remain unchanged.
+
+The changes cover visual hierarchy/reduced motion, read-only linked activity, attention filters, card actions, Previous/Next details, device-local display preferences and mobile column navigation. All three transports remain. No live Jira writes were performed. Device display preferences persist on desktop/web; native or unavailable storage is explicitly session-only because published SDK 0.15.3 still accepts host settings only. Do not adopt unreleased device settings based solely on newer online docs.
+
+The user authorized separate PRs and verification, not merging, versioning or publication. Merge the stack in order only after further authorization; retarget dependent PRs and verify their resulting checks before merging.
 
 ## Repository and delivery status
 

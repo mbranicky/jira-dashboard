@@ -36,7 +36,7 @@ describe('Registry previews',()=>{
  });
  it('mobile details → full-screen readable issue',()=>{
   cy.viewport(430,900);mount(<Harness preview light mode="panel" mappingItems={registryMappings}/>);
-  button('IN PROGRESS · 2').click();detail().click();
+  cy.get('[aria-label^="Choose column:"]').click();button('Column: IN PROGRESS, 2 issues').click();detail().click();
   button('Close issue details').should('be.visible');cy.contains('What success looks like').should('be.visible');
   cy.contains('[role="button"]','Attachments (0)').click({scrollBehavior:false});
   cy.contains('The updated flow is ready for review.',{matchCase:false}).should('exist');

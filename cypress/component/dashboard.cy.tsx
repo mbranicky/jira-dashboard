@@ -91,7 +91,7 @@ for(const width of [1440,390])it(`workspace lookup unavailable → board stays u
 it('return to the mobile board → restore the search and selected column',()=>{
  cy.viewport(390,844);stubRpc();mount(<Harness/>);
  cy.get('[aria-label="Search issues"]').type('Second');
- cy.contains('[role="button"]','IN PROGRESS · 0').click();
+ cy.get('[aria-label^="Choose column:"]').click();cy.get('[aria-label="Column: IN PROGRESS, 0 issues"]').click();
  cy.get('[data-testid="navigate"]').click();
  cy.contains('Simulated workspace').should('be.visible');
  cy.get('[data-testid="navigate"]').click();
