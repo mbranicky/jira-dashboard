@@ -10,7 +10,7 @@ describe('Registry previews',()=>{
   cy.viewport(1200,900);mount(<Harness preview mode="panel" mappingItems={registryMappings}/>);
   detail().should('be.visible');button('Start work DEMO-124').should('be.visible');
   button('Filters').click();button('Filter by Label').click();
-  cy.get('[role="checkbox"][aria-label="Label: experience"]').click();button('Done').click();
+  cy.get('[role="checkbox"][aria-label="Label: experience"]').click();button('Close dropdown').click('topLeft');
   button('Remove Label: experience').should('be.visible');
   button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Onboarding');button('Save view').click();
   button('Saved views').should('be.visible');

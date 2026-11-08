@@ -1,5 +1,5 @@
 import {MobileColumns} from './mobile-columns';
-import {DisplayPreferencesMenu,useDisplayPreferences} from './display-preferences';
+import {useDisplayPreferences} from './display-preferences';
 import {issueNavigation} from '../shared/issue-navigation';
 import {useWorkspaceActivity} from './workspace-activity';
 import {activityKey} from '../shared/workspace-activity';
@@ -129,7 +129,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const activity=useWorkspaceActivity(host.id,editing?[]:data?.issues.flatMap(issue=>issue.linkedWorkspace?[issue.linkedWorkspace]:[])??[]);
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
-  if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
+  if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences hostId={host.id} theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
   const filtered=data?.issues.filter(i=>matchesBoardView(i,search,filters,i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
@@ -150,7 +150,6 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
           <View style={{gap:4,flexShrink:1}}><Text style={{...text,fontSize:22,fontWeight:'700'}}>{data?.name??'Jira Sprint Workspace'}</Text><Text style={{...muted,fontSize:12}}>{data?`${data.user.displayName} · Assigned to me`:'Your assigned sprint issues'}</Text></View>
         </View>
         <View style={{flexDirection:'row',alignItems:'center',gap:4,alignSelf:'flex-end'}}>
-          <DisplayPreferencesMenu hostId={host.id} theme={theme}/>
           <Action theme={theme} icon="RefreshCw" label={board.isFetching?'Refreshing…':'Refresh'} disabled={board.isFetching||!configured} onPress={()=>void board.refetch()}/>
           <Action theme={theme} icon="Settings2" label="Settings" onPress={()=>{setMappingProject(undefined);setEditing(true);}}/>
         </View>

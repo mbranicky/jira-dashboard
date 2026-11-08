@@ -3,19 +3,36 @@ import {mount} from 'cypress/react';
 import {Harness,stubRpc} from '../support/harness';
 for(const transport of ['rest','twg','mcp'] as const)it(`${transport} display preferences → live preview and device-local changes without saving host settings`,()=>{
  cy.viewport(1440,900);stubRpc();mount(<Harness transport={transport}/>);
- cy.get('[aria-label="Display preferences"]').click();cy.get('[aria-label="Comfortable"]').click();
+ cy.get('[aria-label="Settings"]').click();cy.get('[aria-label^="Card spacing:"]').scrollIntoView().click();cy.contains('[role="button"]','Comfortable').click();
  cy.get('[data-testid="issue-card-DEMO-42"]').should('have.css','padding-top','15px');
  cy.get('[aria-label="Show tags"]').click();cy.get('[data-testid="issue-card-DEMO-42"]').should('not.contain','experience');
- cy.get('[aria-label="Wide"]').click();cy.get('[aria-label="Done"]').click();
+ cy.get('[aria-label^="Desktop column width:"]').scrollIntoView().click();cy.contains('[role="button"]','Wide').click();cy.get('[aria-label="Back to board"]').scrollIntoView().click();
  cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','padding-top','15px').and('not.contain','alpha');
  cy.get('[data-testid="navigate"]').click().click();cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','padding-top','15px');
  cy.window().should(win=>expect(Object.keys(win.localStorage).some(key=>key.startsWith('paseo-jira-sprint-workspace:display:v1:'))).eq(true));
- cy.get('[aria-label="Display preferences"]').click();cy.get('[aria-label="Reset display"]').scrollIntoView().click();cy.get('[aria-label="Done"]').click();
+ cy.get('[aria-label="Settings"]').click();cy.get('[aria-label^="Card spacing:"]').scrollIntoView().click();cy.contains('[role="button"]','Compact').click();cy.get('[aria-label="Show tags"]').click();cy.get('[aria-label="Back to board"]').scrollIntoView().click();
  cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','padding-top','11px').and('contain','alpha');
 });
 it('small mobile viewport and unavailable storage → preview remains scrollable with session-only notice',()=>{
  cy.viewport(390,600);stubRpc();mount(<Harness light/>);cy.window().then(win=>cy.stub(win.Storage.prototype,'setItem').throws(Error('full')));
- cy.get('[aria-label="Display preferences"]').click();cy.get('[aria-label="Comfortable"]').click();cy.contains('Kept for this session only; device storage is unavailable.').should('be.visible');
- cy.get('[aria-label="Done"]').scrollIntoView().should('be.visible').click();
+ cy.get('[aria-label="Settings"]').click();cy.get('[aria-label^="Card spacing:"]').scrollIntoView().click();cy.contains('[role="button"]','Comfortable').click();cy.contains('Kept for this session only; device storage is unavailable.').should('be.visible');
+ cy.get('[aria-label="Back to board"]').scrollIntoView().should('be.visible').click();
  cy.get('[data-testid="issue-card-TEST-1"]').should('be.visible');
+});
+
+for(const width of [320,390,1440])it(`appearance settings at ${width}px → accessible controls and bounded preview`,()=>{
+ cy.viewport(width,900);stubRpc();mount(<Harness light={width!==1440}/>);
+ cy.get('[aria-label="Display preferences"]').should('not.exist');
+ cy.get('[aria-label="Settings"]').click();
+ cy.contains('Dashboard appearance').should('be.visible');
+ cy.get('[aria-label="Reset display"],[aria-label="Done"]').should('not.exist');
+ for(const label of ['Card spacing: Compact','Desktop column width: Standard','Show parent','Show tags']){
+  cy.get(`[aria-label="${label}"]`).scrollIntoView().should('be.visible').should($el=>{
+   const r=$el[0].getBoundingClientRect();
+   expect(r.height).to.be.at.least(44);expect(r.left).to.be.at.least(0);expect(r.right).to.be.at.most(width);
+  });
+ }
+ cy.get('[aria-label^="Desktop column width:"]').scrollIntoView().click();cy.contains('[role="button"]','Wide').click();
+ cy.get('[data-testid="appearance-preview"]').scrollIntoView().should($el=>expect($el[0].getBoundingClientRect().right).to.be.at.most(width));
+ cy.contains('Issue details').scrollIntoView().should('be.visible');
 });

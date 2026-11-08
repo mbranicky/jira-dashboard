@@ -44,7 +44,7 @@ Verification: ordering/boundary unit test, six navigation Chrome cases and six e
 
 ## 6. Device-local display preferences
 
-The toolbar's Display preferences menu adjusts compact/comfortable spacing, desktop column width and parent/tag visibility, with a synthetic issue preview using the real card component. Priority sits beside status to keep footer keys/actions readable in narrow columns. Defaults retain compact spacing. Preferences are isolated by device and host, never written to shared host settings.
+Settings → Dashboard appearance combines issue-detail presentation with board and card preferences. Board and card controls adjust compact/comfortable spacing, desktop column width and parent/tag visibility, with a live synthetic issue preview using the real card component. Changes apply immediately, without Reset or Done actions. Controls have 44-pixel touch targets, wrap on narrow screens, and stack above the preview on mobile. Priority sits beside status to keep footer keys/actions readable in narrow columns. Defaults retain compact spacing. Preferences are isolated by device and host, never written to shared host settings.
 
 Published SDK 0.15.3 still restricts settings scope to `host` (verified against its npm declarations and runtime), despite newer online reference text mentioning device scope. This implementation uses the existing browser/app local-storage boundary. Native clients or unavailable/full storage retain preferences for the session with an explicit notice. No dependency/minimum-version change is needed; migrate to supported durable native device settings when published.
 
