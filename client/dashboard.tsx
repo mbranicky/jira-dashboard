@@ -122,7 +122,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
   if(editing || (settings.status==='ready'&&!configured))return <ScrollView style={{flex:1,backgroundColor:theme.colors.surface0}}>{configured?<View style={{maxWidth:960,width:'100%',alignSelf:'center',paddingHorizontal:layout.compact?16:24,paddingTop:16}}><Action theme={theme} icon="ArrowLeft" label="Back to board" onPress={()=>setEditing(false)}/></View>:null}{!mappingProject?<DashboardPreferences theme={theme} layout={layout}/>:null}{!mappingProject?<ConnectionEditor hostId={host.id} theme={theme} layout={layout} onSaving={()=>{setEditing(true);}}/>:null}<MappingSettings embedded prefillProjectKey={mappingProject} theme={theme} layout={layout}/></ScrollView>;
-  const filtered=data?.issues.filter(i=>matchesBoardView(i,search,filters))??[];
+  const filtered=data?.issues.filter(i=>matchesBoardView(i,search,filters,i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined))??[];
   const columns=data?[...data.columns]:[];
   if(data && filtered.some(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))))columns.push({name:'Unmapped status',statusIds:filtered.filter(i=>!data.columns.some(c=>c.statusIds.includes(i.statusId))).map(i=>i.statusId)});
   // Use configured status IDs so a reordered board still opens the same column.
@@ -168,6 +168,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
       {data?<View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:12}}><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>{`${filtered.length} of ${data.issues.length}`} issues</Text><View style={{flexDirection:'row',alignItems:'center',gap:5}}><View style={{width:12,height:12,flexShrink:0,alignItems:'center',justifyContent:'center'}}>{board.isFetching?<ActivityIndicator size={12} color={theme.colors.accent}/>:<Icon name="Clock3" size={12} color={theme.colors.foregroundMuted}/>}</View><Text style={{...muted,fontSize:11,fontVariant:['tabular-nums']}}>Updated {new Date(data.checkedAt).toLocaleTimeString()}</Text></View></View>:null}
     </View>
     {settings.status==='error'||settings.status==='invalid'?<Text accessibilityRole="alert" style={text}>Connection settings could not be loaded. Open Settings to retry.</Text>:null}
+    {filters.activity?.length&&activity.isFetching?<Text style={muted}>Updating activity filters…</Text>:null}
+    {filters.activity?.length&&Object.values(activity.data??{}).some(value=>value.state==='unavailable')?<Text style={muted}>Some workspace activity is unavailable. Those issues only match workspace-presence filters.</Text>:null}
     {board.error?<View style={{padding:14,backgroundColor:theme.colors.surface1,borderRadius:8,gap:8}}><Text accessibilityRole="alert" style={text}>{board.error.message}</Text>{data?<Text style={muted}>Showing the last successful snapshot. It may be out of date.</Text>:null}</View>:null}
     {sprintSaveError?<Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>{sprintSaveError}</Text>:null}
     {preferences.status==='error'||preferences.status==='invalid'?<Action theme={theme} icon="RefreshCw" label="Retry dashboard preferences" onPress={()=>void preferences.reload()}/>:null}
