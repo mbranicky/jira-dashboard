@@ -9,6 +9,7 @@ export const issue=(key='TEST-1',summary='An example issue with a complete reada
 export const board={site,boardId:1,name:'Example board',checkedAt:'2026-11-03T10:00:00Z',user:{displayName:'Test user'},columns:[{name:'OPEN',statusIds:['1']},{name:'IN PROGRESS',statusIds:['2']},{name:'DONE',statusIds:['3']}],sprints:[{id:1,name:'Sprint one',state:'active'},{id:2,name:'Sprint two',state:'future'},{id:3,name:'Old sprint',state:'closed'}],selectedSprintId:1,issues:[issue(),issue('TEST-2','Second issue')]};
 export const details={description:[],richDescription:Array.from({length:35},(_,i)=>({kind:'paragraph',runs:[{text:`Description paragraph ${i+1}. Long issue content to exercise scrolling.`}]})),assignee:'Test user',reporter:'Example reporter',dueDate:null,created:'2026-11-01T10:00:00Z',updated:'2026-11-03T10:00:00Z'};
 export function stubRpc(options:{error?:boolean;many?:boolean}={}){
+ cy.intercept('GET','/__paseo/**',{statusCode:404,body:{}});
  const data=options.many?{...board,issues:Array.from({length:18},(_,i)=>issue(`TEST-${i+1}`,`Issue ${i+1}`))}:board;
  cy.intercept('POST','/__rpc/*',request=>{
   const name=request.url.split('/').pop();

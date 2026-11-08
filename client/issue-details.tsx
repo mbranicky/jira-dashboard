@@ -1,3 +1,4 @@
+import {WorkspaceActivityDetails} from './workspace-activity';
 import {useReducedMotion} from './motion';
 import {IssueRelationships} from './issue-relationships';
 import {DetailsPanel} from './details-panel';
@@ -33,6 +34,7 @@ export function IssueDetails({startAvailable=true,contentAvailable=true,readOnly
    </View></View>
   }/>
 
+  <WorkspaceActivityDetails link={issue.linkedWorkspace} hostId={hostId} theme={theme} navigation={navigation}/>
   <View style={{flexDirection:wide?'row':'column',gap:wide?28:14,alignItems:'flex-start'}}>
   <View style={{gap:14,flex:wide?1:undefined,width:wide?undefined:'100%',minWidth:0}}><View style={{flexDirection:'row'}}><SectionHeading title="Description" icon="FileText" theme={theme} expanded={descriptionExpanded} onPress={()=>setDescriptionExpanded(!descriptionExpanded)}/></View><View style={{display:descriptionExpanded?'flex':'none',gap:12}}>
    {query.isPending?<Text style={{color:c.foregroundMuted}}>Loading issue details…</Text>:query.error?<View><Text accessibilityRole="alert" style={{color:c.statusDanger}}>{query.error.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,'')}</Text><Action theme={theme} icon="RefreshCw" label="Retry" onPress={()=>void query.refetch()}/></View>:<JiraContent onOpenJira={onOpenJira} blocks={query.data?.richDescription??[]} theme={theme}/>}

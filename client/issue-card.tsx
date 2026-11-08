@@ -1,3 +1,5 @@
+import {ActivityBadge} from './workspace-activity';
+import type {WorkspaceActivity} from '../shared/workspace-activity';
 import {issueSearchHighlights} from '../shared/search-highlights';
 import {SearchHighlight} from './search-highlight';
 import {canStartWork} from '../shared/work-eligibility';
@@ -8,8 +10,8 @@ import {useState} from 'react';
 import type {Issue} from '../shared/contracts';
 import {StartWork} from './start-work';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {selected?:boolean;search?:string;startAvailable?:boolean;detailsAvailable?:boolean;readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
-export function IssueCard({selected=false,search='',startAvailable=true,detailsAvailable=true,readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {activity?:WorkspaceActivity;selected?:boolean;search?:string;startAvailable?:boolean;detailsAvailable?:boolean;readOnly?:boolean;hostId:string;issue:Issue;onOpenDetails:()=>void;mappingReady:boolean;onConfigureMapping?:()=>void;sprintId:number;onOpenJira:()=>void;onStarted:()=>void};
+export function IssueCard({activity,selected=false,search='',startAvailable=true,detailsAvailable=true,readOnly=false,hostId,theme,navigation,issue,mappingReady,onConfigureMapping,sprintId,onOpenJira,onStarted,onOpenDetails}:Props){
  const [expanded,setExpanded]=useState(false);const [focused,setFocused]=useState(false);
  const colors=theme.colors;
  const matches=issueSearchHighlights(issue,search);
@@ -34,6 +36,7 @@ export function IssueCard({selected=false,search='',startAvailable=true,detailsA
    </View>:null}
    </Pressable>:null}
    <Text style={{color:colors.foregroundMuted,fontSize:12,lineHeight:17}}>{issue.status}</Text>
+   <ActivityBadge value={activity} theme={theme}/>
    <StartWork linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
      <View style={{flex:1,flexDirection:'row',alignItems:'center',gap:5}}>
        <Pressable accessibilityRole="link" accessibilityLabel={`${issue.type} ${issue.key}. Open in Jira`} onPress={onOpenJira} style={{minHeight:44,flexDirection:'row',alignItems:'center',gap:6,flexShrink:1}}><Icon name={typeIcon} size={14} color={typeColor}/><Text style={{color:colors.foregroundMuted,fontSize:11,fontWeight:'600'}}><SearchHighlight text={issue.key} ranges={matches.key} theme={theme}/></Text><Icon name="ExternalLink" size={10} color={colors.foregroundMuted}/></Pressable>
