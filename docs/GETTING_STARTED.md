@@ -1,6 +1,6 @@
 # Getting started
 
-Jira Sprint Workspace is a trusted local Paseo plugin. Its backend connects through Atlassian MCP OAuth, a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. Install the npm release with `paseo plugin install npm:paseo-jira-sprint-workspace@1.0.0`.
+Jira Sprint Workspace is a trusted local Paseo plugin. Its backend connects through Atlassian MCP OAuth, a host-side Teamwork Graph OAuth profile or a private REST API credential file. Install it only on a host you trust. Install the npm release with `paseo plugin install npm:paseo-jira-sprint-workspace@1.2.0`.
 
 ## Install from a checkout
 
