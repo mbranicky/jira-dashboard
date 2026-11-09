@@ -209,3 +209,7 @@ Prepared after UI/media PR #39 merged with all four checks green. Package, shrin
 - The candidate tarball was extracted into a clean temporary directory on macOS Apple silicon. Both packaged manifest build commands passed; production installation reported zero vulnerabilities.
 - Five synthetic screenshots were reviewed during PR #39. Browser workflows use mocks; no live Jira writes, physical mobile verification, or new host support claims.
 - Release execution requires green PR and exact-main checks. Publication evidence belongs in the GitHub release and workflow logs. The exact tarball digest is recorded in the release checklist outside package contents; any subsequent packaged change requires rebuilding it.
+
+## CI coverage
+
+The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, then runs the full suite against exact 0.15.2 SDKs. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.

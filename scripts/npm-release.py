@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 REPOSITORY = "mbranicky/jira-dashboard"
 PACKAGE = "paseo-jira-sprint-workspace"
 REGISTRY = "https://registry.npmjs.org"
-CHECKS = {"checks", "Paseo 0.15 compatibility", "Paseo 0.15.2 compatibility", "History and source secret scan"}
+CHECKS = {"Build, tests & package · Paseo 0.14.0", "SDK compatibility · Paseo 0.15.2", "Secret scan · source & history"}
 
 
 def require(condition, message):
