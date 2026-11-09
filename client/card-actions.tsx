@@ -6,11 +6,11 @@ import {OverlayMenu} from './overlay-menu';
 import {IconAction} from './icon-action';
 import {Action} from './settings-ui';
 
-export function CardActions({theme,issueKey,jiraUrl,onOpenJira,onOpenWorkspace}:{theme:PluginScreenProps['theme'];issueKey:string;jiraUrl?:string;onOpenJira:()=>void;onOpenWorkspace?:()=>void}){
+export function CardActions({dense=false,theme,issueKey,jiraUrl,onOpenJira,onOpenWorkspace}:{dense?:boolean;theme:PluginScreenProps['theme'];issueKey:string;jiraUrl?:string;onOpenJira:()=>void;onOpenWorkspace?:()=>void}){
  const [open,setOpen]=useState(false),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  async function copy(value:string,label:string){if(busy)return;setBusy(true);setMessage('');try{await copyText(value);setMessage(`${label} copied.`);}catch{setMessage('Could not copy. Please try again.');}finally{setBusy(false);}}
  function close(){setOpen(false);setMessage('');}
- return <OverlayMenu theme={theme} open={open} onOpenChange={value=>{setOpen(value);setMessage('');}} trigger={toggle=><IconAction compactVisual theme={theme} label={`Actions for ${issueKey}`} icon="Ellipsis" onPress={toggle}/>}>
+ return <OverlayMenu theme={theme} open={open} onOpenChange={value=>{setOpen(value);setMessage('');}} trigger={toggle=><IconAction dense={dense} compactVisual theme={theme} label={`Actions for ${issueKey}`} icon="Ellipsis" onPress={toggle}/>}>
   <View style={{padding:6,gap:2}}>
    <Action theme={theme} label="Copy issue key" icon="Copy" disabled={busy} onPress={()=>void copy(issueKey,'Issue key')}/>
    {jiraUrl?<Action theme={theme} label="Copy Jira link" icon="Link" disabled={busy} onPress={()=>void copy(jiraUrl,'Jira link')}/>:null}

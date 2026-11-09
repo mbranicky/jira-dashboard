@@ -6,7 +6,9 @@ for(const transport of ['rest','twg','mcp'] as const)for(const light of [false,t
  it('open and close details → selected card follows the panel without changing Jira',()=>{
   cy.viewport(1440,900);stubRpc();mount(<Harness transport={transport} light={light} mode="panel"/>);
   cy.get('[data-testid="keyboard-issue-title"]').first().click().should('have.attr','aria-expanded','true');
-  cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','border-top-color',light?'rgb(39, 91, 168)':'rgb(138, 180, 255)');
+  cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','border-top-color',light?'rgb(213, 216, 223)':'rgb(69, 77, 91)');
+  cy.get('[data-testid="issue-card-TEST-1"]').should('have.css','background-color',light?'rgb(233, 235, 239)':'rgb(55, 63, 76)');
+  cy.get('[data-testid="keyboard-issue-title"]').first().should('have.css','outline-style','none').and('have.css','border-top-width','0px');
   cy.get('[data-testid="keyboard-issue-title"]').eq(1).click().should('have.attr','aria-expanded','true');
   cy.get('[data-testid="keyboard-issue-title"]').first().should('have.attr','aria-expanded','false');
  });
@@ -28,4 +30,35 @@ it('change reduced-motion preference → mounted controls receive the new prefer
  cy.get('[data-testid="motion-preference"]').should('have.text','normal');
  cy.then(()=>change(true));
  cy.get('[data-testid="motion-preference"]').should('have.text','reduced');
+});
+
+for(const transport of ['rest','twg','mcp'] as const)it(`${transport} whole card selects details while nested actions stay independent`,()=>{
+ cy.viewport(1440,900);stubRpc();mount(<Harness transport={transport} mode="panel"/>);
+ const card='[data-testid="issue-card-TEST-1"]';
+ cy.get(card).find('[aria-label="Actions for TEST-1"]').click();
+ cy.contains('Copy issue key').should('be.visible');
+ cy.get('[data-testid="keyboard-issue-title"]').first().should('have.attr','aria-expanded','false');
+ cy.get('[aria-label="Close dropdown"]').click(1,1);
+ cy.get(card).find('[aria-label="Expand parent and tags for TEST-1"]').click();
+ cy.get('[data-testid="keyboard-issue-title"]').first().should('have.attr','aria-expanded','false');
+ cy.get(card).click(5,5);
+ cy.get('[data-testid="keyboard-issue-title"]').first().should('have.attr','aria-expanded','true').find('[dir="auto"]').first().should('have.css','font-size','13px').and('have.css','text-decoration-line','none');
+ cy.get('[data-testid="issue-card-TEST-2"]').contains('TEST-2').click();
+ cy.get('[data-testid="keyboard-issue-title"]').eq(1).should('have.attr','aria-expanded','true');
+});
+
+for(const light of [false,true])it(`mouse-down does not flash a keyboard ring, ${light?'light':'dark'} theme`,()=>{
+ cy.viewport(1440,900);stubRpc();mount(<Harness light={light} mode="panel"/>);
+ const card='[data-testid="issue-card-TEST-1"]';
+ cy.get(card).invoke('css','box-shadow').then(shadow=>{
+  cy.get(card).find('[data-testid="keyboard-issue-title"]').realMouseDown();
+  cy.get(card).should('have.css','box-shadow',shadow).and('have.css','outline-width','0px');
+  cy.get(card).find('[data-testid="keyboard-issue-title"]').realMouseUp();
+  cy.get(card).should('have.css','box-shadow',shadow).and('have.css','outline-width','0px');
+ });
+ cy.get('[aria-label="Refresh"]').focus();cy.realPress('j');cy.realPress('j');
+ cy.get('[data-testid="keyboard-issue-title"]').eq(1).should('have.focus');
+ cy.get('[data-testid="keyboard-issue-title"]').eq(1).should('have.attr','aria-expanded','false');
+ cy.get('[data-jira-dashboard]').first().should('have.attr','data-keyboard-focus');
+ cy.get('[data-testid="issue-card-TEST-2"]').should('have.css','outline-width','2px');
 });

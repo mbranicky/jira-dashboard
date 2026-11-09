@@ -36,3 +36,19 @@ for(const width of [320,390,1440])it(`appearance settings at ${width}px → acce
  cy.get('[data-testid="appearance-preview"]').scrollIntoView().should($el=>expect($el[0].getBoundingClientRect().right).to.be.at.most(width));
  cy.contains('Issue details').scrollIntoView().should('be.visible');
 });
+
+it('compact cards reduce desktop spacing while preserving mobile action targets',()=>{
+ cy.viewport(1440,900);stubRpc();mount(<Harness/>);
+ const card='[data-testid="issue-card-TEST-1"]';
+ cy.get(card).should('have.css','row-gap','3px');
+ cy.get(card).find('[aria-label="Actions for TEST-1"]').should('have.css','height','34px');
+ cy.get(card).find('[aria-label="Configure mapping for TEST-1"]').should('have.css','height','34px');
+ cy.viewport(390,900);
+ cy.get(card).find('[aria-label="Actions for TEST-1"]').should('have.css','height','44px');
+ cy.get(card).find('[aria-label="Configure mapping for TEST-1"]').should('have.css','height','44px');
+ cy.viewport(1440,900);
+ cy.get('[aria-label="Settings"]').click();cy.get('[aria-label^="Card spacing:"]').scrollIntoView().click();cy.contains('[role="button"]','Comfortable').click();
+ cy.get('[aria-label="Back to board"]').scrollIntoView().click();
+ cy.get(card).should('have.css','row-gap','10px');
+ cy.get(card).find('[aria-label="Actions for TEST-1"]').should('have.css','height','44px');
+});
