@@ -11,11 +11,11 @@ export function useWorkspaceActivity(hostId:string,links:ActivityLink[]){
  const paseo=usePaseo();const keys=[...new Set(links.map(activityKey))].sort();
  return useQuery({queryKey:['jira-workspace-activity',hostId,keys],queryFn:()=>readWorkspaceActivity(paseo,keys.map(key=>{const [workspaceId,agentId]=JSON.parse(key) as string[];return {workspaceId,agentId:agentId||undefined};})),enabled:!!keys.length,retry:false,refetchInterval:15000,refetchIntervalInBackground:false,staleTime:10000});
 }
-export function ActivityBadge({value,theme}:{value?:WorkspaceActivity;theme:PluginScreenProps['theme']}){
+export function ActivityBadge({value,theme,dense=false}:{dense?:boolean;value?:WorkspaceActivity;theme:PluginScreenProps['theme']}){
  if(!value)return null;const c=theme.colors;
  const color=value.state==='failed'?c.statusDanger:value.state==='needs-input'?c.statusWarning:value.state==='working'?c.accent:c.foregroundMuted;
  const icon=value.state==='working'?'Activity':value.state==='needs-input'?'MessageCircleQuestion':value.state==='finished'?'CircleCheck':value.state==='failed'?'CircleAlert':'CircleDot';
- return <View testID="workspace-activity" style={{flexDirection:'row',alignItems:'center',gap:5,paddingVertical:3}}><Icon name={icon} size={12} color={color}/><Text style={{fontSize:11,color}}>{activityLabel(value)}</Text></View>;
+ return <View testID="workspace-activity" style={{flexDirection:'row',alignItems:'center',gap:5,paddingVertical:dense?0:3}}><Icon name={icon} size={12} color={color}/><Text style={{fontSize:11,color}}>{activityLabel(value)}</Text></View>;
 }
 export function WorkspaceActivityDetails({link,hostId,theme,navigation}:{link?:ActivityLink;hostId:string;theme:PluginScreenProps['theme'];navigation:PluginScreenProps['navigation']}){
  const [expanded,setExpanded]=useState(false);const query=useWorkspaceActivity(hostId,expanded&&link?[link]:[]);

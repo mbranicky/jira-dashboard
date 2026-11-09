@@ -8,8 +8,8 @@ import {useState,useContext,useEffect,type ReactNode} from 'react';
 import {Modal,ScrollView,ActivityIndicator,Pressable,Text,View,useWindowDimensions} from 'react-native';
 import {prepareBranches,startWork} from '../shared/contracts';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode;showLabel?:boolean};
-export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer,showLabel=false}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode;showLabel?:boolean;dense?:boolean};
+export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer,showLabel=false,dense=false}:Props){
   const compact=useWindowDimensions().width<760;
   const openIssue=useContext(OpenWorkspaceIssue);
   const start=useRpc(startWork);const prepare=useRpc(prepareBranches);
@@ -51,7 +51,7 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
             if(result){navigation?.openWorkspace({workspaceId:result.workspaceId});openIssue(result.workspaceId);return;}
             void prepareWork();
           }}
-          style={({pressed})=>({width:showLabel?undefined:44,minHeight:showLabel&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
+          style={({pressed})=>({width:showLabel?undefined:dense&&!compact?34:44,minHeight:(showLabel||dense)&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
           <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:8,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
           {showLabel?<Text style={{color:theme.colors.accentForeground,fontSize:14}}>{configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}</Text>:null}
         </Pressable>
