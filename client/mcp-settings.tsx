@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {ConnectionCheckResult} from './connection-check';
 import type {connectionCheckResult} from '../shared/connection-check';
 import {useEffect,useRef,useState} from 'react';
@@ -49,9 +50,9 @@ function McpConnection({theme,hostId,site,boardUrl,writeAccess}:{theme:SettingsT
  const connected=state.state==='connected'&&!reauthorizing;
  const authorizing=state.state==='authorizing'&&!!state.authorizationUrl;
  const statusTitle=checking?'Checking access…':connected?'Connected':authorizing?'Finish signing in':busy?'Connecting…':state.state==='failed'?'Connection needs attention':'Connect your account';
- return <View accessibilityLabel="Atlassian MCP connection" style={{padding:16,gap:16,borderRadius:16,borderWidth:1,borderColor:c.border,backgroundColor:c.surface1}}>
+ return <View accessibilityLabel="Atlassian MCP connection" style={{padding:16,gap:16,borderRadius:radii.surface,borderWidth:1,borderColor:c.border,backgroundColor:c.surface1}}>
   <SectionTitle theme={theme} icon="ShieldCheck" title="Atlassian MCP" description="Secure sign-in through your Atlassian account."/>
-  <View style={{backgroundColor:c.surface0,borderRadius:10,padding:14,gap:8}}>
+  <View style={{backgroundColor:c.surface0,borderRadius:radii.card,padding:14,gap:8}}>
    <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
     {busy?<ActivityIndicator size="small" color={c.accent}/>:<Icon name={connected?'CircleCheck':state.state==='failed'?'CircleAlert':'Link'} size={17} color={connected?c.statusSuccess:state.state==='failed'?c.statusDanger:c.foregroundMuted}/>}
     <Text style={{color:c.foreground,fontWeight:'600',fontSize:14}}>{statusTitle}</Text>
@@ -80,5 +81,5 @@ function McpConnection({theme,hostId,site,boardUrl,writeAccess}:{theme:SettingsT
 }
 function McpAction({theme,label,icon,onPress,primary=false,danger=false,disabled=false}:{theme:SettingsTheme;label:string;icon:string;onPress:()=>void;primary?:boolean;danger?:boolean;disabled?:boolean}){
  const c=theme.colors,color=primary?c.accentForeground:danger?c.statusDanger:c.foreground;
- return <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({pressed})=>({minHeight:40,paddingHorizontal:12,paddingVertical:9,borderRadius:8,borderWidth:1,borderColor:primary?c.accent:c.border,backgroundColor:primary?c.accent:pressed?c.surface2:'transparent',flexDirection:'row',alignItems:'center',gap:7,opacity:disabled?.5:1,transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={16} color={color}/><Text style={{color,fontSize:13,fontWeight:'600'}}>{label}</Text></Pressable>;
+ return <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({pressed})=>({minHeight:40,paddingHorizontal:12,paddingVertical:9,borderRadius:radii.control,borderWidth:1,borderColor:primary?c.accent:c.border,backgroundColor:primary?c.accent:pressed?c.surface2:'transparent',flexDirection:'row',alignItems:'center',gap:7,opacity:disabled?.5:1,transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={16} color={color}/><Text style={{color,fontSize:13,fontWeight:'600'}}>{label}</Text></Pressable>;
 }

@@ -1,5 +1,17 @@
 # Testing Jira Sprint Workspace
 
+## 1.2.1 patch verification — 2026-11-09
+
+Verified on macOS Apple silicon with Node 24.16.0 and Paseo app/daemon 0.15.3. The package, shrinkwrap root and MCP handshake identify 1.2.1. All three connection methods and the supported Paseo range are unchanged.
+
+- Both baseline typechecks, 304 Node tests, 201 Chrome tests, 15 publishing-verifier tests, source audit and package-content checks passed.
+- Both typechecks also passed in an isolated copy with exact Paseo plugin/client SDK 0.15.3; the working checkout retains its locked 0.14.0 baseline. CI additionally retains lightweight 0.15.0 typechecks and full 0.15.2 coverage.
+- Corner regressions cover nested surface/control values, centralized tokens, light/dark themes, desktop/mobile and REST/TWG/MCP fixtures. Compact spacing, independent nested actions and pointer/keyboard feedback remain covered.
+- Five synthetic public screenshots were regenerated and reviewed. No private board data is included.
+- The extracted tarball completed both manifest build commands with production dependencies only and zero reported production audit vulnerabilities. The isolated, loopback-only Paseo 0.15.3 host loaded and reloaded it successfully; Jira Workspace opened its appearance/first-run settings and displayed all three connection choices in the actual host UI.
+
+This is mocked Jira behavior plus unconfigured host activation/UI evidence, not live Jira write verification. The user's active installation and connection settings were preserved. The final digest is retained outside packaged contents; publication and exact-main evidence belong in the GitHub release notes.
+
 ## 1.1.0 candidate verification — 2026-11-07
 
 Prepared on `codex/release-1-1-0` from merged main `3956ad8`, on macOS Apple silicon. Package, shrinkwrap and MCP client metadata all identify version 1.1.0. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included.

@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {Action} from './settings-ui';
 import {Tooltip} from './tooltip';
 import {FocusScope} from './focus-scope';
@@ -51,18 +52,18 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
             if(result){navigation?.openWorkspace({workspaceId:result.workspaceId});openIssue(result.workspaceId);return;}
             void prepareWork();
           }}
-          style={({pressed})=>({width:showLabel?undefined:dense&&!compact?34:44,minHeight:(showLabel||dense)&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:8,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
-          <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:8,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
+          style={({pressed})=>({width:showLabel?undefined:dense&&!compact?34:44,minHeight:(showLabel||dense)&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
+          <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:radii.control,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
           {showLabel?<Text style={{color:theme.colors.accentForeground,fontSize:14}}>{configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}</Text>:null}
         </Pressable>
       </View>:null}
     </View>
     {choices.length||error?<Modal visible transparent animationType="fade" onRequestClose={()=>{if(!busy){setChoices([]);setError('');}}}><FocusScope>
       <View style={{flex:1,justifyContent:'center',alignItems:'center',padding:20,backgroundColor:'rgba(0,0,0,.6)'}}>
-       <View accessibilityViewIsModal style={{width:'100%',maxWidth:560,maxHeight:'85%',backgroundColor:theme.colors.surface0,borderRadius:12,padding:20,gap:12}}>
+       <View accessibilityViewIsModal style={{width:'100%',maxWidth:560,maxHeight:'85%',backgroundColor:theme.colors.surface0,borderRadius:radii.overlay,padding:20,gap:12}}>
         <Text style={{...text,fontSize:18,fontWeight:'600'}}>{choices.length?'Choose existing work':'Start work'} · {issueKey}</Text>
         {error?<Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>{error}</Text>:null}
-        <ScrollView contentContainerStyle={{gap:8}}>{choices.map(choice=><Pressable key={choice.id} accessibilityRole="button" disabled={busy} onPress={()=>void execute(choice.id)} style={{padding:14,minHeight:44,borderRadius:8,backgroundColor:theme.colors.surface2}}>
+        <ScrollView contentContainerStyle={{gap:8}}>{choices.map(choice=><Pressable key={choice.id} accessibilityRole="button" disabled={busy} onPress={()=>void execute(choice.id)} style={{padding:14,minHeight:44,borderRadius:radii.control,backgroundColor:theme.colors.surface2}}>
          <Text style={text}>{choice.branch}</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>{choice.path??'Reuse branch in a new worktree'}</Text>
         </Pressable>)}</ScrollView>
         <View style={{flexDirection:'row',justifyContent:'flex-end',gap:8}}>

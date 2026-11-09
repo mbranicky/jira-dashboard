@@ -257,3 +257,13 @@ This is a compatibility workaround, not a native Jira thread guarantee. When upd
 An existing saved workspace link wins. Otherwise show Open workspace for one unambiguous active name/title match within the mapped Paseo project. Discovery failure shows a sanitized warning above board controls while retaining issues and validated saved links; successful refresh clears it.
 
 Stacked issue-details section gaps and attachment/comment top padding are 14px. The final Jira fields separator uses the same 14px gap/padding. Wide modal columns retain 28px separation and 20px fields padding.
+
+### Corner radius system
+
+All plugin-owned rounded shapes use `client/radii.ts`; avoid local numeric radius values. Large settings sections and board columns use 10px; dialogs and floating menus use 8px; cards and form controls use 4px; small inset controls, tags and image previews use 2px. Corner geometry is independent of theme, screen size and card density. Mobile full-screen details remain square. Touch-target dimensions are independent of corner radius.
+
+For nested surfaces, start with `inner radius = outer radius - edge-to-edge inset` (including borders). This produces concentric curves where those curves overlap. When the inset consumes the outer curve, clamp to an optical floor: 4px for a content surface, 2px for a small control. This is an intentional optical adaptation, not an assertion that all nested shapes remain geometrically concentric. Never increase the inner radius beyond its parent. Widely separated content uses its semantic radius instead of inheriting its container's radius.
+
+The board shares its column radius and 12px inset with the drop wrapper and hover layer; its issue cards derive a 4px radius from those values. Secondary card action backgrounds step down to 2px. The primary Start work/Open workspace button retains the shared 4px control radius in both cards and details, so its small filled shape remains visibly rounded. An 8px floating menu with 4px padding plus a 1px border uses the 4px content-surface floor for its menu items. Insets and radii must change together when these layouts change. Settings sections contain 4px controls and preview cards; attachment thumbnails use 2px within 4px attachment cards.
+
+Exceptions are semantic shapes: priority pills remain capsules, avatars and radio indicators remain circular. Paseo-owned settings primitives, switches and the plugin artwork retain their host/asset styling; do not override global host styles to change them.

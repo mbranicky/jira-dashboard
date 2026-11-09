@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {OverlayMenu} from './overlay-menu';
 import {useState} from 'react';
 import {Pressable,ScrollView,Text,View} from 'react-native';
@@ -11,7 +12,7 @@ export function ResponsiveSelect({theme,compact,inline,...props}:Props){
  const {label,value,options,disabled,onValueChange}=props;
  return <View style={{gap:8,flexDirection:inline?'row':'column',alignItems:inline?'center':'stretch'}}>
   <Text style={{color:theme.colors.foreground}}>{label}</Text>
-  <OverlayMenu open={open&&!disabled} onOpenChange={setOpen} theme={theme} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${options.find(o=>o.value===value)?.label??value}`} accessibilityState={{expanded:open,disabled}} disabled={disabled} onPress={toggle} style={({pressed})=>({minHeight:inline&&!compact?34:44,paddingHorizontal:10,paddingVertical:inline?6:12,borderRadius:8,borderWidth:1,borderColor:theme.colors.border,backgroundColor:pressed?theme.colors.surface2:theme.colors.surface0,flexDirection:'row',alignItems:'center',gap:8,opacity:disabled?.5:1})}>
+  <OverlayMenu open={open&&!disabled} onOpenChange={setOpen} theme={theme} trigger={toggle=><Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${options.find(o=>o.value===value)?.label??value}`} accessibilityState={{expanded:open,disabled}} disabled={disabled} onPress={toggle} style={({pressed})=>({minHeight:inline&&!compact?34:44,paddingHorizontal:10,paddingVertical:inline?6:12,borderRadius:radii.control,borderWidth:1,borderColor:theme.colors.border,backgroundColor:pressed?theme.colors.surface2:theme.colors.surface0,flexDirection:'row',alignItems:'center',gap:8,opacity:disabled?.5:1})}>
    <Text style={{color:theme.colors.foreground,flex:1,fontSize:14}}>{options.find(o=>o.value===value)?.label??value}</Text><Icon name={open?'ChevronUp':'ChevronDown'} size={16} color={theme.colors.foregroundMuted}/>
   </Pressable>}>
   <ScrollView nestedScrollEnabled style={{maxHeight:220}} keyboardShouldPersistTaps="handled">

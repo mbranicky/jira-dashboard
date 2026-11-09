@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1
+
+- Consolidate dashboard, details and settings corners into a smaller shared radius system, with inset-aware nesting for columns, cards and controls.
+- Match the card's Start work/Open workspace button corners to the details action. Preserve priority pills, circular avatars and mobile touch targets.
+- Tighten compact card spacing and reduce title size. Select cards by clicking their background while keeping nested actions independent.
+- Replace blue selection outlines and title underlines with theme-aware surfaces; show the focus ring only during keyboard navigation, without a mouse-down flash.
+- Refresh the five public screenshots. Simplify CI job names and retain the lightweight Paseo 0.15.0 typecheck alongside full baseline/0.15.2 coverage.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Paseo requirements remain `>=0.14.0 <0.16.0`; host coverage and mock-only MCP upload limitations are unchanged.
+
 ## 1.2.0
 
 - Show read-only linked workspace and agent activity on cards and in issue details, with attention filters for work needing input, running, finished or failed. Save these filters in board views.

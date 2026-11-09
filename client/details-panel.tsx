@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {createElement,useMemo,useRef,useState,type ReactNode} from 'react';
 import {PanResponder,Pressable,ScrollView,Text,View,Platform} from 'react-native';
 import {Icon} from '@getpaseo/plugin/client/ui';
@@ -12,7 +13,7 @@ export function DetailsPanel({theme,issueKey,width,collapsed,onToggle,onResize,c
   {Platform.OS==='web'&&dragging?createElement('style',null,'html, body, body * { cursor: col-resize !important; user-select: none !important; }'):null}
   <View style={{height:52,paddingHorizontal:4,flexDirection:'row',alignItems:'center',gap:8,borderBottomWidth:1,borderBottomColor:c.border}}>
    <View style={{position:'relative'}}>{tip?<Tooltip theme={theme} text={label} placement="below" align="left" offset={44}/>:null}
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{expanded:!collapsed}} onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onPress={()=>{setTip(false);onToggle();}} style={({pressed})=>({width:40,height:40,borderRadius:6,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent'})}><Icon name={collapsed?'PanelRightOpen':'PanelRightClose'} size={18} color={c.foregroundMuted}/></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{expanded:!collapsed}} onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onPress={()=>{setTip(false);onToggle();}} style={({pressed})=>({width:40,height:40,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent'})}><Icon name={collapsed?'PanelRightOpen':'PanelRightClose'} size={18} color={c.foregroundMuted}/></Pressable>
    </View>
    {!collapsed?<><Icon name="FileText" size={16} color={c.accent}/><Text accessibilityRole="header" style={{flex:1,color:c.foreground,fontSize:13,fontWeight:'600'}}>{issueKey}</Text></>:null}
   </View>

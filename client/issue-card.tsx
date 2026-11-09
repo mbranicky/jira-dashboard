@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {PriorityBadge,priorityStyle} from './priority-badge';
 import {defaultDisplayPreferences,type DisplayPreferences} from '../shared/display-preferences';
 import {CardActions} from './card-actions';
@@ -24,13 +25,13 @@ export function IssueCard({preview=false,display=defaultDisplayPreferences,jiraU
  const kind=issue.type.toLowerCase();
  const typeIcon=kind==='bug'?'Bug':kind==='story'?'Bookmark':kind==='task'?'SquareCheck':'CircleDot';
  const typeColor=kind==='bug'?colors.statusDanger:kind==='story'?colors.statusSuccess:colors.accent;
- const chip=(name:string,icon:string,key:string)=><View key={key} style={{flexDirection:'row',alignItems:'center',gap:5,maxWidth:'100%',paddingHorizontal:6,paddingVertical:3,borderRadius:4,backgroundColor:colors.surface2}}><Icon name={icon} size={11} color={colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:11,flexShrink:1}}>{name}</Text></View>;
+ const chip=(name:string,icon:string,key:string)=><View key={key} style={{flexDirection:'row',alignItems:'center',gap:5,maxWidth:'100%',paddingHorizontal:6,paddingVertical:3,borderRadius:radii.small,backgroundColor:colors.surface2}}><Icon name={icon} size={11} color={colors.foregroundMuted}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:11,flexShrink:1}}>{name}</Text></View>;
  return <Pressable accessible={false} focusable={false} onPress={event=>{
    // Keep nested actions independent; the title remains the keyboard entry point.
    const target=event.target as unknown as {closest?:(selector:string)=>unknown};
    if(detailsAvailable&&!target.closest?.('[role="button"],a,input,textarea,select'))onOpenDetails();
- }} testID={`issue-card-${issue.key}`} style={{backgroundColor:selected?colors.surface2:colors.surface0,borderWidth:1,borderColor:colors.border,borderRadius:12,borderLeftWidth:2,borderLeftColor:issue.priority?priorityStyle(issue.priority).color:colors.border,outlineColor:colors.foregroundMuted,outlineWidth:0,boxShadow:'0 1px 2px rgba(0,0,0,0.08)',paddingHorizontal:display.density==='compact'?11:15,paddingTop:display.density==='compact'?11:15,paddingBottom:display.density==='compact'?4:8,gap:dense?3:10}}>
-   <Pressable testID="keyboard-issue-title" disabled={!detailsAvailable} accessibilityRole={detailsAvailable?"button":undefined} aria-expanded={selected} accessibilityLabel={detailsAvailable?`Open details for ${issue.key}: ${issue.summary}`:issue.summary} onPress={onOpenDetails} style={{minHeight:rowHeight,justifyContent:'center',borderRadius:4,backgroundColor:'transparent',outlineWidth:0}}>
+ }} testID={`issue-card-${issue.key}`} style={{backgroundColor:selected?colors.surface2:colors.surface0,borderWidth:1,borderColor:colors.border,borderRadius:radii.card,borderLeftWidth:2,borderLeftColor:issue.priority?priorityStyle(issue.priority).color:colors.border,outlineColor:colors.foregroundMuted,outlineWidth:0,boxShadow:'0 1px 2px rgba(0,0,0,0.08)',paddingHorizontal:display.density==='compact'?11:15,paddingTop:display.density==='compact'?11:15,paddingBottom:display.density==='compact'?4:8,gap:dense?3:10}}>
+   <Pressable testID="keyboard-issue-title" disabled={!detailsAvailable} accessibilityRole={detailsAvailable?"button":undefined} aria-expanded={selected} accessibilityLabel={detailsAvailable?`Open details for ${issue.key}: ${issue.summary}`:issue.summary} onPress={onOpenDetails} style={{minHeight:rowHeight,justifyContent:'center',borderRadius:radii.small,backgroundColor:'transparent',outlineWidth:0}}>
      <Text style={{color:colors.foreground,fontSize:13,lineHeight:19,fontWeight:'400',textDecorationLine:'none'}}><SearchHighlight text={issue.summary} ranges={matches.summary} theme={theme}/></Text>
    </Pressable>
    {display.showParent&&issue.parent||display.showTags&&(issue.fixVersions.length||issue.labels.length)?<Pressable accessibilityRole="button" accessibilityLabel={`${expanded?'Collapse':'Expand'} parent and tags for ${issue.key}`} accessibilityState={{expanded}} onPress={()=>setExpanded(!expanded)} style={{minHeight:rowHeight,gap:dense?3:6,justifyContent:'center'}}>
