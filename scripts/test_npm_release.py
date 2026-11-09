@@ -141,6 +141,16 @@ class ReleaseGates(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "All required CI"):
             release.verify_ci([good], lambda _: [{"name": "check (24)", "conclusion": "success"}])
 
+    def test_each_current_release_gate_is_required(self):
+        names = {"Build, tests & package · Paseo 0.14.0", "SDK compatibility · Paseo 0.15.2", "Secret scan · source & history"}
+        self.assertEqual(release.CHECKS, names)
+        good = {"id": 1, "run_number": 1, "event": "push", "head_branch": "main", "status": "completed", "conclusion": "success"}
+        for missing in names:
+            for conclusion in ["failure", "skipped", "cancelled"]:
+                jobs = [{"name": name, "conclusion": conclusion if name == missing else "success"} for name in names]
+                with self.subTest(missing=missing, conclusion=conclusion), self.assertRaisesRegex(ValueError, "All required CI"):
+                    release.verify_ci([good], lambda _: jobs)
+
     def test_release_must_be_published_stable_and_have_matching_checksum(self):
         data = b"tested package"
         filename = "paseo-jira-sprint-workspace-1.0.1.tgz"
