@@ -1,30 +1,32 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-08. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+Updated: 2026-11-09. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
 
-## 1.2.0 preparation
+## 1.2.1 release
 
-PRs #31–#37, #38 and #39 are merged. PR #39 passed all four checks before merging to main at `2b3c6c8`; local main was pulled and Jira Sprint Workspace reloaded successfully.
+The user authorized patch release 1.2.1 on 2026-11-09: commit/push, PR, merge after green checks, tag, GitHub release notes and npm publication. The release branch is `codex/release-1.2.1`. Version metadata and current README references are synchronized. All three connection methods and the Paseo requirement remain unchanged.
 
-The user authorized the full 1.2.0 release on 2026-11-08: PR, green checks, merge, tag, GitHub release notes and npm publication. Preparation is on `codex/prepare-1.2.0`. Package, shrinkwrap and MCP handshake versions are 1.2.0. The changelog covers activity/attention filters, card actions, issue/mobile navigation, appearance preferences, priority styling and toolbar refinements. Five reviewed synthetic screenshots are included.
+The release includes PR #42's compact-card and selection improvements plus the shared radius system and matching 4px primary card/details buttons. Public screenshots are refreshed. The nesting rule and semantic shape exceptions are documented in DESIGN.md. Tests cover both themes, desktop/mobile, all three transport fixtures, independent nested actions and keyboard versus mouse focus.
 
-Candidate verification passed both typechecks, 302 Node tests, 189 Chrome tests, source audit and package checks. A clean extracted manifest build passed on macOS Apple silicon. The checklist records the tarball digest.
+Release artifacts and post-publication evidence belong in the GitHub release and external verification records. Require successful PR and exact-main CI, verify the final tarball against merged source, and only then create immutable v1.2.1 and publish through the existing OIDC workflow. Never move a tag or replace an accepted npm publication. The separate Paseo catalog can update through automatic registry PRs; verify deployment separately rather than infer it from npm.
 
-All three connection methods remain. No live Jira writes. Device preferences persist on desktop/web and fall back to session-only where storage is unavailable; SDK and host support requirements are unchanged. Before release, commit/review/merge the preparation, require green CI, verify the exact final artifact then execute the authorized tag/npm/GitHub release workflow. Never replace an existing published version.
+## 1.2.0 completed baseline
+
+Version 1.2.0 is published on npm with GitHub release/tag v1.2.0 at `7e39a4178ada9ffaf5a8431eef9511a224cf4209`. PR #40 and exact-main CI passed; GitHub OIDC publication verified the downloaded tarball. The first-run plugin UI was verified on an isolated macOS arm64 Paseo 0.15.3 host. PR #41 simplified CI without changing the release; PR #42 added compact card and selection fixes at `b935014`.
 
 ## Repository and delivery status
 
-The repository is public. **Version 1.1.0 is published** as npm `latest`, with [GitHub release/tag v1.1.0](https://github.com/mbranicky/jira-dashboard/releases/tag/v1.1.0) pinned to `5c738db438238222198927ff7fec6659efa7dd1b`. Preparation PR #28 and all four [exact-main checks](https://github.com/mbranicky/jira-dashboard/actions/runs/42390391099) passed before publication. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth all remain included.
+The repository is public. **Historical version 1.1.0 was published**, with [GitHub release/tag v1.1.0](https://github.com/mbranicky/jira-dashboard/releases/tag/v1.1.0) pinned to `5c738db438238222198927ff7fec6659efa7dd1b`. Preparation PR #28 and all four [exact-main checks](https://github.com/mbranicky/jira-dashboard/actions/runs/42390391099) passed before publication. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth all remain included.
 
 [npm publication](https://github.com/mbranicky/jira-dashboard/actions/runs/42391878271) used the approved GitHub OIDC trusted publisher (`mbranicky/jira-dashboard`, `publish.yml`, environment `npm`) and verified the registry download against the tested tarball. A fresh npm installation on an isolated macOS arm64 Paseo 0.15.3 host started, reloaded and opened first-run settings with all three methods. The test host was stopped; the user's active installation and settings were preserved. The local main installation had also loaded Runtime 225 with 28 issues.
 
-**The live Paseo registry now uses npm 1.1.0**, preserving listing ID `mbranicky/jira-dashboard`. Migration [issue #2089](https://github.com/getpaseo/plugins/issues/2089) led to approved and merged [PR #2090](https://github.com/getpaseo/plugins/pull/2090). The [deployment](https://github.com/getpaseo/plugins/actions/runs/42409290244) passed and the npm artifact was verified in the [live index](https://plugins.paseo.sh/index.json). Future npm releases can receive automatic update PRs; a PR alone does not establish registry approval or live deployment.
+**The Paseo registry migrated to npm 1.1.0 on 2026-11-07**, preserving listing ID `mbranicky/jira-dashboard`. Migration [issue #2089](https://github.com/getpaseo/plugins/issues/2089) led to approved and merged [PR #2090](https://github.com/getpaseo/plugins/pull/2090). The [deployment](https://github.com/getpaseo/plugins/actions/runs/42409290244) passed and the npm artifact was verified in the [live index](https://plugins.paseo.sh/index.json). Future npm releases can receive automatic update PRs; a PR alone does not establish registry approval or live deployment.
 
 PRs #23–#27 supplied quick filters/saved views, related issues, keyboard navigation, saved boards and private drafts, with compact responsive controls and tooltip icons. Drafts use device-local browser/app storage; native mobile storage is session-only. Host-scoped board bookmarks and saved views are shared, not private drafts.
 
 Release verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. See [testing](TESTING.md#110-candidate-verification--2026-11-07) and the [release checklist](../.claude/plans/first-version-checklist.md). Screenshot-only PR #29 subsequently merged as `58d404d`; those refreshed assets are on main but are not in the immutable npm 1.1.0 artifact or tag. The registry uses the media shipped with npm 1.1.0.
 
-Version 1.2.0 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
+Version 1.2.1 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
 
 Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 

@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {IssueRelationships} from './issue-relationships';
 import {IssueFields} from './issue-fields';
 import {JiraContent} from './jira-content';
@@ -49,7 +50,7 @@ export function WorkspaceIssue({workspaceId,theme,host}:PluginWorkspacePanelProp
  const loading=!workspace||agents.isPending||saved.isPending||(!!key&&issue.isPending);
  const data=issue.data;
  const refresh=()=>{void agents.refetch();void saved.refetch();if(key)void issue.refetch();};
- const button=(label:string,icon:'RefreshCw'|'ExternalLink',onPress:()=>void)=><Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>({width:34,height:44,alignItems:'center',justifyContent:'center',borderRadius:8,backgroundColor:pressed?c.surface2:'transparent',transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={17} color={c.foregroundMuted}/></Pressable>;
+ const button=(label:string,icon:'RefreshCw'|'ExternalLink',onPress:()=>void)=><Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>({width:34,height:44,alignItems:'center',justifyContent:'center',borderRadius:radii.control,backgroundColor:pressed?c.surface2:'transparent',transform:[{scale:pressed?.96:1}]})}><Icon name={icon} size={17} color={c.foregroundMuted}/></Pressable>;
  return <View style={{flex:1,minWidth:0,backgroundColor:c.surface0}}>
   <View style={{flexDirection:'row',alignItems:'center',paddingLeft:16,paddingRight:4,borderBottomWidth:1,borderBottomColor:c.border,gap:8}}><Icon name="FileText" size={16} color={c.accent}/><Text style={{flex:1,color:c.foreground,fontSize:13,fontWeight:'600'}}>{data&&!error&&!loading?data.issue.key:'Jira issue'}</Text><View style={{flexDirection:'row',alignItems:'center',gap:0}}>{data&&!error&&!loading?button('Open in Jira','ExternalLink',()=>void openExternal(`${data.site}/browse/${data.issue.key}`)):null}{button('Refresh Jira issue','RefreshCw',refresh)}</View></View>
   <ScrollView key={key??workspaceId} style={{flex:1}} contentContainerStyle={{padding:16,gap:18,alignItems:'stretch'}}>

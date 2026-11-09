@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {useReducedMotion} from './motion';
 import {menuPosition} from '../shared/menu-position';
 import {FocusScope} from './focus-scope';
@@ -18,7 +19,7 @@ export function OverlayMenu({open,onOpenChange,theme,trigger,children,maxHeight=
   {open?<Modal visible transparent animationType={reduced?'none':'fade'} onRequestClose={()=>onOpenChange(false)}>
    <FocusScope><View style={{flex:1}}>
     <Pressable accessibilityRole="button" accessibilityLabel="Close dropdown" onPress={()=>onOpenChange(false)} style={{position:'absolute',top:0,left:0,right:0,bottom:0}}/>
-    <View style={{position:'absolute',...position,minHeight:0,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border,borderRadius:8,overflow:'hidden',boxShadow:'0 8px 28px rgba(0,0,0,0.2)'}}>{children}</View>
+    <View style={{position:'absolute',...position,minHeight:0,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border,borderRadius:radii.overlay,overflow:'hidden',boxShadow:'0 8px 28px rgba(0,0,0,0.2)'}}>{children}</View>
    </View></FocusScope>
   </Modal>:null}
  </View>;

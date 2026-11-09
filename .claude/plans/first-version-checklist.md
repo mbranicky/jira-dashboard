@@ -8,16 +8,26 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
-## 1.2.0 candidate preparation (2026-11-08)
+## 1.2.1 patch release (2026-11-09)
+
+- [x] Authorization: commit/push, PR, green checks, merge, tag, release notes and npm publish.
+- [x] Keep all three transports and `>=0.14.0 <0.16.0`; synchronize package, shrinkwrap, MCP metadata and README at 1.2.1.
+- [x] Document consolidated corners, compact cards and keyboard-only focus; preserve primary button rounding and touch targets.
+- [x] Refresh and review all five synthetic public screenshots.
+- [x] Both baseline and isolated 0.15.3 typechecks passed; 304 Node, 201 browser and 15 publishing-verifier tests passed. Production dependency audit: zero vulnerabilities.
+- [x] Extracted manifest build passed; isolated macOS arm64 Paseo 0.15.3 activation/reload and first-run UI passed with all three connection choices. Final artifact: `paseo-jira-sprint-workspace-1.2.1.tgz`, 1049305 bytes, 143 files; SHA-256 `9ea6b4ba293ae80261004e55bf0e89b1825237faee6e741ece600a5de5ccf680`. Retained under `/tmp/jira-1.2.1-candidate`.
+- [ ] Require PR and exact-main CI, compare package to merge, then tag and publish. Record final evidence in GitHub release notes; do not alter published contents.
+
+## 1.2.0 completed release (2026-11-08)
 
 - [x] Merge UI/media PR #39 only after all four checks pass; reload from updated main.
 - [x] Keep REST, Teamwork Graph CLI and Atlassian MCP, the plugin ID, and existing Paseo requirements.
 - [x] Set package, shrinkwrap root/package and MCP handshake metadata to 1.2.0.
 - [x] Prepare changelog and handoff; include five reviewed synthetic screenshots.
 - [x] Verify both typechecks, 302 Node tests, 189 Chrome tests, source audit and package contents. Clean extracted manifest build passed on macOS arm64. Candidate: `/tmp/jira-1.2.0-candidate/paseo-jira-sprint-workspace-1.2.0.tgz`, 142 files, 1064790 bytes; SHA-256 `dbe0d107eacc3492d17387522e138b70325318525269b8f088b975a960cc79f6`. Rebuild after any packaged changes.
-- [ ] Commit/review/merge preparation and require green exact-main checks.
+- [x] PR #40 merged; exact-main checks passed at `7e39a4178ada9ffaf5a8431eef9511a224cf4209`.
 - [x] Explicit authorization received on 2026-11-08 to merge after green checks, tag, create release notes and publish 1.2.0.
-- [ ] Publish the verified immutable artifact and GitHub release, then separately verify registry update PR/deployment.
+- [x] Published immutable npm 1.2.0 and GitHub release v1.2.0 through OIDC; downloaded bytes verified. Registry approval/deployment is a separate channel.
 
 Policy ticket ECOHELP-182681 remains unresolved. Existing host coverage and mock-only MCP upload verification remain unchanged. No live Jira writes are authorized.
 

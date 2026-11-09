@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Text,TextInput,View} from 'react-native';
 import {useRpc} from '@getpaseo/plugin/client';
@@ -26,14 +27,14 @@ export function TwgSettings({theme,boardUrl,executable:path,profile,onChange}:{t
  let site='';try{site=new URL(boardUrl).origin;}catch{}
  const target=twgTarget.safeParse({site,profile});
  const busy=starting||job?.state==='running';const c=theme.colors;
- return <View style={{gap:12,padding:16,borderWidth:1,borderColor:c.border,borderRadius:16,backgroundColor:c.surface1}}>
+ return <View style={{gap:12,padding:16,borderWidth:1,borderColor:c.border,borderRadius:radii.surface,backgroundColor:c.surface1}}>
   <SectionTitle theme={theme} icon="Terminal" title="Teamwork Graph CLI" description="Sign in from a terminal on your Paseo host, then check CLI access here."/>
   <Text style={{color:c.foregroundMuted,fontSize:13,lineHeight:19}}>On your desktop, open a terminal on the Paseo host and run twg login. Complete browser consent, then return here to test access. No token needs to be pasted here.</Text>
   <Text style={{color:c.foreground}}>TWG executable on host</Text>
-  <TextInput accessibilityLabel="TWG executable on host" value={path} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(value,profile);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:8,padding:12}}/>
+  <TextInput accessibilityLabel="TWG executable on host" value={path} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(value,profile);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:radii.control,padding:12}}/>
   <Text style={{color:c.foregroundMuted,fontSize:12}}>Save connection stores the executable and profile on this host.</Text>
   <Text style={{color:c.foreground}}>TWG profile</Text>
-  <TextInput accessibilityLabel="TWG profile" value={profile} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(path,value);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:8,padding:12}}/>
+  <TextInput accessibilityLabel="TWG profile" value={profile} editable={!busy} autoCapitalize="none" autoCorrect={false} onChangeText={value=>{onChange(path,value);setJob(undefined);setError('');}} style={{color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:radii.control,padding:12}}/>
   <Text style={{color:c.foregroundMuted}}>Jira site: {site||'Enter a board URL above'}</Text>
   {!target.success?<Text accessibilityRole="alert" style={{color:c.statusDanger}}>Enter a valid Jira Cloud board URL and TWG profile name.</Text>:null}
   <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:8}}>

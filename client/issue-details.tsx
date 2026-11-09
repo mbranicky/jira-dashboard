@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {PriorityBadge} from './priority-badge';
 import {IssueNavigation,type IssueNavigationProps} from './issue-navigation';
 import {WorkspaceActivityDetails} from './workspace-activity';
@@ -31,9 +32,9 @@ export function IssueDetails({issueNavigation,startAvailable=true,contentAvailab
   {issueNavigation?<IssueNavigation {...issueNavigation} theme={theme}/>:null}
   <Text selectable style={{color:c.foreground,fontSize:22,lineHeight:29,fontWeight:'700'}}>{issue.summary}</Text>
   <StartWork showLabel linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
-   <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:8,flex:1,minWidth:0}}><View style={{paddingHorizontal:10,paddingVertical:6,borderRadius:6,backgroundColor:c.surface2}}><Text style={{color:c.foreground,fontSize:13}}>{issue.status}</Text></View><Text style={{color:c.foregroundMuted,fontSize:13}}>{issue.type}</Text>{issue.priority?<PriorityBadge priority={issue.priority}/>:null}<View style={{position:'relative'}}>
+   <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:8,flex:1,minWidth:0}}><View style={{paddingHorizontal:10,paddingVertical:6,borderRadius:radii.control,backgroundColor:c.surface2}}><Text style={{color:c.foreground,fontSize:13}}>{issue.status}</Text></View><Text style={{color:c.foregroundMuted,fontSize:13}}>{issue.type}</Text>{issue.priority?<PriorityBadge priority={issue.priority}/>:null}<View style={{position:'relative'}}>
     {jiraTip?<Tooltip theme={theme} text="Open in Jira" align="left" offset={42}/>:null}
-    <Pressable accessibilityRole="link" accessibilityLabel="Open in Jira" onHoverIn={()=>setJiraTip(true)} onHoverOut={()=>setJiraTip(false)} onFocus={()=>setJiraTip(true)} onBlur={()=>setJiraTip(false)} onLongPress={()=>setJiraTip(true)} onPress={()=>{setJiraTip(false);onOpenJira();}} style={({pressed})=>({width:40,height:40,borderRadius:6,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent'})}><Icon name="ExternalLink" size={17} color={c.foregroundMuted}/></Pressable>
+    <Pressable accessibilityRole="link" accessibilityLabel="Open in Jira" onHoverIn={()=>setJiraTip(true)} onHoverOut={()=>setJiraTip(false)} onFocus={()=>setJiraTip(true)} onBlur={()=>setJiraTip(false)} onLongPress={()=>setJiraTip(true)} onPress={()=>{setJiraTip(false);onOpenJira();}} style={({pressed})=>({width:40,height:40,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent'})}><Icon name="ExternalLink" size={17} color={c.foregroundMuted}/></Pressable>
    </View></View>
   }/>
 
@@ -44,7 +45,7 @@ export function IssueDetails({issueNavigation,startAvailable=true,contentAvailab
 
    </View>{query.data?<IssueRelationships value={query.data.relationships} theme={theme}/>:null}{contentAvailable?<><IssueAttachments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/><IssueComments readOnly={readOnly} connectionRevision={connectionRevision} issueKey={issue.key} hostId={hostId} theme={theme}/></>:null}
   </View>
-  <View style={{padding:wide?20:0,paddingTop:wide?20:14,borderRadius:wide?12:0,backgroundColor:wide?c.surface1:'transparent',borderTopWidth:wide?0:1,borderTopColor:c.border,width:wide?300:'100%',gap:20,flexShrink:0}}>
+  <View style={{padding:wide?20:0,paddingTop:wide?20:14,borderRadius:wide?radii.card:0,backgroundColor:wide?c.surface1:'transparent',borderTopWidth:wide?0:1,borderTopColor:c.border,width:wide?300:'100%',gap:20,flexShrink:0}}>
    <Text style={{color:c.foreground,fontSize:16,fontWeight:'600'}}>Jira fields</Text>
    <IssueFields issue={issue} details={query.data} theme={theme}/>
   </View>
@@ -67,7 +68,7 @@ function DetailsShell({issueKey,theme,onClose,children,presentation,panelWidth,p
  return <NativeModal visible transparent animationType={reduced?'none':'fade'} onRequestClose={onClose}>
   <View style={{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(0,0,0,0.6)',padding:24}}>
    <Pressable accessibilityLabel="Dismiss issue details" onPress={onClose} style={{position:'absolute',top:0,right:0,bottom:0,left:0}}/>
-   <View accessibilityViewIsModal style={{width:Math.min(1180,width-48),maxHeight:height-48,backgroundColor:c.surface0,borderRadius:16,borderWidth:1,borderColor:c.border,overflow:'hidden'}}>
+   <View accessibilityViewIsModal style={{width:Math.min(1180,width-48),maxHeight:height-48,backgroundColor:c.surface0,borderRadius:radii.overlay,borderWidth:1,borderColor:c.border,overflow:'hidden'}}>
     <View style={{paddingHorizontal:24,paddingVertical:12,flexDirection:'row',alignItems:'center',gap:10,borderBottomWidth:1,borderBottomColor:c.border}}><Icon name="FileText" size={18} color={c.accent}/><Text accessibilityRole="header" style={{color:c.foreground,fontSize:15,fontWeight:'600',flex:1}}>{issueKey}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close issue details" onPress={onClose} style={{width:44,height:44,alignItems:'center',justifyContent:'center'}}><Icon name="X" size={20} color={c.foregroundMuted}/></Pressable></View>
     <ScrollView style={{flexShrink:1}} contentContainerStyle={{padding:28,gap:20}}>{children}</ScrollView>
    </View>

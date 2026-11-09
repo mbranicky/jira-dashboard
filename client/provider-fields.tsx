@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {usePaseo,type PluginSurfaceProps} from '@getpaseo/plugin/client';
 import {ResponsiveSelect} from './responsive-select';
 import {useQuery} from '@tanstack/react-query';
@@ -30,7 +31,7 @@ export function ProviderFields({theme,compact,item,cwd,error,onChange}:Pick<Plug
   const modelValue=models.data?.find(m=>m.id===selectedModel||m.aliases?.includes(selectedModel))?.id??selectedModel;
   const providerError=error||(providers.error?'Could not load providers.':providers.data&&provider&&!availableProvider?'The saved provider is unavailable in Paseo.':undefined);
   const modelError=models.error?'Could not load models for this provider.':models.data&&selectedModel&&!models.data.some(m=>m.id===modelValue)?'The saved model is unavailable for this provider.':undefined;
-  const border=(invalid:boolean)=>invalid?{borderWidth:2,borderColor:theme.colors.statusDanger,borderRadius:8}:undefined;
+  const border=(invalid:boolean)=>invalid?{borderWidth:2,borderColor:theme.colors.statusDanger,borderRadius:radii.control}:undefined;
   const retry=(label:string,action:()=>void)=><Pressable accessibilityRole="button" onPress={action}><Text style={{color:theme.colors.accent}}>{label}</Text></Pressable>;
   return <View style={{gap:12}}>
     {providerError?<Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>{providerError}</Text>:null}

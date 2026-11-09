@@ -1,3 +1,4 @@
+import {radii,columnGeometry} from './radii';
 import {Tooltip} from './tooltip';
 import type {TransitionField} from '../shared/transition-fields';
 import {openExternal} from './web';
@@ -45,16 +46,16 @@ export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=fals
  function drop(ids:string[]){setDragging(false);if(!allowed(ids))return;if(ids.includes(sourceStatus.current)){cancel();return;}void resolve(ids);}
  function cancel(){if(busy)return;++generation.current;setSelected(undefined);setKey('');setOptions([]);setMessage('');latest.current={key:'',options:[]};}
  return <Context.Provider value={{begin,drop,cancel,allowed,busy:busy||disabled,issueKey:key,dragging,end:()=>setDragging(false)}}>
- {key&&targets?<View style={{paddingHorizontal:12,paddingVertical:4,gap:4,borderWidth:1,borderColor:theme.colors.border,borderRadius:8}}>
+ {key&&targets?<View style={{paddingHorizontal:12,paddingVertical:4,gap:4,borderWidth:1,borderColor:theme.colors.border,borderRadius:radii.control}}>
  <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
   <Icon name="Info" size={16} color={theme.colors.foregroundMuted}/>
   <Text accessibilityRole={message?'alert':undefined} style={{flex:1,minWidth:0,color:theme.colors.foregroundMuted,fontSize:13,lineHeight:19,paddingVertical:6}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>{key}</Text>{message?' · '+message:''}</Text>
   <View style={{flexDirection:'row',alignItems:'center',gap:0}}>
   <View style={{position:'relative'}}>
    {jiraTip?<Tooltip theme={theme} text="Open in Jira"/>:null}
-   <Pressable accessibilityRole="link" accessibilityLabel={`Open ${key} in Jira`} onHoverIn={()=>setJiraTip(true)} onHoverOut={()=>setJiraTip(false)} onFocus={()=>setJiraTip(true)} onBlur={()=>setJiraTip(false)} onPress={()=>void openExternal(site+'/browse/'+key)} style={({pressed})=>({width:28,height:40,alignItems:'center',justifyContent:'center',borderRadius:6,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><Icon name="ExternalLink" size={16} color={theme.colors.foregroundMuted}/></Pressable>
+   <Pressable accessibilityRole="link" accessibilityLabel={`Open ${key} in Jira`} onHoverIn={()=>setJiraTip(true)} onHoverOut={()=>setJiraTip(false)} onFocus={()=>setJiraTip(true)} onBlur={()=>setJiraTip(false)} onPress={()=>void openExternal(site+'/browse/'+key)} style={({pressed})=>({width:28,height:40,alignItems:'center',justifyContent:'center',borderRadius:radii.control,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><Icon name="ExternalLink" size={16} color={theme.colors.foregroundMuted}/></Pressable>
   </View>
-  <Pressable accessibilityRole="button" accessibilityLabel="Dismiss move status" disabled={busy} onPress={cancel} style={({pressed})=>({width:28,height:40,alignItems:'center',justifyContent:'center',borderRadius:6,opacity:busy?.5:1,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>
+  <Pressable accessibilityRole="button" accessibilityLabel="Dismiss move status" disabled={busy} onPress={cancel} style={({pressed})=>({width:28,height:40,alignItems:'center',justifyContent:'center',borderRadius:radii.control,opacity:busy?.5:1,backgroundColor:pressed?theme.colors.surface2:'transparent'})}><Icon name="X" size={16} color={theme.colors.foregroundMuted}/></Pressable>
   </View>
  </View>
  {options.length>1?<View style={{gap:8,paddingBottom:8}}>{options.map(o=><Pressable key={o.id} accessibilityRole="button" disabled={busy} onPress={()=>{setSelected(o);setValues({});setMessage('');}} style={{padding:12,minHeight:44}}><Text style={{color:theme.colors.foreground}}>{o.name} → {o.column}</Text></Pressable>)}</View>:null}
@@ -73,5 +74,5 @@ export function DropColumn({statusIds,children,compact}:{statusIds:string[];chil
  const [hovered,setHovered]=useState(false);
  useEffect(()=>{if(!moves.dragging)setHovered(false);},[moves.dragging]);
  if(Platform.OS!=='web')return <>{children(false)}</>;
- return createElement('div',{style:{display:'flex',flexDirection:'column',borderRadius:12,flexShrink:0,minHeight:0,...(compact?{width:'100%'}:{height:'100%',overflow:'hidden'})},onDragLeave:(event:any)=>{if(!event.currentTarget.contains(event.relatedTarget))setHovered(false);},onDragOver:(event:any)=>{if(moves.allowed(statusIds)){event.preventDefault();setHovered(true);event.dataTransfer.dropEffect='move';}},onDrop:(event:any)=>{setHovered(false);event.preventDefault();if(event.dataTransfer.getData('text/plain')===moves.issueKey)moves.drop(statusIds);}},children(hovered&&moves.dragging));
+ return createElement('div',{style:{display:'flex',flexDirection:'column',borderRadius:columnGeometry.radius,flexShrink:0,minHeight:0,...(compact?{width:'100%'}:{height:'100%',overflow:'hidden'})},onDragLeave:(event:any)=>{if(!event.currentTarget.contains(event.relatedTarget))setHovered(false);},onDragOver:(event:any)=>{if(moves.allowed(statusIds)){event.preventDefault();setHovered(true);event.dataTransfer.dropEffect='move';}},onDrop:(event:any)=>{setHovered(false);event.preventDefault();if(event.dataTransfer.getData('text/plain')===moves.issueKey)moves.drop(statusIds);}},children(hovered&&moves.dragging));
 }

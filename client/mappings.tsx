@@ -1,3 +1,4 @@
+import {radii} from './radii';
 import {StartStatusSelect} from './status-select';
 import {ResponsiveSelect} from './responsive-select';
 import { Action, SectionTitle } from './settings-ui';
@@ -28,9 +29,9 @@ function MappingEditor({theme, layout, initial, save, saving, error, saved, clea
   const validation=submitted.some(Boolean)?mappingFormSchema.safeParse({items}):null;
   const fieldError=(index:number,field:string)=>submitted[index]&&validation&&!validation.success?validation.error.issues.find(issue=>issue.path[1]===index&&issue.path[2]===field)?.message:undefined;
   const fieldMessage=(index:number,field:string)=>{const message=fieldError(index,field);return message?<Text accessibilityRole="alert" style={{color:theme.colors.statusDanger}}>{message}</Text>:null;};
-  const fieldBorder=(index:number,field:string)=>({borderColor:fieldError(index,field)?theme.colors.statusDanger:theme.colors.border,borderWidth:fieldError(index,field)?2:1,borderRadius:8});
+  const fieldBorder=(index:number,field:string)=>({borderColor:fieldError(index,field)?theme.colors.statusDanger:theme.colors.border,borderWidth:fieldError(index,field)?2:1,borderRadius:radii.control});
   const text={color:theme.colors.foreground}; const muted={color:theme.colors.foregroundMuted};
-  const input={...text,padding:12,borderWidth:1,borderColor:theme.colors.border,borderRadius:8,backgroundColor:theme.colors.surface0};
+  const input={...text,padding:12,borderWidth:1,borderColor:theme.colors.border,borderRadius:radii.control,backgroundColor:theme.colors.surface0};
   function update(index:number, patch:Partial<Mapping>){clearSaved();setMessage('');setItems(items.map((item,i)=>i===index?{...item,...patch}:item));}
   function button(label:string, onPress:()=>void, disabled=false){return <Action theme={theme} label={label} icon={label==='Remove'?'Trash2':label==='Add mapping'?'Plus':label==='Refresh projects'?'RefreshCw':'Check'} primary={label==='Save mappings'||label==='Saving…'} danger={label==='Remove'} disabled={disabled} onPress={onPress}/>;}
   return <View style={{padding:layout.compact?16:24,gap:20,maxWidth:960,width:'100%',alignSelf:'center'}}>
@@ -39,7 +40,7 @@ function MappingEditor({theme, layout, initial, save, saving, error, saved, clea
       {button('Refresh projects',()=>void projects.refetch(),projects.isFetching)}
     </View>
     {projects.error?<Text accessibilityRole="alert" style={text}>Could not load Paseo projects. Refresh to retry.</Text>:null}
-    {items.map((item,index)=><View key={index} style={{padding:layout.compact?14:20,gap:12,borderRadius:16,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border}}>
+    {items.map((item,index)=><View key={index} style={{padding:layout.compact?14:20,gap:12,borderRadius:radii.surface,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border}}>
       <Pressable accessibilityRole="button" accessibilityLabel={`${expanded[index]?'Collapse':'Expand'} mapping ${item.name.trim()||index+1}`} accessibilityState={{expanded:!!expanded[index]}} onPress={()=>setExpanded(values=>values.map((value,i)=>i===index?!value:value))} style={{minHeight:48,paddingVertical:12,flexDirection:'row',alignItems:'center',gap:12}}>
         <Icon name="GitBranch" size={20} color={theme.colors.accent}/><View style={{flex:1,gap:4}}><Text style={{...text,fontWeight:'700'}}>{item.name.trim()||'New mapping'}</Text><Text style={muted}>{[item.jiraProjectKey||'No Jira project',projects.data?.projects.find(p=>p.projectId===item.paseoProjectId)?.projectDisplayName,item.provider].filter(Boolean).join(' · ')}</Text></View>
         <Icon name={expanded[index]?'ChevronUp':'ChevronDown'} size={20} color={theme.colors.foregroundMuted}/>
