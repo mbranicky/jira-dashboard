@@ -1,3 +1,4 @@
+import {useStartWorkState} from './start-work-state';
 import {radii} from './radii';
 import {Action} from './settings-ui';
 import {Tooltip} from './tooltip';
@@ -5,7 +6,7 @@ import {FocusScope} from './focus-scope';
 import {OpenWorkspaceIssue} from './workspace-issue';
 import {useRpc, type PluginScreenProps} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
-import {useState,useContext,useEffect,type ReactNode} from 'react';
+import {useState,useContext,type ReactNode} from 'react';
 import {Modal,ScrollView,ActivityIndicator,Pressable,Text,View,useWindowDimensions} from 'react-native';
 import {prepareBranches,startWork} from '../shared/contracts';
 
@@ -16,35 +17,34 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
   const start=useRpc(startWork);const prepare=useRpc(prepareBranches);
   const [choices,setChoices]=useState<{id:string;branch:string;path?:string}[]>([]);
   const [tip,setTip]=useState(false);
-  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
-  const [created,setResult]=useState<{agentId:string;workspaceId:string}>();
-  useEffect(()=>{if(!linkedWorkspace)setResult(undefined);},[linkedWorkspace]);
-  const result=linkedWorkspace??created;
+  const operation=useStartWorkState(issueKey),busy=operation.busy;
+  const [error,setError]=useState('');
+  const result=linkedWorkspace??operation.result;
   const configure=result?undefined:onConfigureMapping;
   const text={color:theme.colors.foreground};
   const errorText=(e:unknown)=>e instanceof Error?e.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,''):'Could not start work. Please retry.';
-  async function execute(selection?:string){
-    setBusy(true);setError('');
-    try{const value=await start({key:issueKey,sprintId,selection});setChoices([]);setResult(value);onStarted();
+  async function execute(selection?:string,alreadyAcquired=false){
+    if(!alreadyAcquired&&!operation.acquire())return;setError('');
+    try{const value=await start({key:issueKey,sprintId,selection});setChoices([]);operation.complete(value);onStarted();
       if(value.warning)setError(value.warning);
       if(!value.warning)navigation?.openAgent({agentId:value.agentId});
       openIssue(value.workspaceId);
     }catch(e){setError(errorText(e));}
-    finally{setBusy(false);}
+    finally{operation.finish();}
   }
   async function prepareWork(){
-    setBusy(true);setError('');
+    if(!operation.acquire())return;setError('');
     try{const options=await prepare({key:issueKey,sprintId});
-      if(options.length>1){setChoices(options);setBusy(false);}
-      else await execute(options[0]?.id);
-    }catch(e){setError(errorText(e));setBusy(false);}
+      if(options.length>1){setChoices(options);operation.finish();}
+      else await execute(options[0]?.id,true);
+    }catch(e){setError(errorText(e));operation.finish();}
   }
   return <View style={{gap:8}}>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:0}}>
       {footer}
       {(canStart||result)?<View style={{position:'relative'}}>
         {tip&&!showLabel?<Tooltip theme={theme} text={configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}/>:null}
-        <Pressable accessibilityRole="button" accessibilityLabel={`${configure?'Configure mapping for':result?'Open workspace':busy?'Starting':'Start work'} ${issueKey}`} accessibilityHint={configure?'Set up the Jira project mapping before starting work':result?'Open the linked agent':'Create or reuse a workspace and agent for this issue'} accessibilityState={{disabled:busy||(!configure&&!navigation)||(!result&&!mappingReady),busy}} disabled={busy||(!configure&&!navigation)||(!result&&!mappingReady)}
+        <Pressable aria-busy={busy} accessibilityRole="button" accessibilityLabel={`${configure?'Configure mapping for':result?'Open workspace':busy?'Starting':'Start work'} ${issueKey}`} accessibilityHint={configure?'Set up the Jira project mapping before starting work':result?'Open the linked agent':'Create or reuse a workspace and agent for this issue'} accessibilityState={{disabled:busy||(!configure&&!navigation)||(!result&&!mappingReady),busy}} disabled={busy||(!configure&&!navigation)||(!result&&!mappingReady)}
           onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onLongPress={()=>setTip(true)}
           onPress={()=>{
             setTip(false);

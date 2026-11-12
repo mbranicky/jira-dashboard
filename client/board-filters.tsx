@@ -30,18 +30,15 @@ export function BoardFilterBar({theme,issues,filters,search,onChange,views,onSav
  const count=filterFields.reduce((n,f)=>n+(filters[f]?.length??0),0);
  async function save(next:SavedView[]){if(disabled||busy)return;setBusy(true);setError('');try{if(await onSave(next)){setName('');setSaving(false);}else setError('Could not save views. Retry after refreshing settings.');}catch{setError('Could not save views. Retry after refreshing settings.');}finally{setBusy(false);}}
  const actions=<View style={{flexDirection:'row',alignItems:'center',gap:6}}>
-   <IconAction dense theme={theme} label={open?'Hide filters':`Filters${count?` (${count})`:''}`} icon="Filter" onPress={()=>setOpen(!open)}/>
-   {views.length?<OverlayMenu theme={theme} open={viewsOpen} onOpenChange={setViewsOpen} trigger={toggle=><IconAction dense theme={theme} label="Views" icon="Bookmark" onPress={toggle}/>}><ScrollView style={{maxHeight:240}}>{views.map(view=><View key={view.name} style={{padding:4,flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderBottomColor:c.border}}><View style={{flex:1,minWidth:0}}><Action dense theme={theme} label={`View: ${view.name}`} icon="Bookmark" onPress={()=>{onChange(view.filters,view.search);setViewsOpen(false);}}/></View><IconAction dense theme={theme} label={`Delete view: ${view.name}`} icon="Trash2" onPress={()=>{if(!disabled&&!busy)void save(views.filter(v=>v.name!==view.name));}}/></View>)}</ScrollView></OverlayMenu>:null}
- </View>;
- return <View testID="board-filters" style={{gap:8}}>
-  {renderToolbar?renderToolbar(actions):actions}
-  <View testID="filter-options" style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'flex-end',gap:6}}>
-   {open?filterFields.map(field=><FilterMenu key={field} theme={theme} label={labels[field]} options={filterOptions(issues,field,filters[field]??[])} selected={filters[field]??[]} onChange={values=>onChange({...filters,[field]:values},search)}/>):null}
-
+   <OverlayMenu theme={theme} title="Filters" align="end" preferredWidth={760} maxHeight={520} open={open} onOpenChange={setOpen} trigger={toggle=><IconAction dense theme={theme} label={open?'Hide filters':`Filters${count?` (${count})`:''}`} icon="Filter" onPress={toggle}/>}>
+   <Text style={{color:c.foregroundMuted,fontSize:12}}>Filter this board. Changes apply immediately.</Text>
+  <ScrollView horizontal testID="filter-options" keyboardShouldPersistTaps="handled" style={{flexGrow:0}} contentContainerStyle={{flexDirection:'row',flexGrow:1,justifyContent:'flex-end',alignItems:'center',gap:6,paddingBottom:4}}>
+   {filterFields.map(field=><FilterMenu key={field} theme={theme} label={labels[field]} options={filterOptions(issues,field,filters[field]??[])} selected={filters[field]??[]} onChange={values=>onChange({...filters,[field]:values},search)}/>)}
+  </ScrollView>
+  <View testID="filter-actions" style={{flexDirection:'row',justifyContent:'flex-end',alignItems:'center',gap:6}}>
    {count||search?<Action dense theme={theme} label="Clear filters" icon="X" onPress={()=>onChange(emptyFilters(),'')}/>:null}
    {open||count||search?<Action dense theme={theme} label="Save as view" icon="Save" disabled={disabled||busy} onPress={()=>{setSaving(!saving);setError('');}}/>:null}
   </View>
-  {count?<View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{filterFields.flatMap(field=>(filters[field]??[]).map(value=><Pressable key={`${field}/${value}`} accessibilityRole="button" accessibilityLabel={`Remove ${labels[field]}: ${value}`} onPress={()=>onChange({...filters,[field]:filters[field].filter(v=>v!==value)},search)} style={({pressed})=>({maxWidth:'100%',minHeight:compact?40:28,paddingHorizontal:10,paddingVertical:4,borderRadius:radii.control,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:pressed?c.surface1:c.surface2})}><Text style={{color:c.foregroundMuted,fontSize:12}}>{labels[field]}</Text><Text style={{color:c.foreground,fontSize:12,flexShrink:1}}>{value}</Text><Icon name="X" size={13} color={c.foregroundMuted}/></Pressable>))}</View>:null}
   {saving?<View style={{gap:8,padding:12,borderRadius:radii.card,backgroundColor:c.surface1}}>
    <Text style={{color:c.foreground,fontSize:13,fontWeight:'400'}}>Save current filters and search</Text>
    <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',gap:8}}><TextInput accessibilityLabel="Saved view name" value={name} onChangeText={setName} maxLength={60} placeholder="View name" placeholderTextColor={c.foregroundMuted} style={{flexGrow:1,flexBasis:180,minWidth:0,minHeight:compact?44:34,color:c.foreground,borderWidth:1,borderColor:c.border,borderRadius:radii.control,padding:10}}/><Action dense theme={theme} label="Save view" icon="Check" primary disabled={disabled||busy||!name.trim()||views.length>=30||views.some(v=>v.name.toLowerCase()===name.trim().toLowerCase())} onPress={()=>void save([...views,{name:name.trim(),filters,search}])}/><Action dense theme={theme} label="Cancel" icon="X" onPress={()=>{setSaving(false);setName('');setError('');}}/></View>
@@ -50,5 +47,12 @@ export function BoardFilterBar({theme,issues,filters,search,onChange,views,onSav
    {views.length>=30?<Text style={{color:c.foregroundMuted}}>Maximum 30 views per board. Delete a view to save another.</Text>:null}
   </View>:null}
   {error?<Text accessibilityRole="alert" style={{color:c.statusDanger}}>{error}</Text>:null}
+   </OverlayMenu>
+   {views.length?<OverlayMenu theme={theme} open={viewsOpen} onOpenChange={setViewsOpen} trigger={toggle=><IconAction dense theme={theme} label="Views" icon="Bookmark" onPress={toggle}/>}><ScrollView style={{maxHeight:240}}>{views.map(view=><View key={view.name} style={{padding:4,flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderBottomColor:c.border}}><View style={{flex:1,minWidth:0}}><Action dense theme={theme} label={`View: ${view.name}`} icon="Bookmark" onPress={()=>{onChange(view.filters,view.search);setViewsOpen(false);}}/></View><IconAction dense theme={theme} label={`Delete view: ${view.name}`} icon="Trash2" onPress={()=>{if(!disabled&&!busy)void save(views.filter(v=>v.name!==view.name));}}/></View>)}</ScrollView>{error?<Text accessibilityRole="alert" style={{padding:10,color:c.statusDanger}}>{error}</Text>:null}</OverlayMenu>:null}
+ </View>;
+ return <View testID="board-filters" style={{gap:8}}>
+  {renderToolbar?renderToolbar(actions):actions}
+  {count?<View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{filterFields.flatMap(field=>(filters[field]??[]).map(value=><Pressable key={`${field}/${value}`} accessibilityRole="button" accessibilityLabel={`Remove ${labels[field]}: ${value}`} onPress={()=>onChange({...filters,[field]:filters[field].filter(v=>v!==value)},search)} style={({pressed})=>({maxWidth:'100%',minHeight:compact?40:28,paddingHorizontal:10,paddingVertical:4,borderRadius:radii.control,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:pressed?c.surface1:c.surface2})}><Text style={{color:c.foregroundMuted,fontSize:12}}>{labels[field]}</Text><Text style={{color:c.foreground,fontSize:12,flexShrink:1}}>{value}</Text><Icon name="X" size={13} color={c.foregroundMuted}/></Pressable>))}</View>:null}
+
  </View>;
 }

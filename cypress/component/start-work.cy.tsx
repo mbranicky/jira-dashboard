@@ -49,3 +49,31 @@ describe('Start work',()=>{
   button('Close').click();button('Open workspace TEST-1').should('be.visible');
  });
 });
+
+for(const transport of ['rest','twg','mcp'] as const)for(const from of ['card','panel'])it(`${transport}: starting from ${from} synchronizes both issue buttons`,()=>{
+ cy.viewport(1440,900);stubRpc();
+ const gates:{prepare?:()=>void;start?:()=>void}={};
+ cy.intercept('POST','/__rpc/work.branches',req=>new Promise<void>(resolve=>{gates.prepare=()=>{req.reply([]);resolve();};})).as('prepareShared');
+ cy.intercept('POST','/__rpc/work.start',req=>new Promise<void>(resolve=>{gates.start=()=>{req.reply({workspaceId:'workspace-1',agentId:'agent-1'});resolve();};})).as('startShared');
+ mount(<Harness mode="panel" transport={transport} mappingItems={[mapping]} navigation={{openAgent:cy.stub()}}/>);
+ cy.get('[aria-label^="Open details for TEST-1:"]').click();
+ button('Start work TEST-1').should('have.length',2).eq(from==='card'?0:1).click();
+ const bothBusy=()=>button('Starting TEST-1').should('have.length',2).each($button=>{expect($button).to.have.attr('aria-busy','true');expect($button).to.have.attr('aria-disabled','true');});
+ bothBusy();button('Start work TEST-2').should('not.have.attr','aria-disabled','true');
+ cy.wrap(gates).should(value=>expect(value.prepare).to.be.a('function')).then(value=>value.prepare!());cy.wait('@prepareShared');
+ cy.wrap(gates).should(value=>expect(value.start).to.be.a('function'));bothBusy();
+ cy.then(()=>gates.start!());cy.wait('@startShared');
+ button('Open workspace TEST-1').should('have.length',2).each($button=>expect($button).not.to.have.attr('aria-busy','true'));
+ cy.get('@startShared.all').should('have.length',1);
+});
+it('a failed shared start releases both buttons and permits one retry',()=>{
+ cy.viewport(1440,900);stubRpc();
+ cy.intercept('POST','/__rpc/work.branches',{body:[]});
+ cy.intercept('POST','/__rpc/work.start',{statusCode:500,body:{error:'Startup failed'}}).as('failedStart');
+ mount(<Harness mode="panel" mappingItems={[mapping]}/>);
+ cy.get('[aria-label^="Open details for TEST-1:"]').click();button('Start work TEST-1').last().click();cy.wait('@failedStart');
+ button('Start work TEST-1').should('have.length',2).each($button=>expect($button).not.to.have.attr('aria-busy','true'));
+ cy.contains('Startup failed').should('be.visible');button('Close').click();
+ cy.intercept('POST','/__rpc/work.start',{body:{workspaceId:'workspace-1',agentId:'agent-1'}}).as('retryShared');
+ button('Start work TEST-1').first().click();cy.wait('@retryShared');button('Open workspace TEST-1').should('have.length',2);
+});

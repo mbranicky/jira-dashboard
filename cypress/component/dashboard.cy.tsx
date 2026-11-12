@@ -99,3 +99,39 @@ it('return to the mobile board → restore the search and selected column',()=>{
  cy.get('[data-testid="board-column-1"]').should('contain.text','No matching issues');
  cy.contains('1 of 2 issues').should('be.visible');
 });
+
+for(const transport of ['rest','twg','mcp'] as const)it(`${transport} details panel stays below the full-width dashboard toolbar`,()=>{
+ cy.viewport(1440,900);stubRpc();mount(<Harness mode="panel" transport={transport}/>);
+ cy.get('[data-testid="dashboard-header"]').then($header=>{
+  const before=$header[0].getBoundingClientRect();
+  title().click();
+  const check=()=>{
+   cy.get('[data-testid="dashboard-header"]').should($el=>{
+    const rect=$el[0].getBoundingClientRect();expect(rect.width).to.equal(before.width);expect(rect.bottom).to.equal(before.bottom);
+   });
+   cy.get('[data-testid="board-content"]').then($area=>{
+    const area=$area[0].getBoundingClientRect();
+    cy.get('[data-testid="details-panel"]').should($panel=>{
+     const panel=$panel[0].getBoundingClientRect();expect(panel.top).to.equal(area.top);expect(panel.top).to.be.greaterThan(before.bottom);expect(panel.bottom).to.be.at.most(area.bottom+1);
+    });
+   });
+   cy.get('[aria-label="Search issues"]').should('be.visible');button('Settings').should('be.visible');
+  };
+  check();button('Collapse issue details').click();check();button('Expand issue details').click();check();
+ });
+});
+
+for(const transport of ['rest','twg','mcp'] as const)it(`${transport}: refresh removing the selected issue leaves an empty expanded panel`,()=>{
+ cy.viewport(1440,900);stubRpc();let removed=false,failed=false;
+ cy.intercept('POST','/__rpc/board.read',req=>req.reply(failed?{statusCode:500,body:{error:'Refresh failed'}}:{body:{...board,issues:removed?[board.issues[1]]:board.issues}})).as('refreshSelection');
+ mount(<Harness mode="panel" transport={transport}/>);cy.wait('@refreshSelection');
+ cy.contains('Nothing selected').should('not.exist');title().click();
+ cy.get('[aria-label="Search issues"]').type('Second issue');
+ cy.get('[data-testid="details-panel"]').should('contain.text','TEST-1');cy.contains('Nothing selected').should('not.exist');
+ cy.then(()=>{failed=true;});button('Refresh').click();cy.wait('@refreshSelection');
+ cy.get('[data-testid="details-panel"]').should('contain.text','TEST-1');
+ cy.then(()=>{failed=false;removed=true;});button('Refresh').click();cy.wait('@refreshSelection');
+ cy.get('[data-testid="details-panel"]').should('contain.text','Nothing selected').and('not.contain.text','TEST-1').and('have.css','width','520px');
+ cy.get('[data-testid="details-panel"]').within(()=>{cy.get('[aria-label="Add comment"]').should('not.exist');cy.get('[aria-label="Add attachment"]').should('not.exist');});
+ title('TEST-2').click();cy.get('[data-testid="details-panel"]').should('contain.text','TEST-2').and('not.contain.text','Nothing selected');
+});
