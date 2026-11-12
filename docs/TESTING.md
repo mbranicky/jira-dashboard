@@ -1,5 +1,11 @@
 # Testing Jira Sprint Workspace
 
+## 1.2.2 patch verification — 2026-11-12
+
+The release candidate passed both baseline typechecks, 305 Node tests, 15 publishing-verifier tests, source audit and 148-file package validation. PR #44 and exact-main CI passed the full 226-test Chrome suite with REST, Teamwork Graph CLI and Atlassian MCP fixtures. Both typechecks also passed against exact Paseo 0.15.4 SDKs in an isolated copy.
+
+The extracted package completed both manifest build commands with production dependencies only and zero reported vulnerabilities. A separate macOS Apple silicon Paseo 0.15.4 host loaded/reloaded the candidate; Jira Workspace rendered first-run settings and offered all three connection methods. Eight synthetic public screenshots and the visual tour reflect the UI fixes. No live Jira writes were performed. Final artifact identity and publication evidence are retained outside package contents and in the GitHub release.
+
 ## 1.2.1 patch verification — 2026-11-09
 
 Verified on macOS Apple silicon with Node 24.16.0 and Paseo app/daemon 0.15.3. The package, shrinkwrap root and MCP handshake identify 1.2.1. All three connection methods and the supported Paseo range are unchanged.

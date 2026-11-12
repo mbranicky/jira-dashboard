@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.2
+
+- Open Filters and Manage boards in anchored popovers without shifting the board. Keep filter dropdowns together and actions on a separate row; prevent flicker when opening nested menus with Native Polish enabled.
+- Dock issue details beside the columns below the full-width toolbar, keeping search and board controls accessible.
+- Share Start work progress between cards and details, preventing duplicate starts and updating both actions together.
+- Show “Nothing selected” in the open panel when a successful refresh removes the selected issue. Preserve selection during filtering or failed refreshes.
+- Refresh public screenshots and add a visual tour covering filters, board management and empty selection.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Paseo requirements remain `>=0.14.0 <0.16.0`; host coverage and mock-only write verification are unchanged.
+
 ## 1.2.1
 
 - Consolidate dashboard, details and settings corners into a smaller shared radius system, with inset-aware nesting for columns, cards and controls.

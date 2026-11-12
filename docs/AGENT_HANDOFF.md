@@ -1,14 +1,16 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-09. Current continuation brief; implementation detail lives in [MCP implementation](MCP_IMPLEMENTATION.md), [TWG implementation](TWG_IMPLEMENTATION.md), [specification](../SPECIFICATION.md) and [design](../DESIGN.md).
+Updated: 2026-11-12. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
 
-## 1.2.1 release
+## 1.2.2 release
 
-The user authorized patch release 1.2.1 on 2026-11-09: commit/push, PR, merge after green checks, tag, GitHub release notes and npm publication. The release branch is `codex/release-1.2.1`. Version metadata and current README references are synchronized. All three connection methods and the Paseo requirement remain unchanged.
+The user authorized release 1.2.2, including preparation, PR/merge after green checks, tag, GitHub release and npm publication. PR #44 merged the anchored toolbar popovers, Native Polish flicker fix, docked panel beneath the toolbar, shared Start work progress and empty selection after successful refresh. Eight synthetic screenshots and the visual tour cover the current UI. All three transports and the supported Paseo range remain unchanged.
 
-The release includes PR #42's compact-card and selection improvements plus the shared radius system and matching 4px primary card/details buttons. Public screenshots are refreshed. The nesting rule and semantic shape exceptions are documented in DESIGN.md. Tests cover both themes, desktop/mobile, all three transport fixtures, independent nested actions and keyboard versus mouse focus.
+Version metadata and README references identify 1.2.2. Complete candidate verification before the PR; require exact-main checks and byte-identical package verification before tagging. Publication evidence belongs in the GitHub release and workflow logs, not a post-publication edit to package contents. Never move tags or republish an accepted version. Registry updates require separate approval/deployment and are not implied by npm publication.
 
-Release artifacts and post-publication evidence belong in the GitHub release and external verification records. Require successful PR and exact-main CI, verify the final tarball against merged source, and only then create immutable v1.2.1 and publish through the existing OIDC workflow. Never move a tag or replace an accepted npm publication. The separate Paseo catalog can update through automatic registry PRs; verify deployment separately rather than infer it from npm.
+## 1.2.1 completed baseline
+
+Version 1.2.1 was published with tag v1.2.1 at `0c4a1d915a196cb0c4dcb20345467a2eaab22d74`. The release includes consolidated corners, compact cards, keyboard-only focus and refreshed media. The OIDC publishing run 42609393160 verified the npm download. PR #44 subsequently merged as `9a913b9`; its changes ship in 1.2.2.
 
 ## 1.2.0 completed baseline
 
@@ -26,7 +28,7 @@ PRs #23–#27 supplied quick filters/saved views, related issues, keyboard navig
 
 Release verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. See [testing](TESTING.md#110-candidate-verification--2026-11-07) and the [release checklist](../.claude/plans/first-version-checklist.md). Screenshot-only PR #29 subsequently merged as `58d404d`; those refreshed assets are on main but are not in the immutable npm 1.1.0 artifact or tag. The registry uses the media shipped with npm 1.1.0.
 
-Version 1.2.1 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
+Version 1.2.2 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
 
 Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 

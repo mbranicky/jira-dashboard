@@ -8,6 +8,14 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.2.2 patch release (2026-11-12)
+
+- [x] User authorized version 1.2.2, release preparation, tag and publication; retain all three connection methods.
+- [x] Merge UI fixes and eight refreshed synthetic screenshots in PR #44; add the linked visual tour.
+- [x] Synchronize package, shrinkwrap, MCP metadata, README, changelog and handoff at 1.2.2; retain `>=0.14.0 <0.16.0`.
+- [x] Candidate checks: both baseline and isolated 0.15.4 typechecks, 305 Node tests, 15 release-verifier tests, 148 packaged files and clean extracted manifest build passed; production audit found zero vulnerabilities. Isolated macOS arm64 Paseo 0.15.4 activation/reload and first-run UI passed with all three choices. PR #44/main passed 226 mocked Chrome tests. Final artifact identity is retained under `/tmp/jira-1.2.2-candidate` and in release assets.
+- [ ] Require green preparation PR and exact-main checks, compare merged package, then tag and publish through OIDC. Record completion in GitHub release notes and workflow evidence; do not modify published bytes.
+
 ## 1.2.1 patch release (2026-11-09)
 
 - [x] Authorization: commit/push, PR, green checks, merge, tag, release notes and npm publish.
@@ -16,7 +24,7 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Refresh and review all five synthetic public screenshots.
 - [x] Both baseline and isolated 0.15.3 typechecks passed; 304 Node, 201 browser and 15 publishing-verifier tests passed. Production dependency audit: zero vulnerabilities.
 - [x] Extracted manifest build passed; isolated macOS arm64 Paseo 0.15.3 activation/reload and first-run UI passed with all three connection choices. Final artifact: `paseo-jira-sprint-workspace-1.2.1.tgz`, 1049305 bytes, 143 files; SHA-256 `9ea6b4ba293ae80261004e55bf0e89b1825237faee6e741ece600a5de5ccf680`. Retained under `/tmp/jira-1.2.1-candidate`.
-- [ ] Require PR and exact-main CI, compare package to merge, then tag and publish. Record final evidence in GitHub release notes; do not alter published contents.
+- [x] PR #43 and exact-main CI passed; v1.2.1 and npm publication completed. [Publishing verification](https://github.com/mbranicky/jira-dashboard/actions/runs/42609393160) checked the exact artifact.
 
 ## 1.2.0 completed release (2026-11-08)
 
