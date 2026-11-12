@@ -102,6 +102,7 @@ it('return to the mobile board → restore the search and selected column',()=>{
 
 for(const transport of ['rest','twg','mcp'] as const)it(`${transport} details panel stays below the full-width dashboard toolbar`,()=>{
  cy.viewport(1440,900);stubRpc();mount(<Harness mode="panel" transport={transport}/>);
+ title().should('be.visible');
  cy.get('[data-testid="dashboard-header"]').then($header=>{
   const before=$header[0].getBoundingClientRect();
   title().click();
