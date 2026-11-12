@@ -48,7 +48,10 @@
     "assets/mobile.png",
     "scripts/prepare-native.mjs",
     "!server/mcp-native-location.json",
-    "assets/appearance.png"
+    "assets/appearance.png",
+    "assets/filters.png",
+    "assets/boards.png",
+    "assets/empty-selection.png"
   ],
   "devDependencies": {
     "@cypress/vite-dev-server": "^8.0.0",

@@ -141,7 +141,7 @@ The isolated target-SDK copy also loaded as a temporary plugin on the 0.15.0 dae
 
 ## Release preview and start recovery coverage
 
-Four registry capture tests render synthetic dashboard, details, settings, appearance and mobile views. Reviewed public copies live in assets/ and are packaged via manifest media. Replacements require visual review and an updated exact digest in the secret audit. They are not pixel-diff baselines.
+Six registry capture tests render eight synthetic dashboard, details, settings, appearance, mobile, Filters, Manage boards and empty-selection views. Reviewed public copies live in assets/ and are packaged via manifest media. Replacements require visual review and an updated exact digest in the secret audit. They are not pixel-diff baselines.
 
 Three additional browser tests cover branch selection in a separate modal, retry after agent-start failure, and uncertain prompt delivery without offering an unsafe retry. Backend tests independently verify workspace reuse and no duplicate prompt. That 33-test checkpoint used mocked service boundaries; no live workspace is created.
 
@@ -225,3 +225,8 @@ Prepared after UI/media PR #39 merged with all four checks green. Package, shrin
 ## CI coverage
 
 The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, then runs the full suite against exact 0.15.2 SDKs. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
+
+
+## Screenshot refresh — 2026-11-12
+
+Six mocked capture tests generated eight public PNGs. The refreshed details view shows the panel below the full-width toolbar. New captures cover Filters, Manage boards and the empty-selection state after a successful refresh. Captures were visually reviewed before copying to assets and updating the exact secret-audit digests. README links to the expanded visual tour. The five existing registry media entries remain in place; the three additional documentation images are included in the package. No private Jira data, live writes, version bump or publication.

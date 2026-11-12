@@ -1,3 +1,5 @@
+import {DetailsPanel} from './details-panel';
+import {StartWorkProvider} from './start-work-state';
 import {radii,columnGeometry} from './radii';
 import {MobileColumns} from './mobile-columns';
 import {useDisplayPreferences} from './display-preferences';
@@ -91,7 +93,8 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
     <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():draft.transport==='mcp'?false:!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
   </View>;
 }
-export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
+export function Dashboard(props:PluginScreenProps){return <StartWorkProvider key={props.host.id}><DashboardBody {...props}/></StartWorkProvider>;}
+function DashboardBody({host,theme,layout,navigation}:PluginScreenProps){
   const [focusDirection,setFocusDirection]=useState<'previous'|'next'>();
   const display=useDisplayPreferences(host.id);
   const boardScroll=useRef<ScrollView>(null);
@@ -127,6 +130,14 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const configured=settings.status==='ready'&&!!settings.values.boardUrl&&(mcpPreview?!!settings.values.mcpHostId:twgPreview?!!settings.values.twgExecutable&&!!settings.values.twgProfile:!!settings.values.envPath);
   const board=useQuery({queryKey:['jira-board',host.id,sprintKey,revision,sprint],queryFn:()=>rpc(sprint?{sprintId:sprint}:{}),enabled:configured&&!editing&&preferences.status==='ready',retry:false,refetchInterval:settings.status==='ready'?settings.values.refreshSeconds*1000:false,refetchIntervalInBackground:false});
   const data=board.data;
+  const [emptyPanelBoard,setEmptyPanelBoard]=useState<string>();
+  // Only a successful, completed board read can invalidate selection. Search
+  // filters and failed refreshes must not discard the currently open issue.
+  const selectionGone=!!selected&&board.isSuccess&&!board.isFetching&&!!data&&!data.issues.some(issue=>issue.key===selected.issue.key);
+  useEffect(()=>{
+    if(selectionGone){setEmptyPanelBoard(sprintKey);setSelected(undefined);}
+    else if(selected)setEmptyPanelBoard(undefined);
+  },[selectionGone,selected,sprintKey,setSelected]);
   const activity=useWorkspaceActivity(host.id,editing?[]:data?.issues.flatMap(issue=>issue.linkedWorkspace?[issue.linkedWorkspace]:[])??[]);
   const initialLoading=settings.status==='loading'||preferences.status==='loading'||(configured&&board.isLoading&&!data);
   const text={color:theme.colors.foreground};const muted={color:theme.colors.foregroundMuted};
@@ -140,6 +151,7 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
   const panel=preferences.status==='ready'&&preferences.values.detailsView==='panel';
   const presentation=detailsPresentation(panel?'panel':'modal',layout.compact,availableWidth);
   const currentIssue=selected&&(data?.selectedSprintId===selected.sprintId?data.issues.find(i=>i.key===selected.issue.key):undefined)||selected?.issue;
+  const showEmptyPanel=presentation==='panel'&&(selectionGone||(!selected&&emptyPanelBoard===sprintKey));
   const detailNav=issueNavigation(filtered,columns,currentIssue?.key??'');
   const goToIssue=(issue:typeof currentIssue,direction:'previous'|'next')=>{if(issue&&data?.selectedSprintId){setFocusDirection(direction);setPanelCollapsed(false);if(layout.compact){const index=columns.findIndex(column=>column.statusIds.includes(issue.statusId));if(index>=0)updateBoard(sprintKey,{columnKey:columnKeys[index]});}setSelected({boardKey:sprintKey,issue,sprintId:data.selectedSprintId,site:data.site});}};
   const renderToolbar=(filterActions:import('react').ReactNode)=>(
@@ -164,9 +176,9 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
       {filterActions}
       </SavedBoards>
   );
-  return <View onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',backgroundColor:theme.colors.surface0}}>
+  return <View style={{flex:1,minHeight:0,backgroundColor:theme.colors.surface0}}>
   <View ref={keyboardRoot} style={{flex:1,minWidth:0,minHeight:0,padding:layout.compact?12:24,gap:16}}>
-    <View style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
+    <View testID="dashboard-header" style={{gap:14,paddingBottom:16,borderBottomWidth:1,borderBottomColor:theme.colors.border}}>
       <View style={{flexDirection:layout.compact?'column':'row',justifyContent:'space-between',alignItems:layout.compact?'stretch':'center',gap:8}}>
         <View style={{flexDirection:'row',alignItems:'center',gap:12,flexShrink:1}}>
           <Image accessible={false} source={boardIcon} resizeMode="contain" style={{width:40,height:40,flexShrink:0}}/>
@@ -192,6 +204,8 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     {linkError?<Text accessibilityRole="alert" style={text}>{linkError}</Text>:null}
     {data&&!data.selectedSprintId?<Text style={text}>{data.sprints.filter(s=>s.state==='active').length>1?'Several sprints are active. Select one above.':'No active sprint. Select another sprint above.'}</Text>:null}
     {data?.selectedSprintId && !data.issues.length?<Text style={muted}>No issues in this sprint are assigned to you.</Text>:null}
+    <View testID="board-content" onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',gap:presentation==='panel'&&(selected||showEmptyPanel)?16:0}}>
+    <View style={{flex:1,minWidth:0,minHeight:0,gap:16}}>
     {layout.compact&&!initialLoading?<MobileColumns theme={theme} columns={columns.map(column=>({name:column.name,count:filtered.filter(issue=>column.statusIds.includes(issue.statusId)).length}))} selected={selectedColumn} onChange={index=>{updateBoard(sprintKey,{columnKey:columnKeys[index]});boardScroll.current?.scrollTo({y:0,animated:false});}}/>:null}
     {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves disabled={twgReadOnly} site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
     <ScrollView ref={boardScroll} horizontal={!layout.compact} style={{flex:1,minHeight:0}} contentContainerStyle={{gap:16,...(layout.compact?{}:{alignItems:'stretch' as const})}}>
@@ -210,6 +224,9 @@ export function Dashboard({host,theme,layout,navigation}:PluginScreenProps){
     </ScrollView>
     </BoardMoves>}
   </View>
-  {selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails issueNavigation={{focusDirection,position:detailNav.index+1,total:detailNav.total,onPrevious:detailNav.previous?()=>goToIssue(detailNav.previous,'previous'):undefined,onNext:detailNav.next?()=>goToIssue(detailNav.next,'next'):undefined}} startAvailable={true} readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
+  {showEmptyPanel?<DetailsPanel empty theme={theme} issueKey="" width={clampPanelWidth(panelWidth,availableWidth)} collapsed={panelCollapsed} onToggle={()=>setPanelCollapsed(value=>!value)} onResize={width=>setPanelWidth(clampPanelWidth(width,availableWidth))}>{null}</DetailsPanel>:null}
+  {!selectionGone&&selected&&currentIssue&&preferences.status==='ready'&&availableWidth>0?<IssueDetails issueNavigation={{focusDirection,position:detailNav.index+1,total:detailNav.total,onPrevious:detailNav.previous?()=>goToIssue(detailNav.previous,'previous'):undefined,onNext:detailNav.next?()=>goToIssue(detailNav.next,'next'):undefined}} startAvailable={true} readOnly={twgReadOnly} connectionRevision={revision} key={`${host.id}:${selected.sprintId}:${currentIssue.key}`} presentation={presentation} panelWidth={clampPanelWidth(panelWidth,availableWidth)} panelCollapsed={panelCollapsed} onTogglePanel={()=>setPanelCollapsed(value=>!value)} onResizePanel={width=>setPanelWidth(clampPanelWidth(width,availableWidth))} navigation={navigation} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===currentIssue.projectKey)?()=>{setSelected(undefined);setMappingProject(currentIssue.projectKey);setEditing(true);}:undefined} onStarted={()=>void board.refetch()} hostId={host.id} issue={currentIssue} sprintId={selected.sprintId} theme={theme} onClose={()=>setSelected(undefined)} onOpenJira={()=>{void openExternal(`${selected.site}/browse/${currentIssue.key}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}}/>:null}
+  </View>
+  </View>
   </View>;
 }

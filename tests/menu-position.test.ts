@@ -15,3 +15,10 @@ test('preferred space below is bounded even when more room exists above',()=>{
  const position=menuPosition({x:24,y:400,width:260,height:44},{width:1200,height:690},260);
  assert.equal(position.top,448);assert.equal(position.maxHeight,230);
 });
+test('wide popover aligns to the end of its actual trigger and clamps on mobile',()=>{
+ const anchor={x:900,y:90,width:34,height:34};
+ const desktop=menuPosition(anchor,{width:1200,height:800},520,{width:520,align:'end'});
+ assert.equal(desktop.left,414);assert.equal(desktop.left+desktop.width,934);assert.equal(desktop.top,128);
+ const mobile=menuPosition({x:280,y:90,width:34,height:44},{width:320,height:600},520,{width:520,align:'end'});
+ assert.equal(mobile.width,296);assert.equal(mobile.left,12);assert.ok(mobile.top+mobile.maxHeight<=588);
+});

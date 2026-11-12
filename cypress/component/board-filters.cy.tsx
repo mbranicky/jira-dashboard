@@ -11,7 +11,7 @@ for(const transport of ['rest','twg','mcp'] as const)describe(`${transport} quic
   button('Filters').click();button('Filter by Priority').click();cy.get('[role="checkbox"][aria-label="Priority: High"]').click();button('Close dropdown').click('topLeft');title('TEST-1').should('not.exist');title('TEST-2').should('be.visible');
   cy.contains('1 of 2').should('be.visible');
   button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Urgent');button('Save view').click();button('Views').should('be.visible');
-  button('Clear filters').click();title('TEST-1').should('be.visible');button('Views').click();button('View: Urgent').click();title('TEST-1').should('not.exist');
+  button('Clear filters').click();title('TEST-1').should('be.visible');button('Close Filters').click();button('Views').click();button('View: Urgent').click();title('TEST-1').should('not.exist');
   cy.get('[data-testid="navigate"]').click();cy.get('[data-testid="navigate"]').click();button('Views').should('be.visible');title('TEST-1').should('not.exist');
   button('Views').click();button('Delete view: Urgent').click();button('View: Urgent').should('not.exist');
  });
@@ -19,7 +19,7 @@ for(const transport of ['rest','twg','mcp'] as const)describe(`${transport} quic
 it('compact light theme and save failure → filters remain usable and failure is visible',()=>{
  cy.viewport(390,844);stubRpc();mount(<Harness light failSave/>);button('Filters').click();button('Filter by Label').click();cy.get('[role="checkbox"][aria-label="Label: alpha"]').click();button('Close dropdown').click('topLeft');
  button('Save as view').click();cy.get('[aria-label="Saved view name"]').type('Example');button('Save view').click();cy.contains('Could not save views.').should('be.visible');
- button('View: Example').should('not.exist');button('Remove Label: alpha').click();button('Hide filters').click();title('TEST-1').should('be.visible');
+ button('View: Example').should('not.exist');button('Close Filters').click();button('Remove Label: alpha').click();title('TEST-1').should('be.visible');
 });
 for(const width of [1440,390,320])it(`searchable multi-select at ${width}px → bounded layout and retained selections`,()=>{
  cy.viewport(width,900);stubRpc();
@@ -68,5 +68,5 @@ it('desktop toolbar → search followed by Filters and Views, options aligned ri
    });
   });
  });
- cy.get('[data-testid="filter-options"]').should('have.css','justify-content','flex-end');
+ cy.get('[data-testid="filter-options"]').children().should('have.css','justify-content','flex-end');
 });
