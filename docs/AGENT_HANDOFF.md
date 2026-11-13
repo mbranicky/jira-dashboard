@@ -4,6 +4,10 @@ Updated: 2026-11-13. Current continuation brief; implementation detail lives in 
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
 
+## Unreleased issue-type workspace labels
+
+On `codex/workspace-issue-type-labels`, Test issues receive a violet Test workspace label. Each destination mapping exposes **Label workspaces by issue type**, default-on for old and new mappings. Turning it off skips Story/Bug/Test labeling and type-label color updates for both Play and Start work on move; it does not remove existing labels or change the In Progress label. No version bump or publishing is requested for this follow-up.
+
 ## 1.3.0 preparation
 
 The user requested multiple Paseo destinations for one Jira key, grouped in a single Settings card, with a chooser for Play and Start work on move. Work is on `codex/multiple-project-mappings`; the user authorized preparation of minor version 1.3.0. The user authorized commit/push, PR, merge after green checks, then tag and publication on 2026-11-13. The flat settings shape is retained; uniqueness is now the Jira/Paseo project pair. Explicit project IDs flow through branch preparation, Start work and moves. Stale/foreign choices fail before creation or transitions, and active saved issue receipts cannot be redirected to another project. Issue-type routing and simultaneous multi-repository workspaces are not included.

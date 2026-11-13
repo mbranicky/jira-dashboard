@@ -54,6 +54,7 @@ export const mappingSchema = z.object({
   startWorkColumn: z.string().optional(),
   startWorkStatusId: z.string().regex(/^\d*$/).optional(),
   autoUpdateJira: z.boolean().default(true),
+  labelIssueType: z.boolean().default(true),
 }).overwrite(item=>{
   // Paseo validates parsed settings as JSON; cleared optional keys must be absent.
   const clean={...item};

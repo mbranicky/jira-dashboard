@@ -16,9 +16,10 @@ export function entryPrompt(skill:string,key:string){
   const name=skill.trim().replace(/^\/+/, '');
   return name?`/${name} ${key}`:undefined;
 }
-export function issueTypeLabel(type:string):{name:string;color:'emerald'|'red'}|undefined{
+export function issueTypeLabel(type:string):{name:string;color:'emerald'|'red'|'violet'}|undefined{
   switch(type.trim().toLowerCase()){
     case 'story':case 'user story':return {name:'Story',color:'emerald'};
+    case 'test':return {name:'Test',color:'violet'};
     case 'bug':case 'problem':return {name:'Bug',color:'red'};
     default:return undefined;
   }
@@ -93,7 +94,7 @@ export function startIssue(paseo:PaseoApi,config:Connection,mapping:Mapping,key:
         state.workspaceId=workspace.id;await save();
       }
       const labels=await local.client.listWorkspaceLabels();
-      const typeLabel=issueTypeLabel(issueType);
+      const typeLabel=mapping.labelIssueType!==false?issueTypeLabel(issueType):undefined;
       const desired=[{name:'In Progress',color:labels.labels.find(l=>l.name==='In Progress')?.color??'sky'},...(typeLabel?[typeLabel]:[])];
       for(const label of desired){
         const existing=labels.labels.find(l=>l.name===label.name);
