@@ -1,5 +1,11 @@
 # Testing Jira Sprint Workspace
 
+## 1.3.1 verification — 2026-11-13
+
+The release keeps all three connection methods and the supported Paseo range. Both baseline typechecks, 324 Node tests, 15 publishing-verifier tests and source/package checks passed. Regression coverage includes default-on legacy mappings, explicit per-destination opt-out, Story/Bug/Test labeling for Play and Start work on move, and desktop/mobile toggle persistence. Jira writes use mocks only.
+
+Eleven synthetic public screenshots were regenerated. Unchanged images retain their bytes; refreshed board-management/empty-selection views and a new labeling-toggle close-up are included. Final full-browser results, clean extracted manifest build, artifact checksum and isolated Paseo installation evidence are recorded in the release checklist and release workflow, outside the immutable package contents.
+
 ## 1.3.0 candidate verification — 2026-11-13
 
 Both baseline typechecks, 317 Node tests and 15 publishing-verifier tests passed on macOS Apple silicon. The full Chrome run passed 239 of 240 tests; its sole failure was an outdated test saving an unchanged connection. After updating that test to edit the interval, both sprint tests and all seven registry preview tests passed, covering 241 current browser tests across the full run and focused rerun.
