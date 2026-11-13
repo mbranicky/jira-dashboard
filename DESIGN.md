@@ -179,7 +179,7 @@ Column labels in the Start work destination dropdown are displayed in uppercase 
 
 Fix-version transition selectors hide choices explicitly marked released or archived by Jira. A selected historical version stays visible and can be deselected. Missing flags do not imply that a version is released. Release metadata comes from transition allowed values, with no additional lookup. Server validation retains the complete Jira-allowed list so selected historical versions remain valid.
 
-Automatically started workspaces use an additional colored type label for quick recognition: Story in green for Story/User Story; Bug in red for Bug/Problem. Other types keep only the existing In Progress label. Paseo's green label color token is emerald. Existing named type labels are reused and their colors corrected when needed.
+Automatically started workspaces use an additional colored type label for quick recognition: Story in green for Story/User Story; Bug in red for Bug/Problem. Test gets a violet Test label. Other types keep only the existing In Progress label. Each mapping has a default-on issue-type labeling toggle; disabling it skips Story/Bug/Test assignment and color updates without removing existing labels. Paseo's green label color token is emerald. Existing named type labels are reused and their colors corrected when needed.
 
 ### Overlay dropdowns and focus styling
 

@@ -4,10 +4,10 @@ import {ResponsiveSelect} from './responsive-select';
 import { Action, SectionTitle } from './settings-ui';
 import { ProviderFields } from './provider-fields';
 import { usePaseo, useSettings, type PluginSurfaceProps } from '@getpaseo/plugin/client';
-import { Icon } from '@getpaseo/plugin/client/ui';
+import { Icon, SettingsRow } from '@getpaseo/plugin/client/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { mappings, mappingSchema, mappingsSchema, mappingFormSchema, type Mapping } from '../shared/contracts';
 
 // Optional empty selections and absent values represent the same saved choice.
@@ -19,7 +19,7 @@ export function MappingSettings(props: Pick<PluginSurfaceProps, 'theme'|'layout'
   const settings = useSettings(mappings);
   const [saved, setSaved] = useState(false);
   if (settings.status !== 'ready') return <View><Text style={{color:props.theme.colors.foreground}}>{settings.status==='loading'?'Loading project mappings…':'Could not load project mappings.'}</Text><Pressable accessibilityRole="button" onPress={()=>void settings.reload()}><Text style={{color:props.theme.colors.foreground}}>Retry</Text></Pressable></View>;
-  const editor=<MappingEditor key={settings.revision} {...props} baseline={settings.values.items} initial={props.prefillProjectKey&&!settings.values.items.some(item=>item.jiraProjectKey===props.prefillProjectKey)?[{name:'',jiraProjectKey:props.prefillProjectKey,paseoProjectId:'',entrySkill:'',provider:'',model:'',autoUpdateJira:true},...settings.values.items]:settings.values.items} saving={settings.saving}
+  const editor=<MappingEditor key={settings.revision} {...props} baseline={settings.values.items} initial={props.prefillProjectKey&&!settings.values.items.some(item=>item.jiraProjectKey===props.prefillProjectKey)?[{name:'',jiraProjectKey:props.prefillProjectKey,paseoProjectId:'',entrySkill:'',provider:'',model:'',autoUpdateJira:true,labelIssueType:true},...settings.values.items]:settings.values.items} saving={settings.saving}
     save={async items=>{const ok=await settings.save({items},settings.revision);setSaved(ok);return ok;}} saved={saved} clearSaved={()=>setSaved(false)} error={settings.saveError ? String(settings.saveError) : undefined}/>;
   return props.embedded?editor:<ScrollView style={{flex:1,backgroundColor:props.theme.colors.surface0}}>{editor}</ScrollView>;
 }
@@ -43,7 +43,7 @@ function MappingEditor({theme, layout, initial, baseline, save, saving, error, s
   function button(label:string, onPress:()=>void, disabled=false){return <Action theme={theme} label={label} icon={label==='Remove'?'Trash2':label==='Add mapping'?'Plus':label==='Refresh projects'?'RefreshCw':'Check'} primary={label==='Save mappings'||label==='Saving…'} danger={label==='Remove'} disabled={disabled} onPress={onPress}/>;}
   const groups: number[][]=[];
   items.forEach((item,index)=>{const group=item.jiraProjectKey?groups.find(indices=>items[indices[0]].jiraProjectKey===item.jiraProjectKey):undefined;if(group)group.push(index);else groups.push([index]);});
-  function addDestination(key=''){clearSaved();setMessage('');setExpanded(values=>[...values,true]);setSubmitted(values=>[...values,false]);setItems([...items,{name:'',jiraProjectKey:key,paseoProjectId:'',entrySkill:'',provider:'',model:'',autoUpdateJira:true}]);}
+  function addDestination(key=''){clearSaved();setMessage('');setExpanded(values=>[...values,true]);setSubmitted(values=>[...values,false]);setItems([...items,{name:'',jiraProjectKey:key,paseoProjectId:'',entrySkill:'',provider:'',model:'',autoUpdateJira:true,labelIssueType:true}]);}
   return <View style={{padding:layout.compact?16:24,gap:20,maxWidth:960,width:'100%',alignSelf:'center'}}>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
       <View style={{flex:1,minWidth:220}}><SectionTitle theme={theme} icon="FolderGit2" title="Project mappings" description="Choose where each Jira project starts work."/></View>
@@ -83,6 +83,9 @@ function MappingEditor({theme, layout, initial, baseline, save, saving, error, s
       {fieldMessage(index,'isolation')}
       <View style={fieldError(index,'isolation')?fieldBorder(index,'isolation'):undefined}>
       <ResponsiveSelect theme={theme} compact={layout.compact} label="Workspace isolation *" value={item.isolation??''} options={[{label:'Choose isolation',value:''},{label:'New Git worktree',value:'worktree'},{label:'Project directory (shared files)',value:'directory'}]} onValueChange={value=>update(index,{isolation:value==='worktree'?'worktree':value==='directory'?'directory':undefined})}/></View>
+      <SettingsRow label="Label workspaces by issue type" hint="Add Story, Bug or Test labels when starting work. Turning this off keeps existing labels.">
+        <Switch accessibilityLabel={`Label workspaces by issue type for ${item.name.trim()||`mapping ${index+1}`}`} value={item.labelIssueType??true} onValueChange={labelIssueType=>update(index,{labelIssueType})}/>
+      </SettingsRow>
       <StartStatusSelect projectKey={item.jiraProjectKey} value={item.startWorkColumn} legacyStatusId={item.startWorkStatusId} onChange={startWorkColumn=>update(index,{startWorkColumn,startWorkStatusId:undefined})} theme={theme} compact={layout.compact}/>
       <View style={{flexDirection:'row',justifyContent:'flex-end'}}>{button('Remove',()=>{clearSaved();setItems(items.filter((_,i)=>i!==index));setExpanded(values=>values.filter((_,i)=>i!==index));setSubmitted(values=>values.filter((_,i)=>i!==index));setMessage('');})}</View>
       </View>:null}

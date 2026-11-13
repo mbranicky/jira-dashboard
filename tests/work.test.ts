@@ -5,7 +5,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import type {PaseoApi} from '@getpaseo/client';
 import {startIssue,workIdentity,entryPrompt,validateWork} from '../server/work';
-import type {Mapping} from '../shared/contracts';
+import {mappingSchema,type Mapping} from '../shared/contracts';
+import {performMove} from '../server/moves';
 const config={boardUrl:'https://example.atlassian.net/boards/51',envPath:'/unused',refreshSeconds:60};
 const mapping:Mapping={name:'Test mapping',jiraProjectKey:'TD',paseoProjectId:'p1',provider:'codex',model:'',entrySkill:'',isolation:'directory',autoUpdateJira:false};
 async function fixture(){
@@ -79,7 +80,7 @@ test('entry prompt uses the slash skill command and issue key only',()=>{
 });
 
 test('workspaces receive issue-type labels with the requested colors and no extra labels for other types',async()=>{
- for(const [type,label] of [['User Story',{name:'Story',color:'emerald'}],['Story',{name:'Story',color:'emerald'}],['Bug',{name:'Bug',color:'red'}],['Problem',{name:'Bug',color:'red'}],['Task',undefined]] as const){
+ for(const [type,label] of [['User Story',{name:'Story',color:'emerald'}],['Story',{name:'Story',color:'emerald'}],['Bug',{name:'Bug',color:'red'}],['Problem',{name:'Bug',color:'red'}],['Test',{name:'Test',color:'violet'}],[' test ',{name:'Test',color:'violet'}],['Task',undefined]] as const){
   const f=await fixture();try{
    await startIssue(f.paseo,config,mapping,'TD-8',undefined,f.deps,type);
    assert.deepEqual(f.assignedLabels,[{name:'In Progress',color:'sky'},...(label?[label]:[])]);
@@ -158,4 +159,22 @@ for(const transport of ['rest','twg','mcp'] as const)test(`${transport}: selecte
   assert.ok(f.calls.includes('send:/qa-check TD-202'));
   assert.equal(f.calls.includes('transition'),false);
  }finally{await f.cleanup();}
+});
+
+test('legacy mappings enable issue-type labels and preserve an explicit opt-out',()=>{
+ assert.equal(mappingSchema.parse(mapping).labelIssueType,true);
+ assert.equal(mappingSchema.parse({...mapping,labelIssueType:false}).labelIssueType,false);
+});
+for(const transport of ['rest','twg','mcp'] as const)for(const enabled of [true,false])test(`${transport}: per-destination type labels ${enabled?'on':'off'} apply to Play and Start work on move`,async()=>{
+ for(const type of ['Story','Bug','Test'])for(const move of [false,true]){
+  const f=await fixture();try{
+   f.existingLabels.push({name:type,color:'blue'});
+   const start=()=>startIssue(f.paseo,{...config,transport},{...mapping,labelIssueType:enabled},'TD-99',undefined,f.deps,type);
+   if(move)await performMove({transitionId:'go',statusId:'2'},[{id:'go',name:'Start',statusId:'2',column:'Development',development:true,required:[]}],async()=>{},start);
+   else await start();
+   assert.deepEqual(f.assignedLabels.map(label=>label.name),enabled?['In Progress',type]:['In Progress']);
+   assert.equal(f.colorUpdates.length,enabled?1:0);
+   assert.equal(f.creations.length,1);
+  }finally{await f.cleanup();}
+ }
 });
