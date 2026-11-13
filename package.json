@@ -1,6 +1,6 @@
 {
   "name": "paseo-jira-sprint-workspace",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
     "prototype": "node prototype/connect.mjs",
@@ -51,7 +51,9 @@
     "assets/appearance.png",
     "assets/filters.png",
     "assets/boards.png",
-    "assets/empty-selection.png"
+    "assets/empty-selection.png",
+    "assets/mappings.png",
+    "assets/project-chooser.png"
   ],
   "devDependencies": {
     "@cypress/vite-dev-server": "^8.0.0",

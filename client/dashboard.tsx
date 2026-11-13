@@ -32,7 +32,7 @@ import { useRpc, useSettings, type PluginScreenProps, type PluginSurfaceProps } 
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
-import { connection, dashboardPreferences, mappings, readBoard, type Connection } from '../shared/contracts';
+import { connection, connectionSchema, dashboardPreferences, mappings, readBoard, type Connection } from '../shared/contracts';
 import { openExternal } from './web';
 
 type Surface=Pick<PluginScreenProps,'theme'|'layout'>;
@@ -53,6 +53,8 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
   const [intervalTouched,setIntervalTouched]=useState(false);
   const [intervalMenu,setIntervalMenu]=useState(false);
   const validInterval=/^\d+$/.test(interval.trim())&&Number.isSafeInteger(Number(interval))&&Number(interval)>=30;
+  const nextConnection={...draft,transport:draft.transport??'rest',refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()};
+  const dirty=!validInterval||JSON.stringify(connectionSchema.parse({...initial,transport:initial.transport??'rest'}))!==JSON.stringify(connectionSchema.parse({...nextConnection,refreshSeconds:validInterval?Number(interval):initial.refreshSeconds}));
   const intervalError=intervalTouched&&!validInterval?'Enter a whole number of at least 30 seconds.':null;
   const input={color:theme.colors.foreground,backgroundColor:theme.colors.surface1,borderColor:theme.colors.border,borderWidth:1,borderRadius:radii.control,padding:12};
   return <View style={{padding:layout.compact?16:24,gap:16,maxWidth:960,width:'100%',alignSelf:'center'}}>
@@ -60,7 +62,7 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
     <View style={{padding:layout.compact?16:24,gap:14,borderRadius:radii.surface,backgroundColor:theme.colors.surface1,borderWidth:1,borderColor:theme.colors.border}}>
     <Text style={{color:theme.colors.foreground}}>Jira board URL</Text>
     <TextInput accessibilityLabel="Jira board URL" autoCapitalize="none" autoCorrect={false} value={draft.boardUrl} onChangeText={boardUrl=>{setSaved(false);setDraft({...draft,boardUrl});}} placeholder="https://your-site.atlassian.net/jira/software/c/projects/KEY/boards/51" placeholderTextColor={theme.colors.foregroundMuted} style={input}/>
-    <ResponsiveSelect theme={theme} compact={layout.compact} label="Connection method" value={draft.transport??'rest'} options={[{label:'REST API',value:'rest'},{label:'Teamwork Graph CLI',value:'twg'},{label:'Atlassian MCP',value:'mcp'}]} onValueChange={value=>{setSaved(false);setDraft({...draft,transport:value as Connection['transport'],...(value==='mcp'?{mcpHostId:hostId}:{})});}}/>
+    <ResponsiveSelect theme={theme} compact={layout.compact} label="Connection method" value={draft.transport??'rest'} options={[{label:'REST API',value:'rest'},{label:'Teamwork Graph CLI',value:'twg'},{label:'Atlassian MCP',value:'mcp'}]} onValueChange={value=>{setSaved(false);setDraft({...draft,transport:value as Connection['transport']});}}/>
     {draft.transport==='mcp'?<Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Read your board, issue details, comments and attachments. Start work creates or reuses a Paseo workspace and agent.</Text>:null}
     {draft.transport==='mcp'?<View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Allow Jira changes through MCP</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Enable workflow moves, comments and attachment uploads. Play itself does not change Jira.</Text></View><Switch accessibilityLabel="Allow Jira changes through MCP" value={draft.mcpWrites??false} onValueChange={mcpWrites=>{setSaved(false);setDraft({...draft,mcpWrites});}}/></View>:null}
     {draft.transport==='twg'?<View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={{color:theme.colors.foreground,fontWeight:'600'}}>Allow Jira changes</Text><Text style={{color:theme.colors.foregroundMuted,fontSize:12}}>Enable workflow moves, comments and attachment uploads. Play itself does not change Jira.</Text></View><Switch accessibilityLabel="Allow Jira changes" value={draft.twgWrites} onValueChange={enabled=>{setSaved(false);setDraft({...draft,twgWrites:enabled});}}/></View>:null}
@@ -90,7 +92,7 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
     </View></View>
     {error?<Text accessibilityRole="alert" style={{color:theme.colors.foreground}}>{error}</Text>:null}
     {saved?<Text style={{color:theme.colors.foreground}}>Settings saved. Open Jira Sprint Workspace to test the connection.</Text>:null}
-    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():draft.transport==='mcp'?false:!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...draft,refreshSeconds:Number(interval),boardUrl:draft.boardUrl.trim(),envPath:draft.envPath.trim()}).then(ok=>setSaved(ok));}}/></View>
+    <View style={{flexDirection:'row',justifyContent:'flex-end',borderTopWidth:1,borderTopColor:theme.colors.border,paddingTop:12}}><Action theme={theme} icon="Check" primary disabled={saving||!dirty||!draft.boardUrl.trim()||(draft.transport==='twg'? !(draft.twgExecutable??'twg').trim()||!(draft.twgProfile??'default').trim():draft.transport==='mcp'?false:!draft.envPath.trim())} label={saving?'Saving…':'Save connection'} onPress={()=>{setIntervalTouched(true);if(!validInterval)return;void onSave({...nextConnection,...(draft.transport==='mcp'?{mcpHostId:hostId}:{})}).then(ok=>setSaved(ok));}}/></View>
   </View>;
 }
 export function Dashboard(props:PluginScreenProps){return <StartWorkProvider key={props.host.id}><DashboardBody {...props}/></StartWorkProvider>;}

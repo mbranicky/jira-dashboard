@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0
+
+- Map one Jira project to multiple Paseo projects, grouped in one Settings card with separate agent, skill and workspace preferences per destination.
+- Choose the destination before Start work when several projects are mapped. Carry that choice through branch selection and workspace creation; open existing linked workspaces directly.
+- Include destination selection in Start work on move. Reject missing, stale or unavailable destinations before a Jira transition, and keep existing active workspace links bound to their original project.
+- Enable Save connection and Save mappings only when their respective settings differ from saved values. Reverting edits or saving successfully disables the button again; failed saves retain the draft for retry.
+
+- Update locked Hono dependencies to compatible patched versions addressing dependency advisories.
+
+Existing single-project mappings remain compatible. REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included; Paseo requirements and host/upload limitations are unchanged. Jira writes are tested with mocks only.
+
 ## 1.2.2
 
 - Open Filters and Manage boards in anchored popovers without shifting the board. Keep filter dropdowns together and actions on a separate row; prevent flicker when opening nested menus with Native Polish enabled.

@@ -8,6 +8,18 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.3.0 minor release preparation (2026-11-13)
+
+- [x] User authorized minor-release preparation; keep all three transports and existing Paseo requirements.
+- [x] Set package, shrinkwrap and MCP metadata to 1.3.0; update README, changelog and handoff for multiple destinations and change-aware Save buttons.
+- [x] User confirmed multi-mapping works in their workflow; retain mock-only Jira write verification.
+- [x] Refresh and visually review public media for grouped mappings, project selection and the connection Save state.
+- [x] Both typechecks, 317 Node tests, 15 release-verifier tests and 241 browser tests passed across the full run and focused rerun of the corrected sprint test/new preview; see docs/TESTING.md.
+- [x] Final tarball: 151 files, 1,530,405 bytes; clean extracted manifest build and production audit passed with zero vulnerabilities after compatible Hono patch updates. Retained at `/tmp/jira-1.3.0-candidate/paseo-jira-sprint-workspace-1.3.0.tgz`; SHA-256 `79be75f8c6ba934a4e32472f54dae374674d4d315666da9b8dfd9c0dbee75689`. Any packaged edit requires rebuilding.
+- [x] Obtain commit/PR, merge, tag and publication authorization on 2026-11-13.
+- [ ] Require green preparation PR and exact-main checks.
+- [ ] Publish exact verified bytes, then verify npm and the separate registry update.
+
 ## 1.2.2 patch release (2026-11-12)
 
 - [x] User authorized version 1.2.2, release preparation, tag and publication; retain all three connection methods.

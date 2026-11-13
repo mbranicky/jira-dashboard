@@ -1,3 +1,4 @@
+import {ProjectChoices,type ProjectChoice} from './project-choices';
 import {radii} from './radii';
 import {Tooltip} from './tooltip';
 import {FocusScope} from './focus-scope';
@@ -10,7 +11,7 @@ import {visibleTransitionChoices,type TransitionField} from '../shared/transitio
 import {openExternal} from './web';
 
 type Theme=PluginScreenProps['theme'];
-type Props={theme:Theme;issueKey:string;site:string;column:string;development:boolean;fields:TransitionField[];values:Record<string,string>;message:string;busy:boolean;onChange:(id:string,value:string)=>void;onClose:()=>void;onConfirm:()=>void};
+type Props={destinations?:ProjectChoice[];projectId?:string;onProjectChange?:(id:string)=>void;theme:Theme;issueKey:string;site:string;column:string;development:boolean;fields:TransitionField[];values:Record<string,string>;message:string;busy:boolean;onChange:(id:string,value:string)=>void;onClose:()=>void;onConfirm:()=>void};
 
 function ChoiceField({field,value,onChange,theme,disabled}:{field:TransitionField;value:string;onChange:(value:string)=>void;theme:Theme;disabled:boolean}){
  const [open,setOpen]=useState(false),[search,setSearch]=useState('');
@@ -34,9 +35,10 @@ function ChoiceField({field,value,onChange,theme,disabled}:{field:TransitionFiel
  </OverlayMenu>;
 }
 
-export function TransitionDialog({theme,issueKey,site,column,development,fields,values,message,busy,onChange,onClose,onConfirm}:Props){
+export function TransitionDialog({destinations,projectId,onProjectChange,theme,issueKey,site,column,development,fields,values,message,busy,onChange,onClose,onConfirm}:Props){
  const c=theme.colors,compact=useWindowDimensions().width<600;
  const [jiraTip,setJiraTip]=useState(false);
+ const needsProject=!!destinations&&destinations.length>1&&!destinations.some(d=>d.projectId===projectId);
  const unsupported=fields.filter(field=>field.kind==='unsupported'),editable=fields.filter(field=>field.kind!=='unsupported');
  return <Modal visible transparent animationType="fade" onRequestClose={()=>{if(!busy)onClose();}}><FocusScope>
   <View style={{flex:1,justifyContent:'center',alignItems:'center',padding:compact?12:24,backgroundColor:'rgba(0,0,0,.6)'}}>
@@ -54,6 +56,7 @@ export function TransitionDialog({theme,issueKey,site,column,development,fields,
     <ScrollView keyboardShouldPersistTaps="handled" style={{flexShrink:1,minHeight:0}} contentContainerStyle={{padding:compact?16:24,gap:20}}>
      {message?<View accessibilityRole="alert" style={{padding:12,borderRadius:radii.control,backgroundColor:c.surface2}}><Text style={{color:c.statusDanger,fontSize:13,lineHeight:20}}>{message.replace(/^Error: |^Request failed: /,'').replace(/\s+requestType=.*$/,'')}</Text></View>:null}
      {unsupported.length?<View style={{padding:12,borderRadius:radii.control,backgroundColor:c.surface2,flexDirection:'row',gap:10}}><Icon name="Info" size={18} color={c.foregroundMuted}/><View style={{flex:1,gap:4}}><Text style={{color:c.foreground,fontSize:13,fontWeight:'600'}}>Complete in Jira</Text><Text style={{color:c.foregroundMuted,fontSize:13,lineHeight:20}}>{unsupported.map(field=>field.name).join(', ')} {unsupported.length===1?'is':'are'} not editable here. If Jira requires a value, use the link above to complete the move there.</Text></View></View>:null}
+     {destinations&&destinations.length>1?<ProjectChoices choices={destinations} value={projectId} onChange={onProjectChange!} theme={theme} disabled={busy}/>:null}
      {editable.map(field=><View key={field.id} style={{gap:8}}><Text style={{fontSize:13,fontWeight:'500',color:c.foreground}}>{field.name}{field.required?<Text style={{color:c.foregroundMuted}}> *</Text>:null}</Text>
       {field.kind==='choice'||field.kind==='multi'?<ChoiceField field={field} value={values[field.id]??''} onChange={value=>onChange(field.id,value)} theme={theme} disabled={busy}/>:<TextInput accessibilityLabel={field.name} editable={!busy} value={values[field.id]??''} onChangeText={value=>onChange(field.id,value)} keyboardType={field.kind==='number'?'decimal-pad':'default'} placeholder={field.kind==='parent'?'PROJECT-123':'Enter '+field.name.toLowerCase()} placeholderTextColor={c.foregroundMuted} style={{minHeight:44,fontSize:14,color:c.foreground,borderWidth:1,borderColor:c.border,paddingHorizontal:12,paddingVertical:10,borderRadius:radii.control}}/>}
      </View>)}
@@ -61,7 +64,7 @@ export function TransitionDialog({theme,issueKey,site,column,development,fields,
     </ScrollView>
     <View style={{paddingHorizontal:compact?16:24,paddingVertical:16,borderTopWidth:1,borderColor:c.border,flexDirection:'row',alignItems:'center',justifyContent:'flex-end',gap:12}}>
      <Pressable accessibilityRole="button" disabled={busy} onPress={onClose} style={({pressed})=>({minHeight:44,paddingHorizontal:16,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent',opacity:busy?.5:1})}><Text style={{color:c.foreground,fontSize:14,fontWeight:'500'}}>Cancel</Text></Pressable>
-     <Pressable accessibilityRole="button" accessibilityState={{busy,disabled:busy}} disabled={busy} onPress={onConfirm} style={({pressed})=>({minHeight:44,paddingHorizontal:18,borderRadius:radii.control,backgroundColor:c.accent,flexDirection:'row',gap:8,alignItems:'center',justifyContent:'center',opacity:busy?.6:1,transform:[{scale:pressed?.96:1}]})}>{busy?<ActivityIndicator size="small" color={c.accentForeground}/>:<Icon name="ArrowRight" size={16} color={c.accentForeground}/>}<Text style={{color:c.accentForeground,fontSize:14,fontWeight:'600'}}>{busy?'Moving…':'Move issue'}</Text></Pressable>
+     <Pressable accessibilityRole="button" accessibilityState={{busy,disabled:busy||needsProject}} disabled={busy||needsProject} onPress={onConfirm} style={({pressed})=>({minHeight:44,paddingHorizontal:18,borderRadius:radii.control,backgroundColor:c.accent,flexDirection:'row',gap:8,alignItems:'center',justifyContent:'center',opacity:busy?.6:1,transform:[{scale:pressed?.96:1}]})}>{busy?<ActivityIndicator size="small" color={c.accentForeground}/>:<Icon name="ArrowRight" size={16} color={c.accentForeground}/>}<Text style={{color:c.accentForeground,fontSize:14,fontWeight:'600'}}>{busy?'Moving…':'Move issue'}</Text></Pressable>
     </View>
    </View>
   </View>

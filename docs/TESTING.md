@@ -1,5 +1,13 @@
 # Testing Jira Sprint Workspace
 
+## 1.3.0 candidate verification — 2026-11-13
+
+Both baseline typechecks, 317 Node tests and 15 publishing-verifier tests passed on macOS Apple silicon. The full Chrome run passed 239 of 240 tests; its sole failure was an outdated test saving an unchanged connection. After updating that test to edit the interval, both sprint tests and all seven registry preview tests passed, covering 241 current browser tests across the full run and focused rerun.
+
+Multi-destination Start work, branch selection and Start work on move are covered for REST, Teamwork Graph CLI and Atlassian MCP with mocked writes. Desktop/mobile tests cover grouped mapping cards and change-aware Save buttons. The user confirmed the multi-mapping workflow works in their Paseo installation. Synthetic screenshots show grouped destinations and project selection; the connection screenshot reflects the disabled Save action.
+
+The locked indirect Hono dependencies were updated to compatible patched releases after the package audit identified advisories. The final package build and artifact identity are recorded in the release checklist outside the package. Preparation is not publication: green PR and exact-main checks remain required before tagging. No live Jira writes or new platform support claims accompany this candidate.
+
 ## 1.2.2 patch verification — 2026-11-12
 
 The release candidate passed both baseline typechecks, 305 Node tests, 15 publishing-verifier tests, source audit and 148-file package validation. PR #44 and exact-main CI passed the full 226-test Chrome suite with REST, Teamwork Graph CLI and Atlassian MCP fixtures. Both typechecks also passed against exact Paseo 0.15.4 SDKs in an isolated copy.
@@ -236,3 +244,9 @@ The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compat
 ## Screenshot refresh — 2026-11-12
 
 Six mocked capture tests generated eight public PNGs. The refreshed details view shows the panel below the full-width toolbar. New captures cover Filters, Manage boards and the empty-selection state after a successful refresh. Captures were visually reviewed before copying to assets and updating the exact secret-audit digests. README links to the expanded visual tour. The five existing registry media entries remain in place; the three additional documentation images are included in the package. No private Jira data, live writes, version bump or publication.
+
+## Multiple project destinations — 2026-11-12
+
+Both typechecks, 317 Node tests, source audit and 149-file package validation passed. Browser coverage exercised 237 tests; the full run exposed an outdated mobile field-order assertion, corrected and passed in the 38-test affected-suite rerun. The final 11-test destination suite also passed after adding branch-choice propagation and a mobile chooser case. REST, TWG and MCP fixtures cover explicit selection, no-op cancellation, linked-workspace opening and project selection before a mocked move. Backend regressions cover duplicate pairs, reordered/removed/foreign choices, per-mapping move triggers, selected repository/provider/skill, and saved-receipt conflicts before writes.
+
+An isolated macOS arm64 Paseo 0.15.4 host saved two destinations under a single DEMO Jira card using temporary folders. The real client also rendered the project chooser and repository paths on that host using a temporary fixture-only server with creation/write handlers disabled. No live Jira writes, real agents, version bump or publishing.

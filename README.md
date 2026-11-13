@@ -6,13 +6,13 @@ Turn your assigned Jira sprint issues into Paseo workspaces. Browse your board, 
 
 *Browser preview of the plugin's real components using fictional issues. Paseo host controls may differ.*
 
-Install version 1.2.2 on the Paseo host:
+Install version 1.3.0 on the Paseo host:
 
 ```sh
-paseo plugin install npm:paseo-jira-sprint-workspace@1.2.2
+paseo plugin install npm:paseo-jira-sprint-workspace@1.3.0
 ```
 
-For an existing npm installation, run `paseo plugin update paseo-jira-sprint-workspace --version 1.2.2`. See the [release notes](https://github.com/mbranicky/jira-dashboard/releases) and [version tags](https://github.com/mbranicky/jira-dashboard/tags).
+For an existing npm installation, run `paseo plugin update paseo-jira-sprint-workspace --version 1.3.0`. See the [release notes](https://github.com/mbranicky/jira-dashboard/releases) and [version tags](https://github.com/mbranicky/jira-dashboard/tags).
 
 ## What you can do
 
@@ -22,7 +22,8 @@ For an existing npm installation, run `paseo plugin update paseo-jira-sprint-wor
 
 - **Follow your sprint.** See issues assigned to you in the columns configured on your Jira board. Follow the active sprint, select a future sprint, search issues, and refresh automatically.
 - **Start work from an issue.** Play creates or reuses an issue-named workspace and agent in the mapped Paseo project. Existing branches and worktrees are reused; multiple matches open a choice dialog.
-- **Choose how the agent starts.** Configure a provider, model, mode and workspace isolation per Jira project. Optionally send an entry skill such as `/init-issue DEMO-123`, or leave it blank to open an agent without an initial prompt.
+- **Choose the repository.** Map one Jira project to several Paseo destinations in a single settings card. Choose a destination before starting work or confirming a move that starts work; existing linked workspaces open directly.
+- **Choose how the agent starts.** Configure a provider, model, mode and workspace isolation per mapped destination. Optionally send an entry skill such as `/init-issue DEMO-123`, or leave it blank to open an agent without an initial prompt.
 - **Keep Jira details close.** Open details in a modal or resizable dashboard side panel. Each workspace can also show its relevant issue in a dedicated **Jira** tab, detected from its workspace or agent name.
 - **Discuss and share files.** Read comments, compose Markdown with preview, post linked replies, view attachments, preview images, and upload files on supported clients.
 - **Move issues through their workflow.** Drag a card between columns. Jira determines allowed transitions; supported required fields appear in a dialog. A successful move into a configured column can also start work.
@@ -37,7 +38,7 @@ The details panel sits beside the columns, below the full-width search and dashb
 
 On narrow screens, details fill the screen with a fixed header and scrollable content. Description, attachments and comments collapse independently.
 
-[Explore the visual tour](docs/VISUAL_TOUR.md) for filters, saved boards, the empty-selection state and appearance controls.
+[Explore the visual tour](docs/VISUAL_TOUR.md) for multi-project mappings, destination selection, filters, saved boards, the empty-selection state and appearance controls.
 
 [View the mobile preview](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/mobile.png) · [View settings](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/settings.png) · [View appearance controls](https://raw.githubusercontent.com/mbranicky/jira-dashboard/main/assets/appearance.png)
 
@@ -55,13 +56,13 @@ npm run typecheck
 paseo plugin install "$PWD"
 ```
 
-Existing `jira-dashboard` installations should follow the [ID change instructions](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/GETTING_STARTED.md#updating-from-the-development-id).
+Existing `jira-dashboard` installations should follow the [ID change instructions](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/GETTING_STARTED.md#updating-from-the-development-id).
 
 1. Open **Jira Sprint Workspace → Settings**.
 2. Enter your Jira board URL and choose a connection:
-   - **Teamwork Graph CLI:** sign in with OAuth on the Paseo host using a named profile. Follow the [Teamwork Graph setup guide](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/TWG_SETUP.md); no API token file is needed. Enable **Allow Jira changes** for moves, comments and uploads.
-   - **Atlassian MCP:** complete host-browser sign-in in Settings. For writes, enable **Allow Jira changes through MCP**, reconnect for additional consent, and save. See the [MCP setup guide](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/MCP_SETUP.md) and its current workflow/upload limitations.
-   - **REST API:** provide the absolute path to a private `jira.env` file. Follow the [token and scope guide](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/JIRA_SETUP.md).
+   - **Teamwork Graph CLI:** sign in with OAuth on the Paseo host using a named profile. Follow the [Teamwork Graph setup guide](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/TWG_SETUP.md); no API token file is needed. Enable **Allow Jira changes** for moves, comments and uploads.
+   - **Atlassian MCP:** complete host-browser sign-in in Settings. For writes, enable **Allow Jira changes through MCP**, reconnect for additional consent, and save. See the [MCP setup guide](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/MCP_SETUP.md) and its current workflow/upload limitations.
+   - **REST API:** provide the absolute path to a private `jira.env` file. Follow the [token and scope guide](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/JIRA_SETUP.md).
 3. Select **Test connection** to check authentication, board, sprints and issue access, then **Save connection**. Settings stay open; use **Back to board** when ready.
 4. Map each Jira project key to an existing Paseo project, choose the agent settings, and optionally name an entry skill.
 5. Open an issue to inspect its details, or use Play to start work.
@@ -87,8 +88,8 @@ See the [credential security audit](https://github.com/mbranicky/jira-dashboard/
 | Guide | What it covers |
 | --- | --- |
 | [Getting started](https://github.com/mbranicky/jira-dashboard/blob/main/docs/GETTING_STARTED.md) | Installation, Jira connection, project mappings and first workspace |
-| [Atlassian MCP OAuth](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/MCP_SETUP.md) | Host sign-in, write consent, connection checks and compatibility limits |
-| [Teamwork Graph OAuth](https://github.com/mbranicky/jira-dashboard/blob/v1.2.2/docs/TWG_SETUP.md) | CLI installation, OAuth profiles, read diagnostics, opt-in writes and limitations |
+| [Atlassian MCP OAuth](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/MCP_SETUP.md) | Host sign-in, write consent, connection checks and compatibility limits |
+| [Teamwork Graph OAuth](https://github.com/mbranicky/jira-dashboard/blob/v1.3.0/docs/TWG_SETUP.md) | CLI installation, OAuth profiles, read diagnostics, opt-in writes and limitations |
 | [Jira setup and scopes](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_SETUP.md) | Complete token scopes, permissions, credentials and troubleshooting |
 | [Connectivity options](https://github.com/mbranicky/jira-dashboard/blob/main/docs/JIRA_CONNECTIVITY_OPTIONS.md) | REST, MCP and CLI authentication alternatives and evaluation plan |
 | [Known limitations](https://github.com/mbranicky/jira-dashboard/blob/main/docs/KNOWN_LIMITATIONS.md) | Supported clients and current boundaries |
