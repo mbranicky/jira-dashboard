@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1
+
+- Add a violet Test workspace label for Jira Test issues alongside the existing Story and Bug labels.
+- Add a default-on **Label workspaces by issue type** toggle per mapping destination, covering Play and Start work on move. Disabling it preserves existing labels and the In Progress label.
+- Align the labeling toggle with adjacent dropdowns using Paseo's shared settings row, and refresh public screenshots.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Existing mappings default to enabled; Paseo requirements and host/upload limitations are unchanged. Jira writes remain mock-tested only.
+
 ## 1.3.0
 
 - Map one Jira project to multiple Paseo projects, grouped in one Settings card with separate agent, skill and workspace preferences per destination.

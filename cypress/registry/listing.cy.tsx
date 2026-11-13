@@ -29,6 +29,12 @@ describe('Registry previews',()=>{
   cy.get('[data-cy-root]').screenshot('registry-project-chooser');button('Close').click();
   button('Settings').click();cy.get('[data-testid="jira-project-mapping-group"]').scrollIntoView().should('contain.text','2 destinations').screenshot('registry-mappings');
  });
+ it('workspace labeling → expanded mapping shows the enabled toggle',()=>{
+  cy.viewport(1100,1800);mount(<Harness preview light mappingItems={registryMappings}/>);
+  button('Settings').click();button('Expand mapping Product application').click();
+  cy.get('[role="switch"][aria-label="Label workspaces by issue type for Product application"]').should('be.checked');
+  cy.get('[role="switch"][aria-label="Label workspaces by issue type for Product application"]').parent().parent().scrollIntoView().screenshot('registry-mapping-labels');
+ });
  it('settings → public setup screenshot with synthetic values',()=>{
   cy.intercept('POST','/__rpc/mcp.status',{state:'connected',message:'Connected',account:'Alex Morgan',accountId:'demo-account-01',site:'https://example.atlassian.net',writeAccess:true});
   cy.intercept('POST','/__rpc/mcp.test',{ok:true,steps:[

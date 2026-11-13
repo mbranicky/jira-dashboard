@@ -8,6 +8,19 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.3.1 patch release (2026-11-13)
+
+- [x] User authorized preparation, tag and publication; keep all three transports and existing Paseo requirements.
+- [x] PR #47 merged the labeling toggle and alignment fix after green checks; local main reload confirmed running.
+- [x] Synchronize 1.3.1 metadata, README, changelog and handoff.
+- [x] Regenerate eleven synthetic screenshots; visually review changed images and add a labeling-toggle close-up.
+- [x] Both typechecks, 324 Node tests, 15 verifier tests, source audit and package validation passed.
+- [x] Final tarball: 152 files, 1,545,984 bytes; clean extracted manifest build and production audit passed (zero vulnerabilities). SHA-256 `aa240fc5253b999e6ce5a4d646c190c4f181fe47718320ef89d46a1c041caf59`; retained under `/tmp/jira-1.3.1-candidate`.
+- [x] Isolated macOS arm64 Paseo 0.15.4 candidate installation/reload passed; settings rendered with all three methods and a working default-on labeling toggle.
+- [x] Full candidate browser suite: 244 tests passed with mocks only.
+- [ ] Merge preparation PR after green checks; verify exact-main CI and identical package.
+- [ ] Tag, create release notes and publish through OIDC; verify npm bytes and fresh installation. Registry deployment is separate.
+
 ## 1.3.0 minor release preparation (2026-11-13)
 
 - [x] User authorized minor-release preparation; keep all three transports and existing Paseo requirements.

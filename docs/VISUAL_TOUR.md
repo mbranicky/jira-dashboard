@@ -51,3 +51,9 @@ Keep destinations together in one mapping card. Each destination has its own Pas
 When starting work on an issue with several destinations, choose a project before branch selection and creation. Start work on move also asks for the eligible destination before confirmation. Existing linked workspaces open directly.
 
 ![Project chooser before starting work](../assets/project-chooser.png)
+
+## Workspace labels per destination
+
+Enable **Label workspaces by issue type** to add Story, Bug or Test labels when starting work. The default is on. Each destination can opt out independently without removing existing labels.
+
+![Mapping settings with the workspace labeling toggle](../assets/mapping-labels.png)
