@@ -31,12 +31,12 @@ Paseo identifies installations by plugin ID. If your checkout was registered as 
 ## Map a project and start work
 
 1. Create the target project in Paseo first, pointing to the intended repository/directory.
-2. In dashboard Settings, add a mapping. Give it a name, Jira project key and target Paseo project. A board may contain issues from multiple projects; map each project you want to work on.
+2. In dashboard Settings, add a mapping for the Jira project key. Each Jira project has one card; use **Add destination** inside it to map the same key to another Paseo repository/folder. Give each destination a descriptive name. The same Jira/Paseo project pair cannot be added twice.
 3. Select an agent provider and workspace isolation. Available models and modes depend on the provider. Optional model/mode values use provider defaults; isolation and provider are explicit because Paseo 0.14 does not expose all project defaults to plugins.
 4. For Git worktrees, the plugin reuses an existing issue branch/worktree. Multiple matches open a choice dialog. A new issue branch starts from the branch currently checked out in the project. It never generates random branch suffixes.
 5. Optionally enter an entry skill name, such as `init-issue`. The first prompt is `/init-issue DEMO-123`. Install/configure that skill yourself for the selected agent. Leaving it blank creates/opens the agent without sending a skill prompt.
 6. Optionally choose **Start work on move to column**. Dropping an issue into that column starts/reuses work only after Jira accepts the transition. Play starts work without changing Jira status.
-7. Save mappings; Settings stay open. Use **Back to board**, then select a suitable not-yet-started issue and click Play. This creates/reuses the issue-named workspace and agent; existing active workspaces get an Open workspace action. The workspace gets In Progress plus Story (green) or Bug (red) for the supported issue types.
+7. Save mappings; Settings stay open. With multiple destinations, Play opens **Choose project** before looking for existing branches or starting work. Each choice uses its own provider, model, skill and isolation. Existing linked workspaces open directly. For Start work on move, the confirmation offers destinations configured for that column and requires a choice when more than one applies, before changing Jira. Use **Back to board**, then select a suitable not-yet-started issue and click Play. This creates/reuses the issue-named workspace and agent; existing active workspaces get an Open workspace action. The workspace gets In Progress plus Story (green) or Bug (red) for the supported issue types.
 
 Workspace creation and agent prompts are real actions. Review the selected project and skill before the first Play. Jira moves, comments and uploads are sent only through their corresponding explicit actions. Workflow forms and branch choices appear in dialogs, never inside issue cards.
 

@@ -33,15 +33,15 @@ for(const light of [false,true])it(`wide ${light?'light':'dark'} layout → keep
 
 for(const width of [1920,768,390,320])it(`toolbar at ${width}px → shares a row when space permits and wraps without overflow`,()=>{
  cy.viewport(width,1000);stubRpc();mount(<Harness/>);
- cy.get('[data-testid="board-toolbar"]').should('be.visible').then($toolbar=>{
+ cy.get('[data-testid="board-toolbar"]').should('be.visible').should($toolbar=>{
+  // Measure the toolbar and controls together after responsive resize settles.
   const toolbar=$toolbar[0].getBoundingClientRect();
-  cy.get('[aria-label^="Board: "], [aria-label="Manage boards"], [aria-label="Select sprint"], [aria-label="Search issues"]').should($controls=>{
+  const $controls=$toolbar.find('[aria-label^="Board: "], [aria-label="Manage boards"], [aria-label="Select sprint"], [aria-label="Search issues"]');
    expect($controls).to.have.length(4);
    const bounds=[...$controls].map(control=>control.getBoundingClientRect());
    for(const rect of bounds){expect(rect.left).to.be.at.least(toolbar.left);expect(rect.right).to.be.at.most(toolbar.right+1);}
    if(width===1920)expect(Math.max(...bounds.map(r=>r.top))-Math.min(...bounds.map(r=>r.top))).to.be.lessThan(4);
    if(width<=390)expect(bounds[3].top).to.be.greaterThan(bounds[0].bottom);
-  });
  });
 });
 

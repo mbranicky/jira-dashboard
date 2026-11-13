@@ -41,3 +41,13 @@ REST API, Teamwork Graph CLI and Atlassian MCP are supported. The example below 
 On narrow screens, details use a full-screen view with a fixed header. Description, attachments and comments can be collapsed independently.
 
 ![Mobile issue details with comments](../assets/mobile.png)
+
+## One Jira project, several repositories
+
+Keep destinations together in one mapping card. Each destination has its own Paseo project, agent preferences, entry skill and workspace isolation. Save becomes available only when settings change.
+
+![Two destinations grouped under one fictional Jira project](../assets/mappings.png)
+
+When starting work on an issue with several destinations, choose a project before branch selection and creation. Start work on move also asks for the eligible destination before confirmation. Existing linked workspaces open directly.
+
+![Project chooser before starting work](../assets/project-chooser.png)

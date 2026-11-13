@@ -1,12 +1,18 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-12. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
+Updated: 2026-11-13. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
+
+Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
+
+## 1.3.0 preparation
+
+The user requested multiple Paseo destinations for one Jira key, grouped in a single Settings card, with a chooser for Play and Start work on move. Work is on `codex/multiple-project-mappings`; the user authorized preparation of minor version 1.3.0. The user authorized commit/push, PR, merge after green checks, then tag and publication on 2026-11-13. The flat settings shape is retained; uniqueness is now the Jira/Paseo project pair. Explicit project IDs flow through branch preparation, Start work and moves. Stale/foreign choices fail before creation or transitions, and active saved issue receipts cannot be redirected to another project. Issue-type routing and simultaneous multi-repository workspaces are not included.
 
 ## 1.2.2 release
 
 The user authorized release 1.2.2, including preparation, PR/merge after green checks, tag, GitHub release and npm publication. PR #44 merged the anchored toolbar popovers, Native Polish flicker fix, docked panel beneath the toolbar, shared Start work progress and empty selection after successful refresh. Eight synthetic screenshots and the visual tour cover the current UI. All three transports and the supported Paseo range remain unchanged.
 
-Version metadata and README references identify 1.2.2. Complete candidate verification before the PR; require exact-main checks and byte-identical package verification before tagging. Publication evidence belongs in the GitHub release and workflow logs, not a post-publication edit to package contents. Never move tags or republish an accepted version. Registry updates require separate approval/deployment and are not implied by npm publication.
+Version 1.2.2 was published from `7186a5c4fff6e292236bbeac9bb23c4c3bf1823d` after PR #45. For the next release, require green preparation PR/exact-main checks and byte-identical package verification before tagging. Publication evidence belongs in the GitHub release and workflow logs, not a post-publication edit to package contents. Never move tags or republish an accepted version. Registry updates require separate approval/deployment and are not implied by npm publication.
 
 ## 1.2.1 completed baseline
 
@@ -28,7 +34,7 @@ PRs #23–#27 supplied quick filters/saved views, related issues, keyboard navig
 
 Release verification: 296 Node tests, 143 Chrome tests, 14 release-script tests, both typechecks, source/package checks and clean extracted manifest build passed. See [testing](TESTING.md#110-candidate-verification--2026-11-07) and the [release checklist](../.claude/plans/first-version-checklist.md). Screenshot-only PR #29 subsequently merged as `58d404d`; those refreshed assets are on main but are not in the immutable npm 1.1.0 artifact or tag. The registry uses the media shipped with npm 1.1.0.
 
-Version 1.2.2 publication is authorized after the release gates pass. Never move the existing release tag or replace published package bytes.
+Version 1.3.0 is the release candidate; publication is authorized after green PR/exact-main checks and exact artifact verification. Completion evidence belongs in the GitHub release and workflow logs. Never move the existing release tag or replace published package bytes.
 
 Historical MCP fix: transition discovery returned `to.name` and `to.statusCategory.key` without destination `id`, causing raw validation JSON before any submission. User-triggered value-free diagnostics confirmed the shape and `listJiraStatuses` site lookup output `{data:{statuses:[{id,name}]}}`. The adapter now resolves an omitted ID through `mode: site, nameContains`, requires one exact case-sensitive name match, rejects malformed/ambiguous/explicitly incomplete results, and rechecks the mapping before writing. Existing IDs bypass lookup. The transition ID remains the submitted action; fresh issue status must match the resolved destination afterward. REST/TWG adapters are unchanged. The temporary lookup probe was removed; readable preflight errors remain.
 

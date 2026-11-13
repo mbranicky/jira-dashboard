@@ -24,7 +24,7 @@ import {listAttachments,attachmentSettings,readAttachment,beginUpload,uploadChun
 import {attachmentsSession,attachmentList,attachmentBytes,settings as readAttachmentSettings,attachmentUploads} from './server/attachments';
 import {listComments,postComment} from './shared/comments';
 import {commentsSession,readCommentPage,createComment,commentPoster} from './server/comments';
-import {prepareIssueBranches,boardWorkspaceLinks,validateWork,startIssue,hasExistingWork,savedWorkspaceIssues} from './server/work';
+import {assertWorkDestination,prepareIssueBranches,boardWorkspaceLinks,validateWork,startIssue,hasExistingWork,savedWorkspaceIssues} from './server/work';
 import {boardColumnOptions,fetchProjectStatuses,issueSession,fetchWorkspaceIssue} from './server/jira';
 import type { PluginServerContext } from '@getpaseo/plugin/server';
 import { prepareBranches,workspaceIssueLink,readWorkspaceIssue,dashboardPreferences,connection, readBoard, readIssueDetails, mappings, startWork } from './shared/contracts';
@@ -55,10 +55,10 @@ export default function contribute(server:PluginServerContext){
   server.registerSettings(dashboardPreferences);
   const settings=server.registerSettings(connection);
   const projectMappings=server.registerSettings(mappings);
-  async function context(key:string,sprintId:number){
+  async function context(key:string,sprintId:number,projectId?:string){
     const current=await settings.read(); const saved=await projectMappings.read();
     if(current.status!=='ready'||saved.status!=='ready')throw new Error('Configure the connection and project mappings first.');
-    const {mapping,issue}=await validateWork(current.values,saved.values.items,key,sprintId,current.values.transport==='mcp'?mcpBoard:current.values.transport==='twg'?twgDashboard.fetchBoard:fetchBoard);
+    const {mapping,issue}=await validateWork(current.values,saved.values.items,key,sprintId,current.values.transport==='mcp'?mcpBoard:current.values.transport==='twg'?twgDashboard.fetchBoard:fetchBoard,projectId);
     return {config:current.values,mapping,issue};
   }
   server.handle(projectStatuses,async({projectKey,refresh})=>{
@@ -88,17 +88,19 @@ export default function contribute(server:PluginServerContext){
       const saved=await projectMappings.read();if(saved.status!=='ready')throw new Error('Mappings unavailable.');
       const available=await moves(current.values,input.key,input.sprintId,saved.values.items);
       const target=available.options.find(o=>o.id===input.transitionId&&o.statusId===input.statusId);
-      const mapping=target?.development?(await context(input.key,input.sprintId)).mapping:undefined;
+      const mapping=target?.development?(await context(input.key,input.sprintId,input.projectId??(target.destinations?.length===1?target.destinations[0].projectId:undefined))).mapping:undefined;
+      if(mapping)await assertWorkDestination(paseo,current.values,input.key,mapping);
       return await performMove(input,available.options,available.jira.transition,()=>startIssue(paseo,current.values,{...mapping!,autoUpdateJira:false},input.key,undefined,undefined,available.issue.type));
     }finally{moving.delete(input.key);}
   });
-  server.handle(prepareBranches,async({key,sprintId},{paseo})=>{
-    const {config,mapping}=await context(key,sprintId);
+  server.handle(prepareBranches,async({key,sprintId,projectId},{paseo})=>{
+    const {config,mapping}=await context(key,sprintId,projectId);
+    await assertWorkDestination(paseo,config,key,mapping);
     if(await hasExistingWork(paseo,config,key))return [];
     return prepareIssueBranches(paseo,mapping,key);
   });
-  server.handle(startWork,async({key,sprintId,selection},{paseo})=>{
-    const {config,mapping,issue}=await context(key,sprintId);
+  server.handle(startWork,async({key,sprintId,selection,projectId},{paseo})=>{
+    const {config,mapping,issue}=await context(key,sprintId,projectId);
     return startIssue(paseo,config,mapping,key,selection,undefined,issue.type);
   });
   server.handle(readIssueDetails,async({key,sprintId})=>{

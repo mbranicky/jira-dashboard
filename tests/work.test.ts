@@ -9,12 +9,12 @@ import type {Mapping} from '../shared/contracts';
 const config={boardUrl:'https://example.atlassian.net/boards/51',envPath:'/unused',refreshSeconds:60};
 const mapping:Mapping={name:'Test mapping',jiraProjectKey:'TD',paseoProjectId:'p1',provider:'codex',model:'',entrySkill:'',isolation:'directory',autoUpdateJira:false};
 async function fixture(){
- const home=await mkdtemp(join(tmpdir(),'jira-work-'));const calls:string[]=[];const creations:any[]=[];const assignedLabels:any[]=[];const existingLabels:any[]=[];const colorUpdates:any[]=[];let failSend=false,failLabel=false,failAgent=false;
+ const home=await mkdtemp(join(tmpdir(),'jira-work-'));const calls:string[]=[];const creations:any[]=[];const agentConfigs:any[]=[];const assignedLabels:any[]=[];const existingLabels:any[]=[];const colorUpdates:any[]=[];let failSend=false,failLabel=false,failAgent=false;
  const agent={id:'agent-1',send:async(text:string)=>{calls.push('send:'+text);if(failSend)throw new Error('lost acknowledgement');},refresh:async()=>({agent:{archivedAt:null}})};
- const workspace={id:'workspace-1',directory:'/project',refresh:async()=>({id:'workspace-1',archivingAt:null}),agents:{create:async(options:any)=>{calls.push('agent:'+options.title);if(failAgent)throw new Error('Agent creation failed');if(options.config.modeId)calls.push('mode:'+options.config.modeId);assert.equal(options.prompt,undefined);return agent;}}};
- const paseo={providers:{listModes:async()=>({modes:[{id:'auto',label:'Auto mode'}]}),listModels:async()=>({models:[{id:'default-model',isDefault:true}]})},projects:{list:async()=>({projects:[{projectId:'p1',projectRootPath:'/project',projectKind:'git'}]})},workspaces:{create:async(options:any)=>{creations.push(options);calls.push('workspace:'+options.title);assert.equal(options.source.projectId,'p1');return workspace;},ref:()=>workspace},agents:{ref:()=>agent}} as unknown as PaseoApi;
+ const workspace={id:'workspace-1',directory:'/project',refresh:async()=>({id:'workspace-1',archivingAt:null}),agents:{create:async(options:any)=>{agentConfigs.push(options.config);calls.push('agent:'+options.title);if(failAgent)throw new Error('Agent creation failed');if(options.config.modeId)calls.push('mode:'+options.config.modeId);assert.equal(options.prompt,undefined);return agent;}}};
+ const paseo={providers:{listModes:async()=>({modes:[{id:'auto',label:'Auto mode'}]}),listModels:async()=>({models:[{id:'default-model',isDefault:true}]})},projects:{list:async()=>({projects:[{projectId:'p1',projectRootPath:'/project',projectKind:'git'},{projectId:'p2',projectRootPath:'/qa',projectKind:'git'}]})},workspaces:{create:async(options:any)=>{creations.push(options);calls.push('workspace:'+options.title);assert.ok(['p1','p2'].includes(options.source.projectId));return workspace;},ref:()=>workspace},agents:{ref:()=>agent}} as unknown as PaseoApi;
  const deps={checkedOutBase:async()=>'refs/heads/release/6.8',issueBranches:async()=>[],connectLocalHost:async()=>({home,serverId:'server-test',client:{close:async()=>{},listWorkspaceLabels:async()=>({labels:existingLabels}),updateWorkspaceLabel:async(options:any)=>{colorUpdates.push(options);return {};},setWorkspaceLabel:async(options:any)=>{calls.push('label');assignedLabels.push(options.label);if(failLabel)throw new Error('label failed');return {};}}}),issueSession:async()=>({workflow:async()=>({alreadyInProgress:false,transitions:[{id:'7',name:'Start'}]}),transition:async()=>{calls.push('transition');return null;}})} as unknown as Parameters<typeof startIssue>[5];
- return {paseo,deps,calls,creations,assignedLabels,existingLabels,colorUpdates,cleanup:()=>rm(home,{recursive:true,force:true}),failAgent:(value:boolean)=>{failAgent=value;},failSend:()=>{failSend=true;},failLabel:(value:boolean)=>{failLabel=value;}};
+ return {paseo,deps,calls,creations,agentConfigs,assignedLabels,existingLabels,colorUpdates,cleanup:()=>rm(home,{recursive:true,force:true}),failAgent:(value:boolean)=>{failAgent=value;},failSend:()=>{failSend=true;},failLabel:(value:boolean)=>{failLabel=value;}};
 }
 test('blank skill creates named workspace and agent, labels it, and sends no prompt; repeated start reuses',async()=>{
  const f=await fixture();try{
@@ -129,3 +129,33 @@ for(const transport of ['twg','mcp'] as const)test(`${transport} Start work crea
   await assert.rejects(validateWork(mcpConfig,[mapping],'TD-102',12,readBoard),/no longer assigned/);
   await assert.rejects(validateWork(mcpConfig,[],'TD-101',12,readBoard),/project mapping/);
  });
+
+test('an existing issue receipt cannot be redirected into a different project',async()=>{
+ const f=await fixture();try{
+  await startIssue(f.paseo,config,mapping,'TD-200',undefined,f.deps);
+  await assert.rejects(startIssue(f.paseo,config,{...mapping,paseoProjectId:'other'},'TD-200',undefined,f.deps),/already has work in another project/);
+  assert.equal(f.creations.length,1);
+ }finally{await f.cleanup();}
+});
+
+test('move preflight rejects a conflicting saved destination before any transition',async()=>{
+ const {assertWorkDestination}=await import('../server/work');
+ const f=await fixture();try{
+  await startIssue(f.paseo,config,mapping,'TD-201',undefined,f.deps);
+  const other={...f.paseo,projects:{list:async()=>({projects:[{projectId:'other'}]})}} as unknown as PaseoApi;
+  await assert.rejects(assertWorkDestination(other,config,'TD-201',{...mapping,paseoProjectId:'other'},f.deps.connectLocalHost),/already has work/);
+  await assert.rejects(assertWorkDestination(f.paseo,config,'TD-201',{...mapping,paseoProjectId:'removed'},f.deps.connectLocalHost),/unavailable/);
+  assert.equal(f.calls.includes('transition'),false);
+ }finally{await f.cleanup();}
+});
+
+for(const transport of ['rest','twg','mcp'] as const)test(`${transport}: selected mapping controls repository, provider and entry skill`,async()=>{
+ const f=await fixture();try{
+  const selected={...mapping,paseoProjectId:'p2',provider:'claude',entrySkill:'qa-check'};
+  await startIssue(f.paseo,{...config,transport},selected,'TD-202',undefined,f.deps);
+  assert.equal(f.creations[0].source.projectId,'p2');
+  assert.equal(f.agentConfigs[0].provider,'claude/default-model');
+  assert.ok(f.calls.includes('send:/qa-check TD-202'));
+  assert.equal(f.calls.includes('transition'),false);
+ }finally{await f.cleanup();}
+});

@@ -23,11 +23,18 @@ export function issueTypeLabel(type:string):{name:string;color:'emerald'|'red'}|
     default:return undefined;
   }
 }
-export async function validateWork(config:Connection,items:Mapping[],key:string,sprintId:number,readBoard=fetchBoard){
+/** A destination is identified by its Jira key and Paseo project, never array order. */
+export function selectMapping(items:Mapping[],projectId?:string){
+  if(projectId){const match=items.find(m=>m.paseoProjectId===projectId);if(!match)throw Error('This destination is no longer mapped. Refresh and choose a project again.');return match;}
+  if(items.length>1)throw Error('Choose a Paseo project before starting work.');
+  return items[0];
+}
+export async function validateWork(config:Connection,items:Mapping[],key:string,sprintId:number,readBoard=fetchBoard,projectId?:string){
   const board=await readBoard(config,sprintId);
   const issue=board.issues.find(i=>i.key===key);
   if(!issue)throw new Error('This issue is no longer assigned to you in the selected sprint. Refresh the board.');
-  const mapping=items.find(m=>m.jiraProjectKey===issue.projectKey);
+  const candidates=items.filter(m=>m.jiraProjectKey===issue.projectKey);
+  const mapping=selectMapping(candidates,projectId);
   if(!mapping)throw new Error(`Configure a project mapping for ${issue.projectKey} in Settings first.`);
   if(!mapping.provider||!mapping.isolation)throw new Error('Choose an explicit provider and workspace isolation in this project mapping first.');
   return {mapping,issue};
@@ -48,6 +55,8 @@ export function startIssue(paseo:PaseoApi,config:Connection,mapping:Mapping,key:
       if(state.workspaceId&&!await activeWorkspace(paseo,state.workspaceId)){
         state={projectId:mapping.paseoProjectId,generation:randomUUID()};
       }
+      if(state.workspaceId&&state.projectId!==mapping.paseoProjectId)throw Error('This issue already has work in another project. Open its linked workspace instead.');
+      if(!state.workspaceId)state.projectId=mapping.paseoProjectId;
       const creationKey=identity.key+'-reuse-v1'+(state.generation?'-'+state.generation:'');
       state.site=site;state.issueKey=key;
       const save=async()=>{await writeFile(file+'.tmp',JSON.stringify(state),{mode:0o600});await rename(file+'.tmp',file);};
@@ -113,6 +122,18 @@ export function startIssue(paseo:PaseoApi,config:Connection,mapping:Mapping,key:
       return {workspaceId:state.workspaceId,agentId:state.agentId,warning};
     }finally{await local.client.close();}
   }
+}
+
+export async function assertWorkDestination(paseo:PaseoApi,config:Connection,key:string,mapping:Mapping,connect=connectLocalHost){
+ const project=(await paseo.projects.list()).projects.find(p=>p.projectId===mapping.paseoProjectId);
+ if(!project)throw Error('The mapped Paseo project is unavailable. Check Settings.');
+ const local=await connect(paseo);
+ try{
+  const file=join(local.home,'plugin-data','jira-dashboard',local.serverId,workIdentity(parseBoardUrl(config.boardUrl).site,key).key+'.json');
+  try{const state=JSON.parse(await readFile(file,'utf8')) as RecordState;
+   if(state.workspaceId&&state.projectId!==mapping.paseoProjectId&&await activeWorkspace(paseo,state.workspaceId))throw Error('This issue already has work in another project. Open its linked workspace instead.');
+  }catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+ }finally{await local.client.close();}
 }
 
 export async function hasExistingWork(paseo:PaseoApi,config:Connection,key:string){

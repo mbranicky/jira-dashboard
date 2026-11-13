@@ -52,7 +52,7 @@ Desktop details use a wide two-column dialog; mobile uses a stacked, scrollable 
 
 ## Jira project mappings
 
-Each Jira project key has at most one mapping. Several keys may map to the same Paseo project.
+Each Jira project key may map to several distinct Paseo projects. Settings groups destinations inside one Jira-project card. Duplicate Jira-key/Paseo-project pairs are rejected. A single destination starts directly; multiple destinations require an explicit project choice before branch discovery or workspace creation. The selected destination supplies its provider, model, mode, entry skill and isolation. Several Jira keys may still map to the same Paseo project. Start work on move resolves only destinations configured for the target column and requires any ambiguous choice before the Jira transition. Existing linked workspaces open directly; saved issue receipts cannot be redirected to another project.
 
 | Setting | Requirement and behavior |
 | --- | --- |

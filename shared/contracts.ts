@@ -65,14 +65,14 @@ export const mappingSchema = z.object({
 export const mappingsSchema = z.object({ items: z.array(mappingSchema).default([]) }).superRefine((value, ctx) => {
   const keys = new Set<string>();
   value.items.forEach((item, index) => {
-    if (keys.has(item.jiraProjectKey)) ctx.addIssue({code:'custom', path:['items',index,'jiraProjectKey'], message:'Each Jira project can have only one mapping.'});
-    keys.add(item.jiraProjectKey);
+    if (keys.has(`${item.jiraProjectKey}:${item.paseoProjectId}`)) ctx.addIssue({code:'custom', path:['items',index,'paseoProjectId'], message:'This destination is already mapped to this Jira project.'});
+    keys.add(`${item.jiraProjectKey}:${item.paseoProjectId}`);
   });
 });
 export const mappings = defineSettings({id:'mappings', scope:'host', version:1, schema:mappingsSchema});
 export type Mapping = z.infer<typeof mappingSchema>;
 
-export const workInput = z.object({key:z.string().regex(/^[A-Z][A-Z0-9_]*-\d+$/),sprintId:z.number().int().positive()});
+export const workInput = z.object({key:z.string().regex(/^[A-Z][A-Z0-9_]*-\d+$/),sprintId:z.number().int().positive(),projectId:z.string().min(1).optional()});
 export const startWork = defineRpc({name:'work.start',input:workInput.extend({selection:z.string().optional()}),output:z.object({workspaceId:z.string(),agentId:z.string(),warning:z.string().optional()})});
 
 // Keep legacy unnamed mappings readable; require completion before saving the form.

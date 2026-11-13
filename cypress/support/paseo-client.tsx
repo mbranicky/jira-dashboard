@@ -23,7 +23,7 @@ export function useRpc(contract:any){return useCallback(async(input:any)=>{
  return contract.output.parse(await response.json());
 },[contract]);}
 async function activitySnapshot(kind:string,id:string){const response=await fetch(`/__paseo/${kind}/${encodeURIComponent(id)}`);if(!response.ok)throw Error('Unavailable');return response.json();}
-const paseo={agents:{ref:(id:string)=>({refresh:()=>activitySnapshot('agents',id)})},workspaces:{ref:(id:string)=>({refresh:()=>activitySnapshot('workspaces',id)})},projects:{list:async()=>({projects:[{projectId:'project-1',projectDisplayName:'Example project',cwd:'/example'}]})},providers:{
+const paseo={agents:{ref:(id:string)=>({refresh:()=>activitySnapshot('agents',id)})},workspaces:{ref:(id:string)=>({refresh:()=>activitySnapshot('workspaces',id)})},projects:{list:async()=>({projects:[{projectId:'project-1',projectDisplayName:'Example project',projectRootPath:'/example',cwd:'/example'},{projectId:'project-2',projectDisplayName:'QA project',projectRootPath:'/qa'}]})},providers:{
  listAvailable:async()=>({providers:[{provider:'claude',available:true},{provider:'codex',available:true}]}),
  listModels:async(provider:string)=>({models:[{id:`${provider}-model`,label:`${provider} model`,isSelectable:true}]}),
  listModes:async()=>({modes:[{id:'auto',label:'Auto mode'}]}),
