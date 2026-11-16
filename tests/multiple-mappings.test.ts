@@ -35,3 +35,23 @@ for(const transport of ['rest','twg','mcp'] as const){
   assert.deepEqual(one.options[0].destinations,[{projectId:'qa',name:'Tests'}]);
  });
 }
+
+for(const transport of ['rest','twg','mcp'] as const){
+ test(`${transport}: existing workspace bypasses destination selection and never restarts work`,async()=>{
+  const config=connectionSchema.parse({transport,boardUrl:'https://example.atlassian.net/boards/1'});
+  const read=async()=>({issues:[{key:'TEST-1',projectKey:'TEST',statusId:'1'}],columns:[{name:'Development',statusIds:['2']}]}) as any;
+  let writes=0;
+  const session=async()=>({availableTransitions:async()=>[{id:'go',name:'Go',to:{id:'2'}}],transition:async()=>{writes++;}}) as any;
+  const result=await availableMoves(config,'TEST-1',1,[first,second],read,session,async()=>true);
+  assert.equal(result.options[0].existingWorkspace,true);
+  assert.equal(result.options[0].development,false);
+  assert.equal(result.options[0].destinations,undefined);
+  await performMove({transitionId:'go',statusId:'2',jiraOnly:true},result.options,result.jira.transition,async()=>assert.fail('must not start work'));
+  assert.equal(writes,1);
+  const fresh=await availableMoves(config,'TEST-1',1,[first],read,session,async()=>false);
+  await assert.rejects(performMove({transitionId:'go',statusId:'2',jiraOnly:true},fresh.options,fresh.jira.transition,async()=>assert.fail('must not start work')),/workspace.*changed/);
+  assert.equal(writes,1);
+  await assert.rejects(availableMoves(config,'TEST-1',1,[first,second],read,session,async()=>{throw Error('Workspace lookup failed');}),/Workspace lookup failed/);
+  assert.equal(writes,1);
+ });
+}
