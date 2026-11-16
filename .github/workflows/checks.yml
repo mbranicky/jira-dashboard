@@ -57,6 +57,14 @@ jobs:
         run: npm install --no-save --ignore-scripts @getpaseo/plugin@0.15.2 @getpaseo/client@0.15.2
       - run: npm run check
       - run: npm run test:ui
+      - name: Restore locked dependencies before Paseo 0.16 verification
+        run: npm ci
+      - name: Install exact Paseo 0.16.0 SDKs
+        run: npm install --no-save --ignore-scripts @getpaseo/plugin@0.16.0 @getpaseo/client@0.16.0
+      - name: Check Paseo 0.16.0
+        run: npm run check
+      - name: Browser tests on Paseo 0.16.0
+        run: npm run test:ui
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

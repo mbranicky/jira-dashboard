@@ -8,6 +8,20 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.3.2 compatibility patch (2026-11-16)
+
+- [x] Confirm 1.3.1 as the published baseline and authorization for 1.3.2; retain REST, TWG CLI and MCP.
+- [x] Include both move fixes from merged PR #49.
+- [x] Verify unchanged source against exact 0.16.0 SDKs: both typechecks, 327 backend and 256 browser tests passed.
+- [x] Demonstrate old range rejection, then activate/reload a temporary widened-range copy on an isolated 0.16.0 host and render settings in its bundled client.
+- [x] Preserve live app/daemon 0.15.4; widen only through 0.16.x (`>=0.14.0 <0.17.0`).
+- [x] Add exact 0.16.0 full CI verification without removing minimum/previous SDK coverage or renaming required checks.
+- [x] Synchronize version, changelog, README, compatibility docs and handoff.
+- [x] Add reviewed pending-move media; final tarball has 153 files and 1,703,740 bytes, SHA-256 `7c5a58d76f204b101f5f6a35ed1c7408af765370865085b6e89211bacdf88eb1`. Clean extracted manifest build and production audit passed (zero vulnerabilities); isolated 0.16.0 candidate reload/render and preference persistence passed.
+- [x] Final candidate checks passed: both typechecks, 327 backend tests, 257 browser tests, 15 release-verifier tests and source/package audits.
+- [ ] Merge preparation PR after green checks; require exact-main success and identical package before tag.
+- [ ] Publish tag/release and exact npm tarball through OIDC, then verify registry bytes and a fresh isolated npm install. Record completion outside immutable package contents.
+
 ## 1.3.1 patch release (2026-11-13)
 
 - [x] User authorized preparation, tag and publication; keep all three transports and existing Paseo requirements.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2
+
+- Move issues with existing workspaces without choosing a destination or restarting an agent. Required Jira fields and ambiguous transitions still prompt.
+- Move linked cards immediately while Jira processes the request; restore their prior position on failure and retain confirmed positions through stale board refreshes.
+- Run board and workspace preflight reads in parallel and avoid an extra transition lookup after a rejected direct move.
+- Support Paseo 0.16.x while retaining 0.14.x and 0.15.x; verify exact 0.16.0 SDKs and an isolated 0.16.0 host.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Jira writes are tested with mocks only. Host and MCP upload limitations are unchanged.
+
 ## 1.3.1
 
 - Add a violet Test workspace label for Jira Test issues alongside the existing Story and Bug labels.

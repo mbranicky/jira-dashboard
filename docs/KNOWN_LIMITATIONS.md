@@ -15,7 +15,7 @@
 
 | Host | 1.0.0 verification |
 | --- | --- |
-| macOS on Apple silicon | Verified on a local Paseo host. Host testing covers Paseo 0.14.0 and 0.15.0. |
+| macOS on Apple silicon | Verified on a local Paseo host. Host testing includes Paseo 0.14.0, 0.15.x and an isolated 0.16.0 daemon with its bundled web client. |
 | Linux | Automated checks run on Ubuntu. Installation on a running Linux daemon and MCP credential storage through Secret Service remain unverified. |
 | Windows and Intel Macs | Host installation and credential storage remain unverified. |
 

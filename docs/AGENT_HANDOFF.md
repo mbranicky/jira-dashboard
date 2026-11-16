@@ -1,10 +1,14 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-13. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
+Updated: 2026-11-16. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
 
-## Pending fix — existing workspace moves
+## 1.3.2 compatibility release
+
+The user authorized preparation, PR/merge, tag and npm publication of 1.3.2 with both move fixes and Paseo 0.16 compatibility, using a separate instance. Range: `>=0.14.0 <0.17.0`; minimum SDK stays locked at 0.14.0. Exact 0.16.0 SDK checks and isolated host UI verification passed without plugin API changes. Preserve the live 0.15.4 app/daemon. CI retains all three required check names and adds full 0.16.0 checks inside the existing compatibility job. Require green exact-main checks and an identical verified package before tagging. Record publication and fresh npm installation in the release logs; never move tags or repeat an accepted publication.
+
+## Existing workspace moves — merged in PR #49
 
 Moves now reuse the same active saved/manual workspace discovery as board links, on both transition discovery and submission. Existing workspaces suppress Start work destinations and agent launch. A single transition with no fields submits directly; Jira fields and multiple transition choices still prompt. Workspace lookup failures stop the move, and a Jira-only request cannot silently become Start work if the workspace disappears. Existing-workspace drops now move immediately using a board-scoped optimistic position while Jira checks/submission run. Rejection or a required choice rolls back; confirmation survives stale board reads until Jira catches up. Board and workspace reads run in parallel. Verified: 327 Node tests, 30 mocked browser workflow tests across REST/TWG/MCP, both typechecks, and whitespace checks passed. Plugin reloaded and reported running. No version bump or live Jira writes.
 

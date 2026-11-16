@@ -1,5 +1,13 @@
 # Testing Jira Sprint Workspace
 
+## 1.3.2 verification — 2026-11-16
+
+Release 1.3.2 includes both existing-workspace move fixes from PR #49 and widens the supported range to `>=0.14.0 <0.17.0`. All three transports remain supported. The unchanged source passed both typechecks, 327 backend tests and 256 browser tests in an isolated copy using exact plugin/client SDK 0.16.0. The locked 0.14.0 baseline passed full source/package checks; required CI retains the lightweight 0.15.0 typecheck and full 0.15.2 suites and adds exact 0.16.0 full checks to the existing compatibility job.
+
+On a separate macOS arm64 Paseo 0.16.0 daemon, the original `<0.16.0` manifest was rejected. A temporary copy with the proposed range loaded and reloaded successfully after its production build. The bundled 0.16.0 web client rendered Jira Workspace settings and offered REST, Teamwork Graph CLI and Atlassian MCP. The installed desktop app and live daemon remain 0.15.4 and were not upgraded or restarted. The new pending-move screenshot uses fictional data; existing static captures remain representative.
+
+Final artifact identity, exact-main checks, publication and fresh npm installation evidence are recorded in the GitHub release/workflow logs. Jira mutations are mock-tested only; this is not a live Jira write verification or a claim about untested future breaking Paseo releases.
+
 ## 1.3.1 verification — 2026-11-13
 
 The release keeps all three connection methods and the supported Paseo range. Both baseline typechecks, 324 Node tests, 15 publishing-verifier tests and source/package checks passed. Regression coverage includes default-on legacy mappings, explicit per-destination opt-out, Story/Bug/Test labeling for Play and Start work on move, and desktop/mobile toggle persistence. Jira writes use mocks only.
@@ -244,7 +252,7 @@ Prepared after UI/media PR #39 merged with all four checks green. Package, shrin
 
 ## CI coverage
 
-The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, then runs the full suite against exact 0.15.2 SDKs. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
+The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, runs the full suite against exact 0.15.2 SDKs, restores again, and runs full checks and browser tests against exact 0.16.0 SDKs. The historical job name remains stable for branch protection and release verification. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
 
 
 ## Screenshot refresh — 2026-11-12
