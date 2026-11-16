@@ -57,3 +57,9 @@ When starting work on an issue with several destinations, choose a project befor
 Enable **Label workspaces by issue type** to add Story, Bug or Test labels when starting work. The default is on. Each destination can opt out independently without removing existing labels.
 
 ![Mapping settings with the workspace labeling toggle](../assets/mapping-labels.png)
+
+## Move existing work immediately
+
+Drag an issue with an existing workspace into its next column without choosing a project or restarting work. The card moves immediately while Jira processes it. A rejected move restores its previous position; required Jira fields or multiple transitions still prompt.
+
+![A fictional issue already in its new column while Jira processes the move](../assets/move-pending.png)
