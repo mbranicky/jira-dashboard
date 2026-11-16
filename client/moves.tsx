@@ -8,10 +8,10 @@ import {TransitionDialog} from './transition-dialog';
 import {useRpc,type PluginScreenProps} from '@getpaseo/plugin/client';
 import {Icon} from '@getpaseo/plugin/client/ui';
 import {readMoves,moveIssue} from '../shared/moves';
-type Option={id:string;name:string;statusId:string;column:string;development:boolean;required:string[];destinations?:{projectId:string;name:string}[];fields?:TransitionField[]};
-type MoveContext={begin:(key:string,statusId:string)=>void;drop:(statuses:string[])=>void;cancel:()=>void;allowed:(statuses:string[])=>boolean;busy:boolean;issueKey:string;dragging:boolean;end:()=>void};
+type Option={id:string;name:string;statusId:string;column:string;development:boolean;existingWorkspace?:boolean;required:string[];destinations?:{projectId:string;name:string}[];fields?:TransitionField[]};
+type MoveContext={begin:(key:string,statusId:string,existingWorkspace:boolean)=>void;drop:(statuses:string[])=>void;cancel:()=>void;allowed:(statuses:string[])=>boolean;busy:boolean;issueKey:string;dragging:boolean;end:()=>void};
 const Context=createContext<MoveContext>({begin:()=>{},drop:()=>{},cancel:()=>{},allowed:()=>false,busy:false,issueKey:'',dragging:false,end:()=>{}});
-export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=false}:{disabled?:boolean;children:ReactNode;site:string;sprintId:number;theme:PluginScreenProps['theme'];onChanged:()=>void}){
+export function BoardMoves({children,sprintId,theme,onChanged,onOptimistic,site,disabled=false}:{disabled?:boolean;children:ReactNode;site:string;sprintId:number;theme:PluginScreenProps['theme'];onChanged:()=>void;onOptimistic:(key:string,statusId:string|undefined,pending?:boolean)=>void}){
  const read=useRpc(readMoves),move=useRpc(moveIssue);
  const [dragging,setDragging]=useState(false);
  const [key,setKey]=useState(''),[options,setOptions]=useState<Option[]>([]),[targets,setTargets]=useState<string[]>();
@@ -19,32 +19,37 @@ export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=fals
  const [jiraTip,setJiraTip]=useState(false);
  const [projectId,setProjectId]=useState<string>();
  const [selected,setSelected]=useState<Option>();const [values,setValues]=useState<Record<string,string>>({});
- const sourceStatus=useRef('');
+ const sourceStatus=useRef('');const existingWorkspace=useRef(false);const optimistic=useRef(false);
  const generation=useRef(0);const latest=useRef({key:'',options:[] as Option[]});
- function begin(issueKey:string,statusId:string){
+ function begin(issueKey:string,statusId:string,linked:boolean){
   if(busy||disabled)return;
-  setDragging(true);sourceStatus.current=statusId;
+  setDragging(true);sourceStatus.current=statusId;existingWorkspace.current=linked;optimistic.current=false;
   setProjectId(undefined);++generation.current;setKey(issueKey);setOptions([]);setTargets(undefined);setSelected(undefined);setValues({});setMessage('Choose a destination column.');latest.current={key:issueKey,options:[]};
  }
+ function rollback(){if(optimistic.current){onOptimistic(latest.current.key,undefined);optimistic.current=false;}}
  async function resolve(ids:string[]){
-  if(busy)return;setBusy(true);setTargets(ids);setMessage('Checking this move with Jira…');
+  if(busy)return;setBusy(true);setTargets(ids);setMessage(optimistic.current?'Moving issue… Waiting for Jira.':'Checking this move with Jira…');
   try{
    const choices=(await read({key:latest.current.key,sprintId})).filter(o=>ids.includes(o.statusId));
    latest.current.options=choices;setOptions(choices);
    setMessage(choices.length?'':'Jira offers no transition to this column from the current status. The issue remains in its original position.');
-   if(choices.length===1){setSelected(choices[0]);setValues({});}
-  }catch(e){setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));}finally{setBusy(false);}
+   if(choices.length===1){
+    const choice=choices[0];
+    if(choice.existingWorkspace&&!choice.development&&!choice.required.length&&!choice.fields?.length){await execute(choice,true);}
+    else{rollback();setSelected(choice);setValues({});}
+   }else rollback();
+  }catch(e){rollback();setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));}finally{setBusy(false);}
  }
- async function execute(option:Option){
-  if(busy)return;setBusy(true);setMessage('');
-  try{const result=await move({key:latest.current.key,sprintId,transitionId:option.id,statusId:option.statusId,fields:values,...(projectId?{projectId}:{})});setOptions([]);latest.current.options=[];setSelected(undefined);setMessage(result.warning??'Issue moved.');}
-  catch(e){setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));
-   try{const fresh=(await read({key:latest.current.key,sprintId})).find(o=>o.id===option.id&&o.statusId===option.statusId);if(fresh)setSelected(fresh);else setSelected(undefined);}catch{}
+ async function execute(option:Option,direct=false){
+  if(busy&&!direct)return;setBusy(true);setMessage(optimistic.current?'Moving issue… Waiting for Jira.':'');
+  try{const result=await move({key:latest.current.key,sprintId,transitionId:option.id,statusId:option.statusId,fields:direct?{}:values,...(option.existingWorkspace?{jiraOnly:true}:{}),...(projectId?{projectId}:{})});if(optimistic.current){onOptimistic(latest.current.key,option.statusId,false);optimistic.current=false;}setOptions([]);latest.current.options=[];setSelected(undefined);setMessage(result.warning??'Issue moved.');}
+  catch(e){rollback();setMessage((e instanceof Error?e.message:String(e)).replace(/^.*?Request failed: /,'').replace(/\s+requestType=.*$/,''));
+   if(!direct)try{const fresh=(await read({key:latest.current.key,sprintId})).find(o=>o.id===option.id&&o.statusId===option.statusId);if(fresh)setSelected(fresh);else setSelected(undefined);}catch{}
 }
   finally{setBusy(false);onChanged();}
  }
  const allowed=(_ids:string[])=>!disabled&&!busy&&!!latest.current.key;
- function drop(ids:string[]){setDragging(false);if(!allowed(ids))return;if(ids.includes(sourceStatus.current)){cancel();return;}void resolve(ids);}
+ function drop(ids:string[]){setDragging(false);if(!allowed(ids))return;if(ids.includes(sourceStatus.current)){cancel();return;}if(existingWorkspace.current&&ids.length){optimistic.current=true;onOptimistic(latest.current.key,ids[0]);}void resolve(ids);}
  function cancel(){if(busy)return;++generation.current;setSelected(undefined);setKey('');setOptions([]);setMessage('');latest.current={key:'',options:[]};}
  return <Context.Provider value={{begin,drop,cancel,allowed,busy:busy||disabled,issueKey:key,dragging,end:()=>setDragging(false)}}>
  {key&&targets?<View style={{paddingHorizontal:12,paddingVertical:4,gap:4,borderWidth:1,borderColor:theme.colors.border,borderRadius:radii.control}}>
@@ -65,10 +70,10 @@ export function BoardMoves({children,sprintId,theme,onChanged,site,disabled=fals
  {children}
  </Context.Provider>;
 }
-export function DragIssue({issueKey,statusId,children}:{issueKey:string;statusId:string;children:ReactNode}){
+export function DragIssue({issueKey,statusId,existingWorkspace=false,children}:{issueKey:string;statusId:string;existingWorkspace?:boolean;children:ReactNode}){
  const moves=useContext(Context);
  if(Platform.OS!=='web')return <>{children}</>;
- return createElement('div',{draggable:!moves.busy,onDragEnd:()=>moves.end(),onDragStart:(event:any)=>{event.dataTransfer.setData('text/plain',issueKey);event.dataTransfer.effectAllowed='move';moves.begin(issueKey,statusId);}},children);
+ return createElement('div',{draggable:!moves.busy,onDragEnd:()=>moves.end(),onDragStart:(event:any)=>{event.dataTransfer.setData('text/plain',issueKey);event.dataTransfer.effectAllowed='move';moves.begin(issueKey,statusId,existingWorkspace);}},children);
 }
 export function DropColumn({statusIds,children,compact}:{statusIds:string[];children:(hovered:boolean)=>ReactNode;compact:boolean}){
  const moves=useContext(Context);

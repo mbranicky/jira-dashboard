@@ -4,6 +4,10 @@ Updated: 2026-11-13. Current continuation brief; implementation detail lives in 
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
 
+## Pending fix — existing workspace moves
+
+Moves now reuse the same active saved/manual workspace discovery as board links, on both transition discovery and submission. Existing workspaces suppress Start work destinations and agent launch. A single transition with no fields submits directly; Jira fields and multiple transition choices still prompt. Workspace lookup failures stop the move, and a Jira-only request cannot silently become Start work if the workspace disappears. Existing-workspace drops now move immediately using a board-scoped optimistic position while Jira checks/submission run. Rejection or a required choice rolls back; confirmation survives stale board reads until Jira catches up. Board and workspace reads run in parallel. Verified: 327 Node tests, 30 mocked browser workflow tests across REST/TWG/MCP, both typechecks, and whitespace checks passed. Plugin reloaded and reported running. No version bump or live Jira writes.
+
 ## 1.3.1 release
 
 PR #47 merged the labeling changes at `a646a50`. For 1.3.1, Test issues receive a violet Test workspace label. Each destination mapping exposes **Label workspaces by issue type**, default-on for old and new mappings. Turning it off skips Story/Bug/Test labeling and type-label color updates for both Play and Start work on move; it does not remove existing labels or change the In Progress label. The user authorized 1.3.1 preparation, refreshed screenshots, verification, tag and publication. Require green preparation PR/exact-main checks and an identical verified tarball before release; record completion in the GitHub release/workflow logs.

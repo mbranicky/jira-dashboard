@@ -67,17 +67,22 @@ export default function contribute(server:PluginServerContext){
     if(current.values.transport==='twg'){const columns=await twgDashboard.columns(current.values,refresh);return boardColumnOptions(columns.map(c=>({name:c.name,statuses:c.statusIds.map(id=>({id}))})));}
     return fetchProjectStatuses(current.values,projectKey,refresh);
   });
-  async function moves(config:Parameters<typeof availableMoves>[0],key:string,sprintId:number,items:Parameters<typeof availableMoves>[3]){
-    if(config.transport==='mcp'){assertMcpWrites(config);const site=parseBoardUrl(config.boardUrl).site;const writer=mcpWrites(await mcp.ensureConnection({hostId:config.mcpHostId,site}),site);return availableMoves(config,key,sprintId,items,mcpBoard,async()=>writer.workflow(key));}
-    if(config.transport!=='twg')return availableMoves(config,key,sprintId,items);
+  async function moves(config:Parameters<typeof availableMoves>[0],key:string,sprintId:number,items:Parameters<typeof availableMoves>[3],paseo:Parameters<typeof boardWorkspaceLinks>[0]){
+    const hasWorkspace=async()=>{
+      const result=await boardWorkspaceLinks(paseo,config,[key],items);
+      if(result.workspaceWarning)throw Error('Workspace links could not be checked. Refresh and try the move again.');
+      return !!result.links[key];
+    };
+    if(config.transport==='mcp'){assertMcpWrites(config);const site=parseBoardUrl(config.boardUrl).site;const writer=mcpWrites(await mcp.ensureConnection({hostId:config.mcpHostId,site}),site);return availableMoves(config,key,sprintId,items,mcpBoard,async()=>writer.workflow(key),hasWorkspace);}
+    if(config.transport!=='twg')return availableMoves(config,key,sprintId,items,fetchBoard,issueSession,hasWorkspace);
     assertTwgWrites(config);
     const columns=await twgDashboard.columns(config);
-    return availableMoves(config,key,sprintId,items,twgDashboard.fetchBoard,(c,k)=>writes.workflow(c,k,columns.flatMap(column=>column.statusIds)));
+    return availableMoves(config,key,sprintId,items,twgDashboard.fetchBoard,(c,k)=>writes.workflow(c,k,columns.flatMap(column=>column.statusIds)),hasWorkspace);
   }
-  server.handle(readMoves,async({key,sprintId})=>{
+  server.handle(readMoves,async({key,sprintId},{paseo})=>{
     const current=await settings.read();if(current.status!=='ready')throw new Error('Configure Jira first.');
     const saved=await projectMappings.read();if(saved.status!=='ready')throw new Error('Mappings unavailable.');
-    return (await moves(current.values,key,sprintId,saved.values.items)).options;
+    return (await moves(current.values,key,sprintId,saved.values.items,paseo)).options;
   });
   const moving=new Set<string>();
   server.handle(moveIssue,async(input,{paseo})=>{
@@ -86,7 +91,7 @@ export default function contribute(server:PluginServerContext){
     try{
       const current=await settings.read();if(current.status!=='ready')throw new Error('Configure Jira first.');
       const saved=await projectMappings.read();if(saved.status!=='ready')throw new Error('Mappings unavailable.');
-      const available=await moves(current.values,input.key,input.sprintId,saved.values.items);
+      const available=await moves(current.values,input.key,input.sprintId,saved.values.items,paseo);
       const target=available.options.find(o=>o.id===input.transitionId&&o.statusId===input.statusId);
       const mapping=target?.development?(await context(input.key,input.sprintId,input.projectId??(target.destinations?.length===1?target.destinations[0].projectId:undefined))).mapping:undefined;
       if(mapping)await assertWorkDestination(paseo,current.values,input.key,mapping);

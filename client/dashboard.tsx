@@ -96,6 +96,7 @@ function Editor({theme,layout,hostId,initial,onSave,saving,error,saved,setSaved}
   </View>;
 }
 export function Dashboard(props:PluginScreenProps){return <StartWorkProvider key={props.host.id}><DashboardBody {...props}/></StartWorkProvider>;}
+type OptimisticMove={statusId:string;sourceStatus:string;pending:boolean;rollback?:OptimisticMove};
 function DashboardBody({host,theme,layout,navigation}:PluginScreenProps){
   const [focusDirection,setFocusDirection]=useState<'previous'|'next'>();
   const display=useDisplayPreferences(host.id);
@@ -131,7 +132,37 @@ function DashboardBody({host,theme,layout,navigation}:PluginScreenProps){
   const twgReadOnly=mcpPreview&&!settings.values.mcpWrites||twgPreview&&!settings.values.twgWrites;
   const configured=settings.status==='ready'&&!!settings.values.boardUrl&&(mcpPreview?!!settings.values.mcpHostId:twgPreview?!!settings.values.twgExecutable&&!!settings.values.twgProfile:!!settings.values.envPath);
   const board=useQuery({queryKey:['jira-board',host.id,sprintKey,revision,sprint],queryFn:()=>rpc(sprint?{sprintId:sprint}:{}),enabled:configured&&!editing&&preferences.status==='ready',retry:false,refetchInterval:settings.status==='ready'?settings.values.refreshSeconds*1000:false,refetchIntervalInBackground:false});
-  const data=board.data;
+  const moveScope=JSON.stringify([host.id,sprintKey,revision,sprint]);
+  const [optimisticMoves,setOptimisticMoves]=useState<Record<string,OptimisticMove>>({});
+  function updateMove(key:string,statusId:string|undefined,pending=true){
+    const id=moveScope+key;
+    setOptimisticMoves(previous=>{
+      const next={...previous};
+      if(statusId){
+        next[id]={statusId,pending,sourceStatus:previous[id]?.sourceStatus??board.data?.issues.find(i=>i.key===key)?.statusId??'',
+          ...(pending?{rollback:previous[id]?.pending?previous[id].rollback:previous[id]}:{})};
+      }else{
+        const prior=previous[id]?.rollback;if(prior)next[id]=prior;else delete next[id];
+      }
+      return next;
+    });
+  }
+  // Keep confirmed positions through stale Jira search responses. Release the
+  // overlay when a read catches up (or reports a subsequent workflow change).
+  useEffect(()=>{
+    if(!board.data)return;
+    setOptimisticMoves(previous=>{
+      const next={...previous};let changed=false;
+      for(const issue of board.data.issues){const id=moveScope+issue.key;const move=next[id];
+        if(move&&!move.pending&&issue.statusId!==move.sourceStatus){delete next[id];changed=true;}
+      }
+      return changed?next:previous;
+    });
+  },[board.data,moveScope]);
+  const data=board.data?{...board.data,issues:board.data.issues.map(issue=>{
+    const move=optimisticMoves[moveScope+issue.key];
+    return move?{...issue,statusId:move.statusId,status:board.data!.columns.find(c=>c.statusIds.includes(move.statusId))?.name??issue.status}:issue;
+  })}:undefined;
   const [emptyPanelBoard,setEmptyPanelBoard]=useState<string>();
   // Only a successful, completed board read can invalidate selection. Search
   // filters and failed refreshes must not discard the currently open issue.
@@ -209,7 +240,7 @@ function DashboardBody({host,theme,layout,navigation}:PluginScreenProps){
     <View testID="board-content" onLayout={event=>setAvailableWidth(event.nativeEvent.layout.width)} style={{flex:1,minHeight:0,flexDirection:'row',gap:presentation==='panel'&&(selected||showEmptyPanel)?16:0}}>
     <View style={{flex:1,minWidth:0,minHeight:0,gap:16}}>
     {layout.compact&&!initialLoading?<MobileColumns theme={theme} columns={columns.map(column=>({name:column.name,count:filtered.filter(issue=>column.statusIds.includes(issue.statusId)).length}))} selected={selectedColumn} onChange={index=>{updateBoard(sprintKey,{columnKey:columnKeys[index]});boardScroll.current?.scrollTo({y:0,animated:false});}}/>:null}
-    {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves disabled={twgReadOnly} site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
+    {initialLoading?<BoardLoading theme={theme} compact={layout.compact}/>:<BoardMoves key={moveScope} onOptimistic={updateMove} disabled={twgReadOnly} site={data?.site??''} sprintId={data?.selectedSprintId??0} theme={theme} onChanged={()=>void board.refetch()}>
     <ScrollView ref={boardScroll} horizontal={!layout.compact} style={{flex:1,minHeight:0}} contentContainerStyle={{gap:16,...(layout.compact?{}:{alignItems:'stretch' as const})}}>
       {columns.map((c,index)=>{
         if(layout.compact&&index!==selectedColumn)return null;
@@ -218,7 +249,7 @@ function DashboardBody({host,theme,layout,navigation}:PluginScreenProps){
           {hovered?<View pointerEvents="none" style={{position:'absolute',top:0,bottom:0,left:0,right:0,borderRadius:columnGeometry.radius,backgroundColor:'rgba(0,0,0,0.08)'}}/>:null}
           <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><Text style={{...text,fontWeight:'400',flex:1}}>{c.name}</Text><Text style={muted}>{issues.length}</Text></View>
           <ScrollView testID={`board-column-${index}`} scrollEnabled={!layout.compact} style={layout.compact?undefined:{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:8}}>
-            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId}><IssueCard display={display.values} jiraUrl={`${data!.site}/browse/${encodeURIComponent(i.key)}`} activity={i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined} selected={selected?.issue.key===i.key} search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setFocusDirection(undefined);setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
+            {issues.map(i=><DragIssue key={i.key} issueKey={i.key} statusId={i.statusId} existingWorkspace={!!i.linkedWorkspace}><IssueCard display={display.values} jiraUrl={`${data!.site}/browse/${encodeURIComponent(i.key)}`} activity={i.linkedWorkspace?activity.data?.[activityKey(i.linkedWorkspace)]:undefined} selected={selected?.issue.key===i.key} search={search} startAvailable={true} detailsAvailable={true} readOnly={twgReadOnly} onOpenDetails={()=>{setFocusDirection(undefined);setPanelCollapsed(false);setSelected({boardKey:sprintKey,issue:i,sprintId:data!.selectedSprintId!,site:data!.site});}} hostId={host.id} key={i.key} issue={i} mappingReady={projectMappings.status==='ready'} onConfigureMapping={projectMappings.status==='ready'&&!projectMappings.values.items.some(m=>m.jiraProjectKey===i.projectKey)?()=>{setMappingProject(i.projectKey);setEditing(true);}:undefined} theme={theme} navigation={navigation} sprintId={data!.selectedSprintId!} onOpenJira={()=>{setLinkError(undefined);void openExternal(`${data!.site}/browse/${encodeURIComponent(i.key)}`).catch(()=>setLinkError('Could not open Jira. Please try again.'));}} onStarted={()=>void board.refetch()}/></DragIssue>)}
             {!issues.length?<Text style={{...muted,paddingVertical:12}}>{search?'No matching issues':'No issues'}</Text>:null}
           </ScrollView>
         </View>}</DropColumn>;
