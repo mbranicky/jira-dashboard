@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+- Show approval, running, review, done, error and idle icons on linked-workspace buttons. Cards and issue details share activity data; tooltips explain the state and clicking still opens the workspace.
+- Distinguish review from done using Paseo attention metadata; keep unknown activity explicit rather than guessing completion.
+- Present ambiguous Jira transitions as clear buttons in a full-width, compact desktop panel, with stacked accessible controls on mobile. Review and confirmation remain required before a Jira write.
+- Render web tooltips above clipped card and column containers, keep them within the viewport and flip their placement when necessary without stealing focus.
+- Refresh the screenshot gallery and visual tour with agent-state and transition-choice examples.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Paseo requirements stay `>=0.14.0 <0.17.0`. Jira writes are verified with mocks only.
+
 ## 1.3.2
 
 - Move issues with existing workspaces without choosing a destination or restarting an agent. Required Jira fields and ambiguous transitions still prompt.

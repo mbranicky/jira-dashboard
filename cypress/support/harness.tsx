@@ -13,6 +13,8 @@ export function stubRpc(options:{error?:boolean;many?:boolean}={}){
  const data=options.many?{...board,issues:Array.from({length:18},(_,i)=>issue(`TEST-${i+1}`,`Issue ${i+1}`))}:board;
  cy.intercept('POST','/__rpc/*',request=>{
   const name=request.url.split('/').pop();
+  // Settings cleanup can cancel an OAuth/check job while the next test mounts.
+  if(name==='mcp.cancel'||name==='twg.cancel')return request.reply({body:{id:request.body.id,state:'cancelled',message:'Cancelled'}});
   if(name==='board.read'){
    if(options.error)return request.reply({statusCode:403,body:{error:'Jira denied board access.'}});
    return request.reply({body:data});

@@ -1,5 +1,13 @@
 # Testing Jira Sprint Workspace
 
+## 1.4.0 preparation verification — 2026-11-20
+
+Both typechecks, 328 backend tests, 277 browser tests across 30 specs, and 15 release-verifier tests passed. Browser verification used Cypress 16.2.0's bundled Electron after the locally installed Chrome failed to start. Coverage includes all three connection methods, synchronized agent-state buttons, unclipped keyboard-accessible tooltips, and transition choices at 320, 390, 1200 and 1920 pixels. Existing auth-job cancellation on settings teardown now has explicit test-fixture responses.
+
+Fourteen synthetic screenshots were regenerated and reviewed with full-size browser captures. The manifest gallery now includes the agent-state and transition-choice examples. Source/package audits passed and production dependency audit reported zero vulnerabilities. No live Jira mutations were performed. The existing UI changes were previously loaded successfully in the local Paseo plugin; this preparation does not claim a fresh 1.4.0 runtime install or completed CI/publication.
+
+The candidate tarball, checksum and clean production-install/build evidence are retained outside the package under `/tmp/jira-1.4.0-candidate`. Recheck the artifact against exact merged main before any eventual tag or publish.
+
 ## 1.3.2 verification — 2026-11-16
 
 Release 1.3.2 includes both existing-workspace move fixes from PR #49 and widens the supported range to `>=0.14.0 <0.17.0`. All three transports remain supported. The unchanged source passed both typechecks, 327 backend tests and 256 browser tests in an isolated copy using exact plugin/client SDK 0.16.0. The locked 0.14.0 baseline passed full source/package checks; required CI retains the lightweight 0.15.0 typecheck and full 0.15.2 suites and adds exact 0.16.0 full checks to the existing compatibility job.

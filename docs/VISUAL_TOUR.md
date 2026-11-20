@@ -1,6 +1,6 @@
 # A visual tour
 
-These previews show Jira Sprint Workspace with fictional issues and accounts. They are captured from the plugin's components in Chrome; Paseo's surrounding controls can differ.
+These previews show Jira Sprint Workspace with fictional issues and accounts. They are captured from the plugin's components in a browser; Paseo's surrounding controls can differ.
 
 ## Filters without moving the board
 
@@ -63,3 +63,16 @@ Enable **Label workspaces by issue type** to add Story, Bug or Test labels when 
 Drag an issue with an existing workspace into its next column without choosing a project or restarting work. The card moves immediately while Jira processes it. A rejected move restores its previous position; required Jira fields or multiple transitions still prompt.
 
 ![A fictional issue already in its new column while Jira processes the move](../assets/move-pending.png)
+
+
+## Agent state on workspace buttons
+
+The blue workspace button keeps its navigation action while its icon changes with Paseo activity: shield for approval, activity pulse for running, eye for review, checkmark for done, alert for errors and pause for idle. Hover or focus it for a descriptive tooltip. Activity refreshes every 15 seconds while visible and stays separate from Jira status. Cards and details use the same activity snapshot. Missing activity retains the open-workspace arrow; an idle agent is only labeled done when Paseo explicitly reports no pending attention.
+
+![Approval, running, review and done workspace actions on fictional issues](../assets/agent-states.png)
+
+## Choose a Jira transition
+
+When several Jira transitions lead to the target column, a full-width panel offers clear buttons. On a wide display, context and choices share one compact row. On mobile they stack with 44-pixel touch targets. Choosing a transition opens its review and confirmation step before any Jira write.
+
+![Full-width Jira transition choices above the board](../assets/transitions.png)

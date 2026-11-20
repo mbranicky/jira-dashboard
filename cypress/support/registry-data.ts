@@ -20,6 +20,7 @@ export const registryDetails={relationships:{complete:true,items:[{key:"DEMO-119
  {kind:'quote',runs:[{text:'A new team member should be ready to start in under two minutes.'}]},
 ],assignee:'Alex Morgan',reporter:'Sam Taylor',dueDate:null,created:'2026-11-01T09:00:00Z',updated:'2026-11-03T10:00:00Z'};
 export function registryRpc(){
+ cy.intercept('GET','/__paseo/agents/agent-demo',{agent:{id:'agent-demo',workspaceId:'workspace-demo',status:'running',pendingPermissions:[],requiresAttention:false,updatedAt:'2026-11-20T10:00:00Z'}});
  cy.intercept('POST','/__rpc/*',request=>{
  const name=request.url.split('/').pop()!;
  const responses:Record<string,unknown>={'board.read':registryBoard,'issue.details':registryDetails,'attachments.list':{site,files:[]},'attachments.settings':{enabled:true,uploadLimit:25000000},'comments.draft-identity':{site:'https://example.atlassian.net',accountId:'demo-account-01'},
