@@ -21,3 +21,6 @@ Save named boards from the connected Jira site and switch between them from the 
 On desktop, focus a board control and use **J/K** to move through visible issues, **/** to focus search, and **Enter** to open the focused issue. Shortcuts leave text editors, dialogs and the sprint menu alone.
 Issue details and workspace panels show linked issues and subtasks with Jira's relationship labels, status and links back to Jira. When the connection omits relationship fields, the panel explains that the list is incomplete.
 Filter the loaded sprint by labels, priority, issue type, parent or fix version. Combine filters with key/title search and save named views for each board. Saved views are shared with other clients connected to the same Paseo host.
+
+
+Workspace buttons show agent activity at a glance, including approval, running, review and done states, while still opening the workspace. Activity refreshes every 15 seconds while visible and is separate from Jira status. When moving an issue has several possible Jira transitions, clear choices appear above the board for review before confirmation.

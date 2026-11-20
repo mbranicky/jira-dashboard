@@ -46,7 +46,7 @@ export function IssueCard({preview=false,display=defaultDisplayPreferences,jiraU
    </Pressable>:null}
    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Text style={{color:colors.foregroundMuted,fontSize:12,lineHeight:17,flex:1}}>{issue.status}</Text>{issue.priority?<PriorityBadge priority={issue.priority}/>:null}</View>
    <ActivityBadge dense={dense} value={activity} theme={theme}/>
-   <StartWork dense={dense} linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
+   <StartWork activity={activity} dense={dense} linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
      <View style={{flex:1,flexDirection:'row',alignItems:'center',gap:5,justifyContent:'space-between'}}>
        <View style={{minHeight:rowHeight,flexDirection:'row',alignItems:'center',gap:6,flexShrink:1}}><Icon name={typeIcon} size={14} color={typeColor}/><Text numberOfLines={1} style={{color:colors.foregroundMuted,fontSize:11,fontWeight:'400'}}><SearchHighlight text={issue.key} ranges={matches.key} theme={theme}/></Text></View>
 

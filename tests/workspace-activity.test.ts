@@ -32,3 +32,16 @@ test('attention filters combine with Jira fields, never treat unknown as finishe
  assert.equal(matchesBoardView({...issue,linkedWorkspace:undefined},'',{...emptyFilters(),activity:['No workspace']}),true);
  assert.deepEqual(boardFiltersSchema.parse({labels:['a']}).activity,[]);
 });
+
+import {workspaceAction} from '../shared/workspace-activity';
+test('workspace button distinguishes approval, running, review and done without guessing missing metadata',()=>{
+ const present=(changes:Partial<Parameters<typeof agentActivity>[0]>)=>workspaceAction(agentActivity({...agent,...changes}));
+ assert.equal(present({status:'running',pendingPermissions:[{}],requiresAttention:true}).icon,'ShieldQuestion');
+ assert.equal(present({status:'running',requiresAttention:true}).icon,'Activity');
+ assert.equal(present({attentionReason:'finished',requiresAttention:true}).icon,'Eye');
+ assert.equal(present({requiresAttention:false}).label,'Done · Open workspace');
+ assert.equal(present({status:'error',requiresAttention:true}).icon,'CircleAlert');
+ assert.equal(present({}).icon,'CirclePause');
+ assert.equal(workspaceAction({state:'unavailable',source:'agent'}).icon,'ArrowUpRight');
+ assert.equal(workspaceAction({state:'idle',source:'workspace',done:true}).icon,'CircleCheck');
+});

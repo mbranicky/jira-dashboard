@@ -4,6 +4,10 @@ Updated: 2026-11-16. Current continuation brief; implementation detail lives in 
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
 
+## 1.4.0 preparation
+
+User requested the next minor version on 2026-11-20. Prepare 1.4.0 with the transition chooser redesign, agent-state workspace buttons and unclipped tooltips. All three connection methods and the existing Paseo range remain. The user subsequently authorized the whole publishing process: commit/push, PR and green checks, merge and exact-main verification, then immutable tag, release and npm publication. Keep the live installation unchanged during isolated package verification.
+
 ## 1.3.2 compatibility release
 
 The user authorized preparation, PR/merge, tag and npm publication of 1.3.2 with both move fixes and Paseo 0.16 compatibility, using a separate instance. Range: `>=0.14.0 <0.17.0`; minimum SDK stays locked at 0.14.0. Exact 0.16.0 SDK checks and isolated host UI verification passed without plugin API changes. Preserve the live 0.15.4 app/daemon. CI retains all three required check names and adds full 0.16.0 checks inside the existing compatibility job. Require green exact-main checks and an identical verified package before tagging. Record publication and fresh npm installation in the release logs; never move tags or repeat an accepted publication.

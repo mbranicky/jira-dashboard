@@ -8,6 +8,17 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.4.0 minor release preparation (2026-11-20)
+
+- [x] Include the responsive transition chooser, shared agent-state buttons and top-layer tooltips; retain REST, TWG and MCP.
+- [x] Synchronize package, shrinkwrap, MCP handshake, README and changelog at 1.4.0; preserve the Paseo compatibility range.
+- [x] Refresh and review 14 synthetic screenshots; add agent-state and transition images to the seven-image gallery and visual tour.
+- [x] Both typechecks, 328 backend tests, 277 browser tests, 15 release-verifier tests and package/source checks passed; production audit has zero vulnerabilities.
+- [x] Verify the final tarball against working-file bytes and a clean production install/manifest build. Candidate: 155 files, 2,022,443 bytes; zero production vulnerabilities. SHA-256 `d92116e8a90413e998ea8b90a7de7afa139bd3b8405365b9e49731454a07cee6`; retained under `/tmp/jira-1.4.0-candidate`.
+- [x] Obtain explicit authorization for the full publishing process (2026-11-20).
+- [ ] Commit/push, create and merge the preparation PR after green checks, and verify exact main.
+- [ ] Tag and publish only after authorization and final artifact verification. Full publication was explicitly authorized on 2026-11-20.
+
 ## 1.3.2 compatibility patch (2026-11-16)
 
 - [x] Confirm 1.3.1 as the published baseline and authorization for 1.3.2; retain REST, TWG CLI and MCP.

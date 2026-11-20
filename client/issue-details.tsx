@@ -1,3 +1,4 @@
+import type {WorkspaceActivity} from '../shared/workspace-activity';
 import {radii} from './radii';
 import {PriorityBadge} from './priority-badge';
 import {IssueNavigation,type IssueNavigationProps} from './issue-navigation';
@@ -21,7 +22,7 @@ import {Modal as NativeModal,SafeAreaView,KeyboardAvoidingView,Platform,Pressabl
 import type {ReactNode} from 'react';
 import {readIssueDetails,type Issue} from '../shared/contracts';
 import {Action} from './settings-ui';
-export function IssueDetails({issueNavigation,startAvailable=true,contentAvailable=true,readOnly=false,connectionRevision='',issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{issueNavigation?:IssueNavigationProps;startAvailable?:boolean;contentAvailable?:boolean;readOnly?:boolean;connectionRevision?:string;presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
+export function IssueDetails({activity,issueNavigation,startAvailable=true,contentAvailable=true,readOnly=false,connectionRevision='',issue,sprintId,theme,onClose,onOpenJira,hostId,navigation,mappingReady,onConfigureMapping,onStarted,presentation='modal',panelWidth=480,panelCollapsed=false,onTogglePanel=onClose,onResizePanel=()=>{}}:{activity?:WorkspaceActivity;issueNavigation?:IssueNavigationProps;startAvailable?:boolean;contentAvailable?:boolean;readOnly?:boolean;connectionRevision?:string;presentation?:'modal'|'panel'|'fullscreen';panelWidth?:number;panelCollapsed?:boolean;onTogglePanel?:()=>void;onResizePanel?:(width:number)=>void;navigation:PluginScreenProps['navigation'];mappingReady:boolean;onConfigureMapping?:()=>void;onStarted:()=>void;hostId:string;issue:Issue;sprintId:number;theme:PluginScreenProps['theme'];onClose:()=>void;onOpenJira:()=>void}){
  const [descriptionExpanded,setDescriptionExpanded]=useState(true);
  const [jiraTip,setJiraTip]=useState(false);
  const read=useRpc(readIssueDetails);
@@ -31,7 +32,7 @@ export function IssueDetails({issueNavigation,startAvailable=true,contentAvailab
  return <DetailsShell panelCollapsed={panelCollapsed} onTogglePanel={onTogglePanel} onResizePanel={onResizePanel} presentation={presentation} panelWidth={panelWidth} issueKey={issue.key} theme={theme} onClose={onClose}>
   {issueNavigation?<IssueNavigation {...issueNavigation} theme={theme}/>:null}
   <Text selectable style={{color:c.foreground,fontSize:22,lineHeight:29,fontWeight:'700'}}>{issue.summary}</Text>
-  <StartWork showLabel linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
+  <StartWork activity={activity} showLabel linkedWorkspace={issue.linkedWorkspace} canStart={startAvailable&&canStartWork(issue)} mappingReady={mappingReady} onConfigureMapping={startAvailable?onConfigureMapping:undefined} theme={theme} navigation={navigation} issueKey={issue.key} sprintId={sprintId} onStarted={onStarted} footer={
    <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:8,flex:1,minWidth:0}}><View style={{paddingHorizontal:10,paddingVertical:6,borderRadius:radii.control,backgroundColor:c.surface2}}><Text style={{color:c.foreground,fontSize:13}}>{issue.status}</Text></View><Text style={{color:c.foregroundMuted,fontSize:13}}>{issue.type}</Text>{issue.priority?<PriorityBadge priority={issue.priority}/>:null}<View style={{position:'relative'}}>
     {jiraTip?<Tooltip theme={theme} text="Open in Jira" align="left" offset={42}/>:null}
     <Pressable accessibilityRole="link" accessibilityLabel="Open in Jira" onHoverIn={()=>setJiraTip(true)} onHoverOut={()=>setJiraTip(false)} onFocus={()=>setJiraTip(true)} onBlur={()=>setJiraTip(false)} onLongPress={()=>setJiraTip(true)} onPress={()=>{setJiraTip(false);onOpenJira();}} style={({pressed})=>({width:40,height:40,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:pressed?c.surface2:'transparent'})}><Icon name="ExternalLink" size={17} color={c.foregroundMuted}/></Pressable>

@@ -1,3 +1,4 @@
+import {workspaceAction,type WorkspaceActivity} from '../shared/workspace-activity';
 import {ProjectChoices} from './project-choices';
 import {useStartWorkState} from './start-work-state';
 import {radii} from './radii';
@@ -11,8 +12,8 @@ import {useState,useContext,type ReactNode} from 'react';
 import {Modal,ScrollView,ActivityIndicator,Pressable,Text,View,useWindowDimensions} from 'react-native';
 import {mappings,prepareBranches,startWork} from '../shared/contracts';
 
-type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode;showLabel?:boolean;dense?:boolean};
-export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer,showLabel=false,dense=false}:Props){
+type Props=Pick<PluginScreenProps,'theme'|'navigation'> & {activity?:WorkspaceActivity;linkedWorkspace?:{workspaceId:string;agentId?:string};canStart:boolean;mappingReady:boolean;onConfigureMapping?:()=>void;issueKey:string;sprintId:number;onStarted:()=>void;footer:ReactNode;showLabel?:boolean;dense?:boolean};
+export function StartWork({activity,linkedWorkspace,canStart,theme,navigation,issueKey,mappingReady,onConfigureMapping,sprintId,onStarted,footer,showLabel=false,dense=false}:Props){
   const compact=useWindowDimensions().width<760;
   const openIssue=useContext(OpenWorkspaceIssue);
   const start=useRpc(startWork);const prepare=useRpc(prepareBranches);
@@ -25,6 +26,7 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
   const [error,setError]=useState('');
   const result=linkedWorkspace??operation.result;
   const configure=result?undefined:onConfigureMapping;
+  const workspaceButton=workspaceAction(activity);
   const text={color:theme.colors.foreground};
   const errorText=(e:unknown)=>e instanceof Error?e.message.replace(/^Request failed: /,'').replace(/\s+requestType=.*$/,''):'Could not start work. Please retry.';
   async function execute(selection?:string,alreadyAcquired=false,destination?:string){
@@ -47,8 +49,8 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:0}}>
       {footer}
       {(canStart||result)?<View style={{position:'relative'}}>
-        {tip&&!showLabel?<Tooltip theme={theme} text={configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}/>:null}
-        <Pressable aria-busy={busy} accessibilityRole="button" accessibilityLabel={`${configure?'Configure mapping for':result?'Open workspace':busy?'Starting':'Start work'} ${issueKey}`} accessibilityHint={configure?'Set up the Jira project mapping before starting work':result?'Open the linked agent':'Create or reuse a workspace and agent for this issue'} accessibilityState={{disabled:busy||(!configure&&!navigation)||(!result&&!mappingReady),busy}} disabled={busy||(!configure&&!navigation)||(!result&&!mappingReady)}
+        {tip&&!showLabel?<Tooltip theme={theme} text={configure?'Configure mapping':result?workspaceButton.label:busy?'Starting…':'Start work'}/>:null}
+        <Pressable testID={`workspace-action-${issueKey}`} aria-busy={busy} accessibilityRole="button" accessibilityLabel={`${configure?'Configure mapping for':result?'Open workspace':busy?'Starting':'Start work'} ${issueKey}`} accessibilityHint={configure?'Set up the Jira project mapping before starting work':result?workspaceButton.label:'Create or reuse a workspace and agent for this issue'} accessibilityState={{disabled:busy||(!configure&&!navigation)||(!result&&!mappingReady),busy}} disabled={busy||(!configure&&!navigation)||(!result&&!mappingReady)}
           onHoverIn={()=>setTip(true)} onHoverOut={()=>setTip(false)} onFocus={()=>setTip(true)} onBlur={()=>setTip(false)} onLongPress={()=>setTip(true)}
           onPress={()=>{
             setTip(false);
@@ -57,7 +59,7 @@ export function StartWork({linkedWorkspace,canStart,theme,navigation,issueKey,ma
             setError('');setProjectId(undefined);if(destinations.length>1){setChoosingProject(true);}else void prepareWork();
           }}
           style={({pressed})=>({width:showLabel?undefined:dense&&!compact?34:44,minHeight:(showLabel||dense)&&!compact?34:44,paddingHorizontal:showLabel?12:0,flexDirection:'row',gap:8,borderRadius:radii.control,alignItems:'center',justifyContent:'center',backgroundColor:showLabel?theme.colors.accent:pressed?theme.colors.surface2:'transparent',opacity:busy||(!configure&&!navigation)||(!result&&!mappingReady)?.5:1,transform:[{scale:pressed?.96:1}]})}>
-          <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:radii.control,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?'ArrowUpRight':'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
+          <View style={{width:showLabel?18:30,height:showLabel?18:30,borderRadius:radii.control,backgroundColor:configure?theme.colors.surface2:theme.colors.accent,alignItems:'center',justifyContent:'center'}}>{busy?<ActivityIndicator color={theme.colors.accentForeground} size="small"/>:<Icon name={configure?'FolderGit2':result?workspaceButton.icon:'Play'} size={16} color={configure?theme.colors.accent:theme.colors.accentForeground}/>}</View>
           {showLabel?<Text style={{color:theme.colors.accentForeground,fontSize:14}}>{configure?'Configure mapping':result?'Open workspace':busy?'Starting…':'Start work'}</Text>:null}
         </Pressable>
       </View>:null}

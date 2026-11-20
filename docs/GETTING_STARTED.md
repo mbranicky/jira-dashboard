@@ -52,7 +52,7 @@ Descriptions, attachments and comments collapse independently. Replies are new t
 
 The manifest runs `npm ci --omit=dev --ignore-scripts`, then `node scripts/prepare-native.mjs` for managed Git installation. This installs locked production dependencies, including the MCP SDK and keyring helper, without dependency lifecycle scripts or development tools. Preparation records installation-local native paths; the standalone Node executable must remain available. The local-checkout walkthrough above uses the full development installation for type checks.
 
-The package is still private and prepared for Git distribution. Publishing on npm would require a publishable runtime lock and removing redundant Git-only preparation first.
+The public npm package includes its production shrinkwrap and the same preparation script. Managed installations build from the locked dependencies; local host paths are excluded from the package.
 
 ## Update a local checkout
 
