@@ -41,6 +41,9 @@ it('attachment icons show compact tooltips on keyboard focus',()=>{
  cy.viewport(390,900);stubRpc();
  cy.intercept('POST','/__rpc/attachments.list',{site,files:[{...file,mimeType:'image/png',filename:'image.png'}]});
  mount(<Harness/>);cy.get('[aria-label^="Open details for TEST-1:"]').click();
+ // Details arrive separately from attachments and can push the focused icon out of view.
+ // Wait for the description to render before scrolling to the attachment controls.
+ cy.contains('Description paragraph 35. Long issue content to exercise scrolling.').should('exist');
  for(const [label,text] of [['Preview image','Preview image'],['Download attachment','Download attachment'],['Open image in browser (in-app fallback)','Open in browser']]){
   button(label).scrollIntoView().focus();cy.contains(text).should('be.visible');button(label).blur();
  }
