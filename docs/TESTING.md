@@ -1,5 +1,13 @@
 # Testing Jira Sprint Workspace
 
+## 1.4.1 compatibility verification — 2026-11-22
+
+The published 1.4.0 baseline passed both typechecks and 328 backend tests against exact plugin/client SDK 0.17.1 in an isolated copy. The original `<0.17.0` manifest was rejected by a separate loopback-only 0.17.1 daemon; a temporary `<0.18.0` copy activated and reloaded. The installed Paseo 0.17.1 desktop app rendered first-run settings, all three connection methods and the sample card. Appearance preferences survived reload; a missing synthetic credential path produced the expected read-only diagnostic without contacting Jira.
+
+The release retains locked 0.14.0 dependencies and adds full exact 0.17.1 CI coverage alongside 0.15.0 typechecks and full 0.15.2/0.16.0 checks. Browser-only tooltip positioning moved into the web adapter with no visual or native behavior change. Existing screenshots remain representative. Tests use mocked Jira writes only; no live connection settings or installations were changed, and the stopped live daemon was not started.
+
+Final checks passed both typechecks, 328 backend tests, all 277 browser tests across 30 specs on exact 0.17.1 SDKs, and 15 release-verifier tests. The first UI run had one attachment-tooltip visibility failure; its focused rerun and final full run passed. Browser verification used bundled Electron; CI retains Chrome. Both production and full dependency audits reported zero vulnerabilities. The production-only tarball built, activated, reloaded and rendered in the installed app. Artifact identity is recorded in the release checklist outside the package. PR/exact-main verification, npm byte identity, a fresh isolated npm install and live catalog verification remain distinct release gates; final evidence belongs in the GitHub release and workflow logs.
+
 ## 1.4.0 preparation verification — 2026-11-20
 
 Both typechecks, 328 backend tests, 277 browser tests across 30 specs, and 15 release-verifier tests passed. Browser verification used Cypress 16.2.0's bundled Electron after the locally installed Chrome failed to start. Coverage includes all three connection methods, synchronized agent-state buttons, unclipped keyboard-accessible tooltips, and transition choices at 320, 390, 1200 and 1920 pixels. Existing auth-job cancellation on settings teardown now has explicit test-fixture responses.
@@ -260,7 +268,7 @@ Prepared after UI/media PR #39 merged with all four checks green. Package, shrin
 
 ## CI coverage
 
-The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, runs the full suite against exact 0.15.2 SDKs, restores again, and runs full checks and browser tests against exact 0.16.0 SDKs. The historical job name remains stable for branch protection and release verification. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
+The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, runs the full suite against exact 0.15.2 SDKs, restores again, and runs full checks and browser tests against exact 0.16.0 SDKs, then restores again and repeats full checks and browser tests against exact 0.17.1 SDKs. The historical job name remains stable for branch protection and release verification. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
 
 
 ## Screenshot refresh — 2026-11-12
