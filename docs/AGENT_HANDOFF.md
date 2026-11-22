@@ -1,8 +1,12 @@
 # Jira Sprint Workspace — agent handoff
 
-Updated: 2026-11-16. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
+Updated: 2026-11-22. Current continuation brief; implementation detail lives in the linked implementation, specification and design documents.
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
+
+## 1.4.1 compatibility release
+
+The maintainer invoked the full update-paseo-plugin workflow on 2026-11-22. Published baseline: 1.4.0; candidate: exactly patch +1, 1.4.1. Range widens to `>=0.14.0 <0.18.0` after exact 0.17.1 SDK and isolated daemon/installed desktop verification. Preserve locked 0.14.0 dependencies and all three Jira transports. The three required CI names stay unchanged; the compatibility job adds full 0.17.1 coverage. Browser-only tooltip rendering now lives in client/web.ts with the existing native fallback. Preserve the live installation; do not start its stopped daemon. Require green PR/exact-main checks and identical artifact before tag and OIDC publication. Verify fresh npm installation, live catalog and final mutable release notes separately.
 
 ## 1.4.0 preparation
 

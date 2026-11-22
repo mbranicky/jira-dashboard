@@ -8,6 +8,17 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.4.1 compatibility patch (2026-11-22)
+
+- [x] Verify published baseline 1.4.0 and exact patch candidate 1.4.1; the explicit update skill requests the full release workflow.
+- [x] Verify unchanged source against exact 0.17.1 SDKs, original manifest rejection, widened-range activation/reload and installed desktop UI with persisted preferences and safe failure diagnostics.
+- [x] Preserve all three connection methods, minimum SDK and previous CI checks; add full 0.17.1 coverage under unchanged required job names.
+- [x] Synchronize version, supported range, changelog, README, setup guide and handoff; isolate browser tooltip code in the web adapter without changing visual styling.
+- [x] Both typechecks, 328 backend tests, 277 browser tests and 15 release-verifier tests passed. Clean production build and isolated app activation/reload passed; zero production/development audit findings. Exact candidate: 155 files, 2,023,183 bytes, SHA-256 `6abdebec1583898c24d97ab5ee595cc00c3fc6bf20c8bf3fc969e4c1cfc631f5`; retained under `/tmp/jira-1.4.1-candidate`.
+- [ ] Commit/push and merge the PR after green checks; verify exact main and package identity before tagging.
+- [ ] Publish tag, GitHub release and exact npm artifact using OIDC; verify fresh isolated installation.
+- [ ] Verify the reviewed registry update, live catalog/media and final mutable release notes. Record publication outcomes outside immutable package contents.
+
 ## 1.4.0 minor release preparation (2026-11-20)
 
 - [x] Include the responsive transition chooser, shared agent-state buttons and top-layer tooltips; retain REST, TWG and MCP.

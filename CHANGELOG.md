@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.1
+
+- Support Paseo 0.17.x, verified against exact 0.17.1 SDKs and an isolated 0.17.1 daemon with the installed desktop app. Preserve compatibility with 0.14.x, 0.15.x and 0.16.x.
+- Add full 0.17.1 checks to the existing compatibility CI job without removing earlier-version checks.
+- Keep browser-only tooltip positioning in the web platform adapter; native tooltip behavior and visual styling are unchanged.
+
+REST API, Teamwork Graph CLI OAuth and Atlassian MCP OAuth remain included. Jira writes are verified with mocks only.
+
 ## 1.4.0
 
 - Show approval, running, review, done, error and idle icons on linked-workspace buttons. Cards and issue details share activity data; tooltips explain the state and clicking still opens the workspace.
