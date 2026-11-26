@@ -7,7 +7,7 @@ import { usePaseo, useSettings, type PluginSurfaceProps } from '@getpaseo/plugin
 import { Icon, SettingsRow } from '@getpaseo/plugin/client/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { mappings, mappingSchema, mappingsSchema, mappingFormSchema, type Mapping } from '../shared/contracts';
 
 // Optional empty selections and absent values represent the same saved choice.
@@ -61,7 +61,9 @@ function MappingEditor({theme, layout, initial, baseline, save, saving, error, s
         <Icon name="GitBranch" size={20} color={theme.colors.accent}/><View style={{flex:1,gap:4}}><Text style={{...text,fontWeight:'700'}}>{item.name.trim()||'New mapping'}</Text><Text style={muted}>{[item.jiraProjectKey||'No Jira project',projects.data?.projects.find(p=>p.projectId===item.paseoProjectId)?.projectDisplayName,item.provider].filter(Boolean).join(' · ')}</Text></View>
         <Icon name={expanded[index]?'ChevronUp':'ChevronDown'} size={20} color={theme.colors.foregroundMuted}/>
       </Pressable>
-      {expanded[index]?<View style={{gap:12,paddingTop:12,borderTopWidth:1,borderTopColor:theme.colors.border}}>
+      {/* Chat Polish treats the switch's transparent input as a text field and tags
+          this painted ancestor. Reserve its marker so the form keeps its natural height. */}
+      {expanded[index]?<View {...(Platform.OS==='web'?{dataSet:{'cp-set':'jira-mapping-body'}}:{})} style={{gap:12,paddingTop:12,borderTopWidth:1,borderTopColor:theme.colors.border}}>
       <View style={{flexDirection:layout.compact?'column':'row',gap:16}}>
       <View style={{flex:1,gap:8}}>
       <Text style={text}>Mapping name *</Text>
