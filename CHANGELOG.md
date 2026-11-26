@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.2
+
+- Fix expanded project mappings being clipped when opened through Settings → Plugins with Chat Polish enabled. Keep the form at its natural height instead of allowing text-field styling to constrain it.
+- Add desktop and mobile regression coverage for the expanded form and Add destination placement.
+
+All three Jira connection methods and the supported Paseo range remain unchanged. Verified the fix in Paseo 0.17.4; no live Jira writes.
+
 ## 1.4.1
 
 - Support Paseo 0.17.x, verified against exact 0.17.1 SDKs and an isolated 0.17.1 daemon with the installed desktop app. Preserve compatibility with 0.14.x, 0.15.x and 0.16.x.

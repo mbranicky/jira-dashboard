@@ -8,6 +8,16 @@ This file is the source of truth for tracking progress.
 
 Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, and both type checks passed; 118 Git candidate files audited; 68 package files checked. Checked means the stated task is complete; partial coverage stays unchecked. Initial Git commit and public release are separate milestones. Do not publish, select a license, or bump the version without the user's direction.
 
+## 1.4.2 mapping fix release (2026-11-26)
+
+- [x] Confirm published baseline 1.4.1 and explicit authorization for patch 1.4.2, tagging and publication.
+- [x] Include merged mapping fix PR #53; verify plugin-list settings with Chat Polish on Paseo 0.17.4. Both typechecks and all 15 mapping component tests passed, including desktop/mobile regression tests that failed before the fix.
+- [x] Synchronize package, shrinkwrap, MCP handshake, README and changelog. Preserve all three connection methods, supported range and existing screenshots of the intended layout.
+- [x] Verify final tarball: 155 files, 2,023,712 bytes, SHA-256 `d067494d551beee8d1a37ae6be4a6aeab0e13e86477055a22e108bfb3672b492`. All packed bytes match source; clean production build passed. Both typechecks, 328 backend tests and 15 release-verifier tests passed; both audits report zero vulnerabilities. Artifact evidence retained under `/tmp/jira-1.4.2-candidate`.
+- [ ] Merge release PR after green checks and verify the exact main revision before tagging.
+- [ ] Publish tag, GitHub release and exact npm tarball through OIDC; verify downloaded bytes and fresh isolated installation.
+- [ ] Verify reviewed catalog update and live media, then finalize mutable release notes. Publication outcomes are recorded outside immutable package contents.
+
 ## 1.4.1 compatibility patch (2026-11-22)
 
 - [x] Verify published baseline 1.4.0 and exact patch candidate 1.4.1; the explicit update skill requests the full release workflow.
