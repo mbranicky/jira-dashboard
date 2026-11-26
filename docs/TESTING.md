@@ -1,5 +1,9 @@
 # Testing Jira Sprint Workspace
 
+## 1.4.2 mapping layout regression — 2026-11-26
+
+The new containment checks failed before the fix at 1200px and 390px and passed afterwards. All 15 mapping component tests and both typechecks passed. PR #53 passed the full baseline and multi-version CI suites. The installed Paseo 0.17.4 app was verified through Settings → Plugins with Chat Polish enabled: expanded fields and Remove stay inside the destination card, and Add destination follows it. No live Jira writes were performed. Existing screenshots still represent the intended layout.
+
 ## 1.4.1 compatibility verification — 2026-11-22
 
 The published 1.4.0 baseline passed both typechecks and 328 backend tests against exact plugin/client SDK 0.17.1 in an isolated copy. The original `<0.17.0` manifest was rejected by a separate loopback-only 0.17.1 daemon; a temporary `<0.18.0` copy activated and reloaded. The installed Paseo 0.17.1 desktop app rendered first-run settings, all three connection methods and the sample card. Appearance preferences survived reload; a missing synthetic credential path produced the expected read-only diagnostic without contacting Jira.
