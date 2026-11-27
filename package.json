@@ -1,6 +1,6 @@
 {
   "name": "paseo-jira-sprint-workspace",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "type": "module",
   "scripts": {
     "prototype": "node prototype/connect.mjs",
