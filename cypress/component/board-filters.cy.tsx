@@ -68,5 +68,10 @@ it('desktop toolbar → search followed by Filters and Views, options aligned ri
    });
   });
  });
- cy.get('[data-testid="filter-options"]').children().should('have.css','justify-content','flex-end');
+ // Assert the layout: Chrome may serialize flex-end as the equivalent flow-end.
+ cy.get('[data-testid="filter-options"]').children().should($row=>{
+  const row=$row[0];
+  expect(row.lastElementChild,'last filter control').not.to.be.null;
+  expect(row.lastElementChild!.getBoundingClientRect().right).closeTo(row.getBoundingClientRect().right,1);
+ });
 });

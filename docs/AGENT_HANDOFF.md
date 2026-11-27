@@ -4,6 +4,10 @@ Updated: 2026-11-22. Current continuation brief; implementation detail lives in 
 
 Settings Save connection and Save mappings now stay disabled until their respective values differ from saved settings, and disable again after reverting or successful saving. Prefilled new mappings count as unsaved changes; failed saves retain editable drafts. Mock browser coverage includes all three connection methods and desktop/mobile mapping edits.
 
+## 1.4.3 compatibility release
+
+The maintainer invoked `update-paseo-plugin` on 2026-11-27, authorizing the full compatibility and patch-release workflow. Baseline 1.4.2 is published. 1.4.3 widens the range to `>=0.14.0 <0.19.0`, retaining locked 0.14.0 dependencies and all three transports. Exact 0.18.1 checks, isolated runtime activation/reload and desktop settings verification passed without application-code changes. Preserve the stopped daily daemon and its configuration. Final publication and catalog evidence belongs in mutable GitHub release notes and external verification records.
+
 ## 1.4.2 mapping fix release
 
 The maintainer authorized 1.4.2 on 2026-11-26. It includes PR #53's Chat Polish compatibility guard for expanded mapping forms, verified in Paseo 0.17.4. Preserve the existing supported range and all three connection methods. Finish green release PR and exact-main checks, exact-artifact verification, tag, stable GitHub release and OIDC npm publication. Keep post-publication evidence outside immutable package contents. The earlier instruction below about a stopped live daemon describes the historical 1.4.1 test only.

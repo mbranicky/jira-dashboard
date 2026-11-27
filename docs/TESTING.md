@@ -1,5 +1,15 @@
 # Testing Jira Sprint Workspace
 
+## 1.4.3 / Paseo 0.18.1 verification
+
+The unchanged source passed both typechecks, 328 backend tests and all 279 browser tests across 30 specs using exact plugin/client SDK 0.18.1 in a separate checkout. The locked 0.14.0 baseline also passed full source/package checks. CI retains 0.15.0 typechecks and full 0.15.2/0.16.0/0.17.1 checks and adds full 0.18.1 verification without renaming required jobs.
+
+The original `<0.18.0` manifest rejected installation on an isolated 0.18.1 daemon. A production-prepared copy with only the range widened activated and reloaded. The installed 0.18.1 desktop app used a separate daemon home and desktop profile: dashboard setup, expanded mapping settings and MCP controls rendered correctly. A synthetic missing credential file returned the expected read-only error before contacting Jira. No live Jira writes or daily installation changes were made; the daily daemon remained stopped. Existing screenshots remain representative.
+
+The initial CI run exposed the documented Cypress 16.2.0 / Chrome 158 `* is not a valid URL` startup failure. Cypress is pinned to 16.3.0, which fixes that browser-protocol incompatibility; CI continues to use Chrome. The filter alignment regression checks rendered right edges rather than the browser-specific serialization of `flex-end`. Production dependencies are unchanged.
+
+Final tarball identity and post-publication evidence are recorded in the release checklist and GitHub release. The exact-main, npm download, fresh installation and live catalog checks remain separate gates.
+
 ## 1.4.2 mapping layout regression — 2026-11-26
 
 The new containment checks failed before the fix at 1200px and 390px and passed afterwards. All 15 mapping component tests and both typechecks passed. PR #53 passed the full baseline and multi-version CI suites. The installed Paseo 0.17.4 app was verified through Settings → Plugins with Chat Polish enabled: expanded fields and Remove stay inside the destination card, and Add destination follows it. No live Jira writes were performed. Existing screenshots still represent the intended layout.
@@ -272,7 +282,7 @@ Prepared after UI/media PR #39 merged with all four checks green. Package, shrin
 
 ## CI coverage
 
-The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, runs the full suite against exact 0.15.2 SDKs, restores again, and runs full checks and browser tests against exact 0.16.0 SDKs, then restores again and repeats full checks and browser tests against exact 0.17.1 SDKs. The historical job name remains stable for branch protection and release verification. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
+The required checks are **Build, tests & package · Paseo 0.14.0**, **SDK compatibility · Paseo 0.15.2**, and **Secret scan · source & history**. The baseline runs the locked SDK, release-tool tests, clean extracted package build, full checks and browser tests. Compatibility first runs both typechecks against exact 0.15.0 SDKs, restores locked dependencies, runs the full suite against exact 0.15.2 SDKs, restores again, and runs full checks and browser tests against exact 0.16.0 SDKs, then restores again and repeats full checks and browser tests against exact 0.17.1 and 0.18.1 SDKs. The historical job name remains stable for branch protection and release verification. Gitleaks scans history and current source separately. The release verifier and main branch rules use these same three names.
 
 
 ## Screenshot refresh — 2026-11-12
