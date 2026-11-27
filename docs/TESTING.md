@@ -6,6 +6,8 @@ The unchanged source passed both typechecks, 328 backend tests and all 279 brows
 
 The original `<0.18.0` manifest rejected installation on an isolated 0.18.1 daemon. A production-prepared copy with only the range widened activated and reloaded. The installed 0.18.1 desktop app used a separate daemon home and desktop profile: dashboard setup, expanded mapping settings and MCP controls rendered correctly. A synthetic missing credential file returned the expected read-only error before contacting Jira. No live Jira writes or daily installation changes were made; the daily daemon remained stopped. Existing screenshots remain representative.
 
+The initial CI run exposed the documented Cypress 16.2.0 / Chrome 158 `* is not a valid URL` startup failure. Cypress is pinned to 16.3.0, which fixes that browser-protocol incompatibility; CI continues to use Chrome. The filter alignment regression checks rendered right edges rather than the browser-specific serialization of `flex-end`. Production dependencies are unchanged.
+
 Final tarball identity and post-publication evidence are recorded in the release checklist and GitHub release. The exact-main, npm download, fresh installation and live catalog checks remain separate gates.
 
 ## 1.4.2 mapping layout regression — 2026-11-26

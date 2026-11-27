@@ -14,7 +14,7 @@ Baseline reviewed 2026-11-03: 83 Node tests, 33 Chrome component/capture tests, 
 - [x] Verify unchanged source with exact 0.18.1 SDKs: both typechecks, 328 backend tests and 279 browser tests. Preserve locked 0.14.0 baseline and all three transports.
 - [x] Demonstrate old-range rejection, then activate/reload with the wider range on an isolated 0.18.1 daemon; verify installed-app dashboard, mapping settings and safe credential failure. Daily daemon remains stopped.
 - [x] Synchronize version, changelog, README, overview and supported range; add exact 0.18.1 CI checks without removing earlier-version coverage. Existing screenshots remain representative.
-- [x] Verify final tarball: 155 files, 2,024,171 bytes, SHA-256 `e36952c148ba37ec47d882510971e999ce9969cee77e4dbbfbef0b7245480959`. Every packed byte matches source. Both typechecks, 328 backend tests, 15 release-tool tests, clean production build and zero-finding audits passed. Final artifact activated/reloaded on isolated 0.18.1; evidence is under `/tmp/jira-1.4.3-candidate`.
+- [x] Verify final tarball after the Cypress 16.3.0 fix for Chrome 158: 155 files, 2,024,302 bytes, SHA-256 `67825644e08e426cdf5ec976def31f27caa0acd8d90c45c066413545eda5ef6e`. Packed bytes match source; clean production build and isolated reload passed. Both typechecks, 328 backend tests and 15 release-verifier tests passed; production and full audits report zero vulnerabilities.
 - [ ] Merge after green required checks and verify exact main before tagging.
 - [ ] Publish tag, stable GitHub release and exact tarball through OIDC; verify npm bytes and fresh installation.
 - [ ] Verify reviewed catalog update and live assets, then finalize mutable release notes. Record publication outcomes outside immutable package contents.

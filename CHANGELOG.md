@@ -4,6 +4,7 @@
 
 - Support Paseo 0.18.x, verified against exact 0.18.1 SDKs and an isolated 0.18.1 daemon and desktop profile. Preserve 0.14.x through 0.17.x compatibility.
 - Add full 0.18.1 checks to the existing compatibility CI job while retaining all earlier checks and the locked 0.14.0 minimum SDK.
+- Update the Cypress test dependency to 16.3.0 to fix test-run startup with Chrome 158.
 
 All three Jira connection methods remain supported. No application behavior or screenshots changed.
 
